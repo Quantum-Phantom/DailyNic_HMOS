@@ -30,6 +30,7 @@ class FormDataClass {
     /* bottomIcon               */ undefined
   )
   examInfo: examAttribute[] = [];
+  currentTime: number = 0;
   lastRefresh: string = '';
   constructor(refreshType: number) {
     if (refreshType === 0) { // 0 → 刷新课表
@@ -47,7 +48,8 @@ class FormDataClass {
       this.cardListParameter.itemCount = this.examInfo.length;
     }
     const now = scheduleManager.currentTime;
-    this.lastRefresh = `上次刷新: ${now.getMonth() + 1}月${now.getDate()}日${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`
+    this.lastRefresh = `上次刷新: ${now.getMonth() + 1}月${now.getDate()}日${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+    this.currentTime = now.getTime();
   }
 }
 
