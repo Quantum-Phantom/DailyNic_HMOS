@@ -1,6 +1,7 @@
 import { CardListComponent } from '../view/CardListComponent';
 import { CardListParameter } from '../viewmodel/CardListParameter';
 import examManager, { examAttribute } from '../../utils/ExamManager';
+import * as tools from '../../utils/tools';
 
 let localStorage = new LocalStorage();
 
@@ -24,6 +25,7 @@ struct Class_schedule_dailyCard {
     /* isBottomIcon             */ false,
     /* bottomIcon               */ undefined
   )
+  @LocalStorageProp('currentTime') currentTime: number = 0;
 
   @Builder
   cardListBuilder() {
@@ -38,6 +40,45 @@ struct Class_schedule_dailyCard {
     } else {
       ForEach(this.examInfo, (singleExam: examAttribute, index: number) => {
         Row() {
+          if (this.currentTime < singleExam.beginTimeStamp) {
+            Flex({ wrap: FlexWrap.Wrap, alignItems: ItemAlign.End }) {
+              if (singleExam.beginTimeStamp - this.currentTime >= 86400000)
+                Row() {
+                  Text(tools.formatTimeDiff(this.currentTime, singleExam.beginTimeStamp, 0).toString())
+                    .fontSize(36)
+                    .fontWeight(FontWeight.Bold)
+                    .fontColor($r('app.color.green'))
+                  Text($r('app.string.day'))
+                    .fontColor($r('app.color.green'))
+                    .maxFontSize(18)
+                    .fontWeight(FontWeight.Bold)
+                    .padding({ bottom: 6 })
+                }
+                .alignItems(VerticalAlign.Bottom)
+              else
+                Row() {
+                  Text(Number((tools.formatTimeDiff(this.currentTime, singleExam.beginTimeStamp, 1)
+                    + tools.formatTimeDiff(this.currentTime, singleExam.beginTimeStamp, 2) / 60).toExponential(1)).toString())
+                    .fontSize(28)
+                    .fontWeight(FontWeight.Bold)
+                    .fontColor($r('app.color.hour'))
+                  Text($r('app.string.hour'))
+                    .fontColor($r('app.color.hour'))
+                    .fontSize(14)
+                    .fontWeight(FontWeight.Bold)
+                    .padding({ bottom: 5 })
+                }
+                .margin({ bottom: 2 })
+                .alignItems(VerticalAlign.Bottom)
+            }
+            .width('20%');
+          } else {
+            Text($r('app.string.exam_processing'))
+              .fontSize(20)
+              .fontColor($r('app.color.transparent_text'))
+              .width('20%')
+              .textAlign(TextAlign.Start);
+          }
 
           Column() {
             Flex({ wrap: FlexWrap.Wrap, alignItems: ItemAlign.End }) {
