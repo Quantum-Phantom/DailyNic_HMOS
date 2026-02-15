@@ -180,6 +180,7 @@ export default struct PasswordDialog {
                 this.getUIContext().getPromptAction().showToast({ message: $r('app.string.incomplete'), duration: 5000 });
               } else {
                 this.getUIContext().getPromptAction().showToast({ message: $r('app.string.fill_next_time'), duration: 3000 });
+                this.onConfirm();
               }
             }
             this.controller.close();
