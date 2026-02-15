@@ -3,10 +3,22 @@
     {
       "name": "Schedule",
       "pageSourceFile": "src/main/ets/pages/tablet/Schedule.ets",
-      "buildFunction": "ScheduleBuilder",
-      "data": {
-        "description": "this is schedule page"
-      }
+      "buildFunction": "ScheduleBuilder"
+    },
+    {
+      "name": "ExamDetail",
+      "pageSourceFile": "src/main/ets/pages/tablet/ExamDetail.ets",
+      "buildFunction": "ExamBuilder"
+    },
+    {
+      "name": "GetSchedule",
+      "pageSourceFile": "src/main/ets/pages/tablet/GetSchedule.ets",
+      "buildFunction": "GetBuilder"
+    },
+    {
+      "name": "About",
+      "pageSourceFile": "src/main/ets/pages/tablet/About.ets",
+      "buildFunction": "AboutBuilder"
     }
   ]
 }

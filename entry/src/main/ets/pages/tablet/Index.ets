@@ -977,8 +977,7 @@ struct Index {
                   break;
                 case 14:
                   // 关于
-                  this.getUIContext().getRouter().pushUrl({ url: 'pages/About' })
-                    .catch((err: Error) => { console.error(`Router ERROR: [${err.name}] ${err.message}`) });
+                  this.pageInfo.replacePath({ name: "About" }, true);
                   break;
                 case 15:
                   // 进入恢复模式

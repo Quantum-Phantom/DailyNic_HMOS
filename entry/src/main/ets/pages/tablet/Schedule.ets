@@ -5,8 +5,9 @@ import { mediaquery, PopoverDialog, Popup, window } from '@kit.ArkUI';
 import { common } from '@kit.AbilityKit';
 import * as ScheduleSources from '../../constants/ScheduleSources';
 import BackgroundImage from '../../view/BgImageManager';
-import { classAttribute } from '../../constants/ScheduleSources';
+import { classAttribute, obtainedData } from '../../constants/ScheduleSources';
 import { weekTranslate } from '../../utils/tools';
+import { JSON } from '@kit.ArkTS';
 
 @Builder
 export function ScheduleBuilder(name: string, param?: number) {
@@ -570,15 +571,13 @@ struct Schedule {
               .height(22)
               .draggable(false)
               .onClick(() => {
-                this.getUIContext().getRouter().pushUrl({
-                  url: 'pages/GetSchedule',
-                  params: {
-                    title: $r('app.string.online_schedule'),
-                    url: 'https://jw.ustc.edu.cn/for-std/course-table'
+                this.pathStack.pushPath({ name: "GetSchedule",
+                  param: [$r('app.string.online_schedule'), 'https://jw.ustc.edu.cn/for-std/course-table'],
+                  onPop: (popInfo: PopInfo) => {
+                    scheduleManager.refreshParsedSchedule(popInfo.result as obtainedData);
+                    scheduleManager.getFormattedSchedule();
                   }
-                }).catch((err: Error) => {
-                  console.error(`Router ERROR: [${err.name}] ${err.message}`)
-                })
+                });
               })
           }
           .width('100%')
@@ -925,9 +924,6 @@ struct Schedule {
         this.onPortrait(mediaQueryResult)
       }); // 开启监听屏幕旋转
 
-      const routerParams = this.getUIContext().getRouter().getParams() as ScheduleSources.obtainedData;
-      if (routerParams != undefined)
-        scheduleManager.refreshParsedSchedule(routerParams);
       scheduleManager.getFormattedSchedule();
       this.termStart = scheduleManager.termStart;
       this.weekDisplayed = scheduleManager.weekDisplayed;
@@ -943,7 +939,6 @@ struct Schedule {
       }
     })
     .onDisAppear(() => {
-      console.log('!!disappear');
       this.portraitListener.off('change'); // 关闭监听屏幕旋转，防止内存泄露
     })
   }
