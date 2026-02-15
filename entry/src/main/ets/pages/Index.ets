@@ -966,7 +966,7 @@ struct Index {
                   break;
 
                 case 5:
-                  // 选择最近使用
+                  // 选择最常访问显示个数
                   this.getUIContext().showTextPickerDialog({
                     selected: FunctionOrder.maxRecord - 1,
                     range: tools.getContArray([[1, 20]], true) as string[], // 在此处修改允许用户选择的最大显示数量上限！！（现在是20）
@@ -982,7 +982,7 @@ struct Index {
                   break;
 
                 case 6:
-                  // 重置最近使用
+                  // 重置最常访问
                   FunctionOrder.resetFunc();
                   FunctionOrder.refreshFunc(); // 刷新点击次数显示
                   this.copyMostUsedFunc = FunctionOrder.mostUsedFunc;

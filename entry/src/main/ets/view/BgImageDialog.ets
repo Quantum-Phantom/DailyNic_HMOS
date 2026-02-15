@@ -32,7 +32,7 @@ export default struct BgImageDialog {
           .margin({ right: 5 });
         Text($r('app.string.custom_background'))
           .fontSize(20)
-          .fontWeight("bold")
+          .fontWeight(FontWeight.Bold)
           .layoutWeight(1);
         Toggle({ isOn: $$this.isShown, type: ToggleType.Switch })
           .onChange((value: boolean) => {

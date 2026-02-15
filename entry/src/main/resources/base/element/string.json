@@ -154,7 +154,7 @@
     },
     {
       "name": "custom_background_hint",
-      "value": " \uDB80\uDE9C 如果你需要调整亮度，请在系统图库中编辑。尽量选择文件大小和分辨率合适（最简单粗暴的一种调整方式是，在图库中打开图片再截屏）的图片，否则可能会导致卡顿和不稳定。"
+      "value": " \uDB80\uDE9C （如果你不理解下面的话，请前往帮助页面）如果你需要调整亮度，请在系统图库中编辑。尽量选择文件大小和分辨率合适（最简单粗暴的一种调整方式是，在图库中打开图片再截屏）的图片，否则可能会导致卡顿和不稳定。"
     },
     {
       "name": "too_large_bg_image",
@@ -185,12 +185,20 @@
       "value": "重启并应用更改"
     },
     {
-      "name": "ClearFunctionHistory",
-      "value": "清空「最近使用」"
+      "name": "try_to_custom_empty",
+      "value": "那里不可以哦（指自定义）"
     },
     {
-      "name": "setMaxRecord",
-      "value": "设置「最近使用」的显示数量"
+      "name": "custom_click_into_s",
+      "value": "「最常访问」功能是根据点击次数排序的，计数上限为 2147483646。你可以将该值手动设置为 0 以删除「%s」，或者设置为 2147483647 以置顶。切换页签后生效。"
+    },
+    {
+      "name": "clear_function_history",
+      "value": "清空「最常访问」"
+    },
+    {
+      "name": "set_max_record",
+      "value": "设置「最常访问」的显示数量"
     },
     {
       "name": "web_auto_dark_mode",
@@ -506,7 +514,7 @@
     },
     {
       "name": "click_empty_gridData4",
-      "value": "报告主人！你的「最近使用」专区目前是“无人问津”状态～"
+      "value": "报告主人！你的「最常访问」专区目前是“无人问津”状态～"
     },
     {
       "name": "click_empty_gridData5",
@@ -809,8 +817,12 @@
       "value": "少女祈祷中…"
     },
     {
-      "name": "incomplete",
-      "value": "已保存，但或许会登录失败。原因：学号格式不正确，或者密码没有包含数字或大小写字母，或者密码不是8~32位"
+      "name": "password_incomplete1",
+      "value": "已保存，但你可能输入误"
+    },
+    {
+      "name": "password_incomplete2",
+      "value": "╮(๑•́ ₃•̀๑)╭原因：学号格式不正确，或者密码没有包含数字或大小写字母，或者密码不是8~32位。"
     },
     {
       "name": "input_later",
@@ -831,6 +843,10 @@
     {
       "name": "input_account_info",
       "value": "你可以在此处填写统一身份认证账号和密码，以便需要登录时为你自动填充并登录。人家是不是超级贴心 (≥▽≤)\n如需二次验证，请勾选「信任此设备」。所有信息均加密保存在本地，我们不会将任何个人信息上传到任何服务器。"
+    },
+    {
+      "name": "delete_account_or_not",
+      "value": "真的要删除存储在此处的账号密码吗？"
     },
     {
       "name": "fill_next_time",

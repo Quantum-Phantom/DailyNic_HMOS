@@ -18,6 +18,7 @@ export default struct PasswordDialog {
   controller: CustomDialogController;
   private inputUID: string = accountInfoProvider.getUID();
   private inputPassword: string = accountInfoProvider.getPassword();
+  private showDelButton: boolean = false;
   isFromSetting: boolean= true;
 
   onConfirm: () => void = () => {};
@@ -29,11 +30,51 @@ export default struct PasswordDialog {
       this.inputUID = '';
     if (this.inputPassword === null)
       this.inputPassword = '';
+    this.showDelButton = (this.inputUID + this.inputPassword === '') ? false : true;
     authResult = 0;
   }
 
   build() {
     Column() {
+      Row() {
+        Image($r('app.media.key_horizontal'))
+          .height(30)
+          .margin({ right: 5, left: 6 });
+        Text($r('app.string.set_account_info'))
+          .fontSize(20)
+          .fontWeight(FontWeight.Bold)
+          .layoutWeight(1);
+        Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
+          Image($r('app.media.trash_red'))
+            .width(24)
+            .height(24)
+        }
+        .visibility(this.showDelButton ? Visibility.Visible : Visibility.Hidden)
+        .height(36)
+        .width(36)
+        .onClick(() => {
+          this.getUIContext().showAlertDialog({
+            message: $r('app.string.delete_account_or_not'),
+            autoCancel: true, alignment: DialogAlignment.Center, gridCount: 4, cancel: () => {},
+            primaryButton: { value: $r('app.string.cancel'), action: () => {} },
+            secondaryButton: {
+              enabled: true, defaultFocus: true, style: DialogButtonStyle.HIGHLIGHT, value: $r('app.string.ok'),
+              action: () => {
+                UnifiedPreferences.deleteSync(UID_KEY);
+                UnifiedPreferences.deleteSync(PASSWORD_KEY);
+                this.controller.close();
+              }
+            },
+            onWillDismiss: (dismissDialogAction: DismissDialogAction) => {
+              if (dismissDialogAction.reason === DismissReason.PRESS_BACK)
+                dismissDialogAction.dismiss();
+              if (dismissDialogAction.reason === DismissReason.TOUCH_OUTSIDE)
+                dismissDialogAction.dismiss();
+            }
+          });
+        })
+      }
+
       Text($r('app.string.input_account_info'))
         .margin({ bottom: 10 })
         .width('90%')
@@ -157,37 +198,53 @@ export default struct PasswordDialog {
           .layoutWeight(1)
         Button($r('app.string.ok'))
           .onClick(() => {
-            let emptyInput: boolean = false;
-            if (this.inputUID === '') {
-              emptyInput = true;
+            if (this.inputUID === '')
               UnifiedPreferences.deleteSync(UID_KEY);
-            }
-            if (this.inputPassword === '') {
-              emptyInput = true;
-              UnifiedPreferences.deleteSync(PASSWORD_KEY);
-            }
-
-            if (emptyInput) {
-              this.getUIContext().getPromptAction().showToast({ message: $r('app.string.cannot_fill') });
-            } else {
+            else
               UnifiedPreferences.putSync(UID_KEY, this.inputUID);
+            if (this.inputPassword === '')
+              UnifiedPreferences.deleteSync(PASSWORD_KEY);
+            else
               UnifiedPreferences.putSync(PASSWORD_KEY, accountInfoProvider.encryptPassword(this.inputPassword));
+
+            if (this.inputUID === '' || this.inputPassword === '') {
+              this.getUIContext().getPromptAction().showToast({ message: $r('app.string.cannot_fill') });
+              this.controller.close();
+            } else {
               if (!/^[A-Z]{2}\d{8}$/.test(this.inputUID) ||
                 !(!/\s/.test(this.inputPassword) && /[a-z]/.test(this.inputPassword) &&
                   this.inputPassword.length >= 8 &&
                 /[A-Z]/.test(this.inputPassword) && /\d/.test(this.inputPassword) && this.inputPassword.length <= 32)
               ) {
-                this.getUIContext().getPromptAction().showToast({ message: $r('app.string.incomplete'), duration: 5000 });
-              } else {
+                this.getUIContext().showAlertDialog({
+                  title: $r('app.string.password_incomplete1'),
+                  message: $r('app.string.password_incomplete2'),
+                  autoCancel: true, gridCount: 4, alignment: DialogAlignment.Center, cancel: () => {},
+                  primaryButton: { value: $r('app.string.back'), action: () => {} },
+                  secondaryButton: { enabled: true, defaultFocus: true, style: DialogButtonStyle.HIGHLIGHT, value: $r('app.string.ok'),
+                    action: () => {
+                      this.onConfirm();
+                      this.controller.close();
+                    }
+                  },
+                  onWillDismiss: (dismissDialogAction: DismissDialogAction) => {
+                    if (dismissDialogAction.reason === DismissReason.PRESS_BACK)
+                      dismissDialogAction.dismiss();
+                    if (dismissDialogAction.reason === DismissReason.TOUCH_OUTSIDE)
+                      dismissDialogAction.dismiss();
+                  }
+                });
+              }
+              else {
                 this.getUIContext().getPromptAction().showToast({ message: $r('app.string.fill_next_time'), duration: 3000 });
                 this.onConfirm();
+                this.controller.close();
               }
             }
-            this.controller.close();
           })
           .layoutWeight(1)
       }
-      .margin({ top: 20 })
+      .margin({ top: 15 })
     }
     .padding(16)
     .width('100%')

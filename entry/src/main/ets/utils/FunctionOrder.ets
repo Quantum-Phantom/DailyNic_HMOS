@@ -39,13 +39,23 @@ export function recordClick(gridIndex: number, index: number): void {
   if (gridIndex == -1) // 常用区 (-1) 不记录
     return;
   let preName: string = gridIndex.toString() + '.' + index.toString(); // 按钮对应首选项名称
-  let latestTime: number = UnifiedPreferences.getNumberSync(preName, 0) as number; // 读取点击次数
+  let latestTime: number = UnifiedPreferences.getNumberSync(preName, 0); // 读取点击次数
 
-  if (latestTime < 2147483647)
+  if (latestTime < 2147483646) {
     latestTime++; // 点击次数+1
-  UnifiedPreferences.putSync(preName, latestTime); // 保存新的点击次数
+    UnifiedPreferences.putSync(preName, latestTime); // 保存新的点击次数
+  }
 }
 
+export function customizeClick(gridIndex: number, index: number, clickTimes: number): void {
+  if (gridIndex == -1 || clickTimes > 2147483647) // 常用区 (-1) 不记录，数据过大不记录
+    return;
+
+  if (clickTimes > 0)
+    UnifiedPreferences.putSync(gridIndex.toString() + '.' + index.toString(), clickTimes); // 按钮对应首选项名称
+  else
+    UnifiedPreferences.deleteSync(gridIndex.toString() + '.' + index.toString());
+}
 
 export function refreshFunc(): void {
   order = []
@@ -53,7 +63,7 @@ export function refreshFunc(): void {
     for (let index = 0; index < eachGridNum[gridIndex]; index++) {
       let preName: string = gridIndex.toString() + '.' + index;
       if (UnifiedPreferences.hasSync(preName)) {
-        let preTimes: number = UnifiedPreferences.getNumberSync(preName, 0) as number;
+        let preTimes: number = UnifiedPreferences.getNumberSync(preName, 0);
         order.push([preName, preTimes]);
       }
     }
@@ -66,8 +76,7 @@ export function refreshFunc(): void {
   }
 }
 
-
-export function resetFunc(): void { // 重置"最近使用"
+export function resetFunc(): void { // 重置"最常访问"
   for (let gridIndex = 0; gridIndex < totalGridNum; gridIndex++) {
     for (let index = 0; index < eachGridNum[gridIndex]; index++) {
       let preName: string = gridIndex.toString() + '.' + index;
@@ -79,9 +88,7 @@ export function resetFunc(): void { // 重置"最近使用"
   setFunc(true);
 }
 
-
-// 最近使用部分映射
-export function gIndex_to_pic(gridIndex: number, index: number): ResourceStr {
+export function gIndex_to_pic(gridIndex: number, index: number): ResourceStr { // 最常访问部分映射
   if (gridIndex == -1){
     if (order.length <= index)
       return $r('app.media.default_function_icon');
