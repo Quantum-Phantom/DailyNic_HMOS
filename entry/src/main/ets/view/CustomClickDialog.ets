@@ -29,12 +29,8 @@ export default struct CustomClick {
             type: CounterType.INLINE,
             inlineOptions: {
               value: UnifiedPreferences.getNumberSync(`${this.gridIndex}.${this.index}`, 0),
-              min: 0,
-              step: 1,
-              max: 2147483647,
-              onChange: (value: number) => {
-                this.clickTimes = value;
-              }
+              min: 0, step: 1, max: 2147483647,
+              onChange: (value: number) => { this.clickTimes = value; }
             }
           }
         })

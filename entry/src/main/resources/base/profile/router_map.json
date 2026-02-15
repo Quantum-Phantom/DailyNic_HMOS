@@ -19,6 +19,11 @@
       "name": "About",
       "pageSourceFile": "src/main/ets/pages/tablet/About.ets",
       "buildFunction": "AboutBuilder"
+    },
+    {
+      "name": "Help",
+      "pageSourceFile": "src/main/ets/pages/tablet/Help.ets",
+      "buildFunction": "HelpBuilder"
     }
   ]
 }

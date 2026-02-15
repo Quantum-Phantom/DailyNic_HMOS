@@ -276,12 +276,10 @@ struct About {
         .width('100%')
         .padding({ top: 10, left: 10, right: 10 })
       }
-      .backgroundImage(BackgroundImage.pic)
-      .backgroundImageSize(ImageSize.Cover)
-      .backgroundImagePosition(Alignment.Center)
       .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
-      .backgroundColor($r('app.color.normal_background'))
     }
+    .hideTitleBar(true)
+    .backgroundColor('#00d00721')
     .onReady((context: NavDestinationContext) => {
       this.getImage();
       this.pathStack = context.pathStack;

@@ -451,7 +451,10 @@ struct Index {
           .width('100%')
           .padding({ left: 8, right: 8, top: 8, bottom: 8 })
           .onClick(() => {
-            this.pageInfo.replacePath({ name: 'Schedule', param: this.windowRect.height }, true)
+            if (this.pageName !== '')
+              this.pageInfo.popToName(this.pageName, true);
+            this.pageInfo.replacePath({ name: 'Schedule', param: this.windowRect.height }, true);
+            this.pageName = 'Schedule';
             // this.getUIContext().getRouter().pushUrl({ url: 'pages/Schedule' })
             //   .catch((err: Error) => { console.error(`Router ERROR: [${err.name}] ${err.message}`) })
           })
@@ -677,8 +680,10 @@ struct Index {
           .width('100%')
           .padding({ left: 8, right: 8, top: 8, bottom: 8 })
           .onClick(() => {
-            this.getUIContext().getRouter().pushUrl({ url: 'pages/ExamDetail' })
-              .catch((err: Error) => { console.error(`Router ERROR: [${err.name}] ${err.message}`) })
+            if (this.pageName !== '')
+              this.pageInfo.popToName(this.pageName, true);
+            this.pageInfo.replacePath({ name: 'ExamDetail', param: this.windowRect.height }, true);
+            this.pageName = 'ExamDetail';
           })
 
           if (this.showExamDetail) {
@@ -972,13 +977,20 @@ struct Index {
 
                 case 13:
                   // 帮助
-                  this.getUIContext().getRouter().pushUrl({ url: 'pages/Help' })
-                    .catch((err: Error) => { console.error(`Router ERROR: [${err.name}] ${err.message}`) });
+                  if (this.pageName !== '')
+                    this.pageInfo.popToName(this.pageName, true);
+                  this.pageInfo.replacePath({ name: 'Help', param: this.windowRect.height }, true);
+                  this.pageName = 'Help';
                   break;
+
                 case 14:
                   // 关于
-                  this.pageInfo.replacePath({ name: "About" }, true);
+                  if (this.pageName !== '')
+                    this.pageInfo.popToName(this.pageName, true);
+                  this.pageInfo.replacePath({ name: 'About', param: this.windowRect.height }, true);
+                  this.pageName = 'About';
                   break;
+
                 case 15:
                   // 进入恢复模式
                   UnifiedPreferences.putSync('RecoveryMode', true);
@@ -1068,6 +1080,7 @@ struct Index {
    * Tabs 主控程序
    */
   pageInfo: NavPathStack = new NavPathStack();
+  pageName: string = '';
 
   build() {
     Column() {
@@ -1081,8 +1094,7 @@ struct Index {
           }
           .padding({ left: 7, right: 7 })
           .backgroundColor(BackgroundImage.showImage ? undefined : $r('app.color.normal_background'))
-          .tabBar(this.tabBuilder($r('app.string.page_start'), 0, $r('app.media.tab0_selected'),
-            $r('app.media.tab0_unselected')))
+          .tabBar(this.tabBuilder($r('app.string.page_start'), 0, $r('app.media.tab0_selected'), $r('app.media.tab0_unselected')))
           .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
 
           /**
@@ -1093,8 +1105,7 @@ struct Index {
           }
           .padding({ left: 7, right: 7 })
           .backgroundColor(BackgroundImage.showImage ? undefined : $r('app.color.normal_background'))
-          .tabBar(this.tabBuilder($r('app.string.page_function'), 1, $r('app.media.tab1_selected'),
-            $r('app.media.tab1_unselected')))
+          .tabBar(this.tabBuilder($r('app.string.page_function'), 1, $r('app.media.tab1_selected'), $r('app.media.tab1_unselected')))
           .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
 
           /**
@@ -1135,7 +1146,7 @@ struct Index {
     .height('100%')
     .width('100%')
     .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
-    .backgroundColor($r('app.color.shaded_background'))
+    .backgroundColor($r('app.color.normal_background'))
     .backgroundImage(BackgroundImage.pic)
     .backgroundImageSize(ImageSize.Cover)
     .backgroundImagePosition(Alignment.Center)

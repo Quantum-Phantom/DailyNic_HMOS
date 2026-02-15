@@ -706,14 +706,11 @@ struct ExamDetail {
           .padding({ left: 12, right: 12 })
         }
       }
-      .backgroundColor($r('app.color.normal_background'))
-      .backgroundImage(BackgroundImage.pic)
-      .backgroundImageSize(ImageSize.Cover)
-      .backgroundImagePosition(Alignment.Center)
       .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
       .height('100%')
       .width('100%')
     }
+    .backgroundColor('#00d00721')
     .onReady((context: NavDestinationContext) => {
       this.pathStack = context.pathStack;
     })
