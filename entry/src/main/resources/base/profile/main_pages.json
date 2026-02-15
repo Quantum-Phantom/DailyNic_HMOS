@@ -9,7 +9,7 @@
     "pages/ExamDetail",
     "pages/GetSchedule",
     "pages/Declaration",
-    "pages/PhoneIndex",
-    "pages/test"
+    "pages/test",
+    "pages/tablet/Index"
   ]
 }

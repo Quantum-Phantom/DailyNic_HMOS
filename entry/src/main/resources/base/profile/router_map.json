@@ -2,7 +2,7 @@
   "routerMap": [
     {
       "name": "Schedule",
-      "pageSourceFile": "src/main/ets/pages/Schedule.ets",
+      "pageSourceFile": "src/main/ets/pages/tablet/Schedule.ets",
       "buildFunction": "ScheduleBuilder",
       "data": {
         "description": "this is schedule page"

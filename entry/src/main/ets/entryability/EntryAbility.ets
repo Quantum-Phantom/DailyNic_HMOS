@@ -44,7 +44,7 @@ export default class EntryAbility extends UIAbility {
     } else {
       UnifiedPreferences.putSync('FaultOccurred', true);
       if (deviceInfo.deviceType === "phone") {
-        windowStage.loadContent('pages/PhoneIndex', (err) => {
+        windowStage.loadContent('pages/Index', (err) => {
           if (err.code) {
             hilog.error(DOMAIN, 'testTag', 'Failed to load the content. Cause: %{public}s', JSON.stringify(err));
             return;
@@ -61,7 +61,7 @@ export default class EntryAbility extends UIAbility {
         });
       }
       else {
-        windowStage.loadContent('pages/Index', (err) => {
+        windowStage.loadContent('pages/tablet/Index', (err) => {
           if (err.code) {
             hilog.error(DOMAIN, 'testTag', 'Failed to load the content. Cause: %{public}s', JSON.stringify(err));
             return;
