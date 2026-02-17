@@ -228,3 +228,22 @@ function insertIntoSortedArray(sortedArr: number[], num: number): void {
   // 直接修改原数组
   sortedArr.splice(insertIndex, 0, num);
 }
+
+/**
+ * 将长度值（Length类型）转换为数字类型的长度值
+ * @param length - 待转换的长度值，支持数字类型、字符串类型，或undefined
+ * @param defaultLen - 当length为undefined或无法转换时返回的默认数字长度
+ * @returns 转换后的数字类型长度值：
+ *          1. 若length是数字，直接返回该数字
+ *          2. 若length是字符串，尝试转换为整数后返回
+ *          3. 若length是undefined，返回传入的默认值defaultLen
+ * @note 字符串转换仅使用parseInt，会自动忽略非数字前缀后的内容（如"123px"会转为123）
+ */
+export function LengthToNumber(length: Length | undefined, defaultLen: number): number {
+  if (typeof length === "number")
+    return length;
+  else if (typeof length === "string")
+    return parseInt(length);
+  else
+    return defaultLen;
+}

@@ -209,7 +209,6 @@ class scheduleManager {
   today: number = 0; // 星期几-1
   isTermBegin: boolean = true;
   isTermEnd: boolean = false;
-  showColorHint: boolean = UnifiedPreferences.getBoolSync('ShowColorHint', true);
 
   getParsedSchedule(): void {
     this.parsedSchedule = JSON.parse(UnifiedPreferences.getSync(SCHEDULE_KEY, '[[[]]]')) as classAttribute[][][];
@@ -352,11 +351,6 @@ class scheduleManager {
       }
     this.refreshParsedSchedule({ timeTable: `[${JSON.stringify(this.parsedSchedule)}]`, startTime: this.termStart.toString() });
     this.getFormattedSchedule();
-  }
-
-  hideColorHint() {
-    UnifiedPreferences.putSync('ShowColorHint', false);
-    this.showColorHint = false;
   }
 }
 

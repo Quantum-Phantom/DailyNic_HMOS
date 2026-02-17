@@ -453,7 +453,7 @@ struct Index {
           .onClick(() => {
             if (this.pageName !== '')
               this.pageInfo.popToName(this.pageName, true);
-            this.pageInfo.replacePath({ name: 'Schedule', param: this.windowRect.height }, true);
+            this.pageInfo.replacePath({ name: 'Schedule', param: UnifiedPreferences.getNumberSync('GridHeight', px2vp(this.windowRect.height) - 75) }, true);
             this.pageName = 'Schedule';
             // this.getUIContext().getRouter().pushUrl({ url: 'pages/Schedule' })
             //   .catch((err: Error) => { console.error(`Router ERROR: [${err.name}] ${err.message}`) })

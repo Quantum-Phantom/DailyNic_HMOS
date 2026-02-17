@@ -7,6 +7,7 @@ import * as ScheduleSources from '../constants/ScheduleSources';
 import BackgroundImage from '../view/BgImageManager';
 import { classAttribute } from '../constants/ScheduleSources';
 import { weekTranslate } from '../utils/tools';
+import UnifiedPreferences from '../utils/UnifyPreference';
 
 
 @Entry
@@ -94,7 +95,7 @@ struct Schedule {
         buttons: [{
           text: $r('app.string.no_reminding'),
           action: () => {
-            scheduleManager.hideColorHint();
+            UnifiedPreferences.putSync('ShowColorHint', false);
             this.showScrollHint = false;
           }
         }]
@@ -508,7 +509,7 @@ struct Schedule {
               backgroundColor: '#00d00721',
               blurStyle: BlurStyle.Regular,
               onAppear: () => {
-                this.showColorHint = scheduleManager.showColorHint;
+                this.showColorHint = UnifiedPreferences.getBoolSync('ShowColorHint', true);
               },
               onWillDismiss: ((DismissSheetAction: DismissSheetAction) => {
                 this.classInfo.weekOfTerm = [...this.weekOfTerm];

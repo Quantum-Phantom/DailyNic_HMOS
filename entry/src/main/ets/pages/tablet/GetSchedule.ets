@@ -1,11 +1,12 @@
 
-import { webview } from '@kit.ArkWeb'
+import { webview } from '@kit.ArkWeb';
 import { examInfoQueryJS, fillInformationJS, startTimeQueryJS, timeTableQueryJS, pollUntilLoad } from '../../utils/TimeTable';
-import { obtainedData } from '../../constants/ScheduleSources'
-import { BusinessError } from '@kit.BasicServicesKit'
-import UnifiedPreferences, { PASSWORD_KEY, REMIND_KEY, UID_KEY}  from '../../utils/UnifyPreference'
-import accountInfoProvider from '../../utils/Encryption'
-import PasswordDialog from '../../view/PasswordDialog'
+import { obtainedData } from '../../constants/ScheduleSources';
+import { BusinessError } from '@kit.BasicServicesKit';
+import UnifiedPreferences, { PASSWORD_KEY, REMIND_KEY, UID_KEY}  from '../../utils/UnifyPreference';
+import accountInfoProvider from '../../utils/Encryption';
+import PasswordDialog from '../../view/PasswordDialog';
+import BackgroundImage from '../../view/BgImageManager';
 
 @Builder
 export function GetBuilder(name: string, param?: string[]) {
@@ -152,8 +153,9 @@ struct Webview {
         }
         .id('header')
         .width('100%')
-        .backgroundColor($r('app.color.shaded_background'))
         .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
+        .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background') : undefined)
+        .opacity(BackgroundImage.opacityLevel)
 
         Stack({ alignContent: Alignment.TopStart }) {
           Web({ src: this.initUrl, controller: this.webviewController })
@@ -288,6 +290,11 @@ struct Webview {
         }
         .layoutWeight(1)
       }
+      .backgroundBlurStyle(BackgroundImage.blurLevel)
+      .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+      .backgroundImage(BackgroundImage.pic)
+      .backgroundImageSize(ImageSize.Cover)
+      .backgroundImagePosition(Alignment.Center)
     }
     .hideTitleBar(true)
     .onReady((context: NavDestinationContext) => {

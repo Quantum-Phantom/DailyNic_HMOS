@@ -5,7 +5,7 @@ export interface classAttribute {
   name: string,
   teacher: string,
   weekOfTerm: number[],    // 以枚举形式写出哪几周
-  timeSpan: number[],      // 应当仅包含开始和结束是第几节课
+  timeSpan: number[],      // 包含完整的第几节课
   dayOfWeek: number,
   location: string,
   id: string,

@@ -356,25 +356,6 @@ struct ExamDetail {
     .padding({ top: 16, right: 16, left: 16});
   }
 
-  /**
-   * 页面初始化
-   */
-  onPageShow(): void {
-    try {
-      const routerParams = this.getUIContext().getRouter().getParams() as obtainedData;
-      if (routerParams != undefined && routerParams.timeTable != '') {
-        examManager.storeExam(JSON.parse(routerParams.timeTable));
-      }
-      examManager.readStoredExam();
-      this.examInfo = examManager.allExamInfo;
-    } catch (error) {
-      examManager.readStoredExam();
-      this.currentTime = new Date();
-      this.examInfo = examManager.allExamInfo;
-      console.error(`onPageShow ERROR: [${error.name}] ${error.message}`);
-    }
-  }
-
   pathStack: NavPathStack = new NavPathStack();
   build() {
     NavDestination() {
@@ -523,12 +504,18 @@ struct ExamDetail {
             .height(22)
             .draggable(false)
             .onClick(() => {
-              this.context.getRouter().pushUrl({
-                url: 'pages/GetSchedule',
-                params: { title: $r('app.string.online_exam_info'), url: 'https://jw.ustc.edu.cn/for-std/exam-arrange' }
-              }).catch((err: Error) => {
-                console.error(`Router ERROR: [${err.name}] ${err.message}`)
-              })
+              this.pathStack.pushPath({ name: "GetSchedule",
+                param: [$r('app.string.online_exam_info'), 'https://jw.ustc.edu.cn/for-std/exam-arrange'],
+                onPop: (popInfo: PopInfo) => {
+                  const routerParams = popInfo.result as obtainedData;
+                  if (routerParams != undefined && routerParams.timeTable != '') {
+                    examManager.storeExam(JSON.parse(routerParams.timeTable));
+                  }
+                  examManager.readStoredExam();
+                  this.currentTime = new Date();
+                  this.examInfo = examManager.allExamInfo;
+                }
+              });
             })
         }
         .width('100%')
@@ -713,6 +700,9 @@ struct ExamDetail {
     .backgroundColor('#00d00721')
     .onReady((context: NavDestinationContext) => {
       this.pathStack = context.pathStack;
+
+      examManager.readStoredExam();
+      this.examInfo = examManager.allExamInfo;
     })
   }
 }
