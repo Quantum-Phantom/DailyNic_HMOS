@@ -1,17 +1,17 @@
 
-import * as tools from '../../utils/tools';
-import scheduleManager, { areClassAttributesEqual } from '../../utils/TimeTable';
 import { PopoverDialog, Popup } from '@kit.ArkUI';
-import UnifiedPreferences from '../../utils/UnifyPreference';
 import * as ScheduleSources from '../../constants/ScheduleSources';
-import BackgroundImage from '../../view/BgImageManager';
 import { classAttribute, obtainedData } from '../../constants/ScheduleSources';
+import scheduleManager, { areClassAttributesEqual } from '../../utils/TimeTable';
+import * as tools from '../../utils/tools';
 import { weekTranslate } from '../../utils/tools';
+import UnifiedPreferences from '../../utils/UnifyPreference';
+import BackgroundImage from '../../view/BgImageManager';
+
 
 const criticalHeight: number = 32; // 紧凑模式临界值(vp)
 const classAndTeacher: number = 22; // 教室和教师占用高度
 const font13fpHeight: number = 16; // 包括行间距
-
 
 @Builder
 export function ScheduleBuilder(name: string, param?: number) {
@@ -24,6 +24,7 @@ export function ScheduleBuilder(name: string, param?: number) {
 @Entry
 @Component
 struct Schedule {
+
   initGridHeight: number = 0;
   @State gridHeight: number = 0; // 课表grid高度
   @State hideTime: boolean = false;
@@ -91,6 +92,8 @@ struct Schedule {
       })
     }
   }
+
+
   /**
    * 详情弹窗部分
    */
@@ -242,11 +245,12 @@ struct Schedule {
   /*
    * 详情弹窗部分
    */
-  @State showConflictClass: boolean = false;
+
 
   /**
    * 叠课弹窗部分
    */
+  @State showConflictClass: boolean = false;
   @Builder
   ConflictClass() {
     Column() {
@@ -382,6 +386,7 @@ struct Schedule {
   /*
    * 叠课弹窗部分
    */
+
 
   sepConflictClass() {
     this.thisWeekSchedule = [];

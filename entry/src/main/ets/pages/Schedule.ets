@@ -1,20 +1,30 @@
 
-import * as tools from '../utils/tools';
-import scheduleManager, { areClassAttributesEqual } from '../utils/TimeTable';
-import { mediaquery, PopoverDialog, Popup, window } from '@kit.ArkUI';
 import { common } from '@kit.AbilityKit';
+import { mediaquery, PopoverDialog, Popup, window } from '@kit.ArkUI';
 import * as ScheduleSources from '../constants/ScheduleSources';
-import BackgroundImage from '../view/BgImageManager';
-import { classAttribute } from '../constants/ScheduleSources';
+import { classAttribute, obtainedData } from '../constants/ScheduleSources';
+import scheduleManager, { areClassAttributesEqual } from '../utils/TimeTable';
+import * as tools from '../utils/tools';
 import { weekTranslate } from '../utils/tools';
 import UnifiedPreferences from '../utils/UnifyPreference';
+import BackgroundImage from '../view/BgImageManager';
 
+
+const criticalHeight: number = 32; // 紧凑模式临界值(vp)
+const classAndTeacher: number = 22; // 教室和教师占用高度
+const font13fpHeight: number = 16; // 包括行间距
+
+@Builder
+export function ScheduleBuilder(name: string, param?: number) {
+  if (param)
+    Schedule({ gridHeight: param, maxLinesH: Math.max(1, (param / 13 - classAndTeacher) / font13fpHeight) });
+  else
+    Schedule({ gridHeight: UnifiedPreferences.getNumberSync('GridHeight', 500) })
+}
 
 @Entry
 @Component
 struct Schedule {
-
-  private context: Context = this.getUIContext().getHostContext() as common.UIAbilityContext;
 
   /*
    * 以下是监听屏幕旋转
@@ -27,7 +37,7 @@ struct Schedule {
   onPortrait(mediaQueryResult: mediaquery.MediaQueryResult) {
     let windowClass: window.Window | undefined = undefined;
     try {
-      let promise = window.getLastWindow(this.context);
+      let promise = window.getLastWindow(this.getUIContext().getHostContext());
       promise.then((data)=> {
         //Get window object
         windowClass = data;
@@ -57,6 +67,12 @@ struct Schedule {
    * 以上是监听屏幕旋转
    */
 
+  initGridHeight: number = 0;
+  @State gridHeight: number = 0; // 课表grid高度
+  @State hideTime: boolean = false;
+  gridMinHeight: number = 0;
+  @State maxLinesH: number = 1; // H意为height
+
   @State weekDisplayed: number = 0;
   @State termStart: number = 0;
   @State weekStart: number = 0;
@@ -64,6 +80,24 @@ struct Schedule {
   @State thisWeekSchedule: ScheduleSources.classAttribute[] = [];
   @State conflictSchedule: ScheduleSources.classAttribute[] = [];
 
+
+  @State showPinchHint: boolean = false;
+  @Builder
+  pinchHintPopup() {
+    Row() {
+      Popup({
+        icon: { image: $r('app.media.lightbulb') },
+        message: { text: $r('app.string.pinch_to_scale') },
+        showClose: false,
+        buttons: [{
+          text: $r('app.string.no_reminding'),
+          action: () => {
+            UnifiedPreferences.putSync('ShowPinchHint', false);
+            this.showPinchHint = false;
+          }
+        }]
+      })}
+  }
   @State showColorHint: boolean = false;
   @Builder
   colorHintPopup() {
@@ -82,8 +116,6 @@ struct Schedule {
       })
     }
   }
-
-
   @State showScrollHint: boolean = false;
   @Builder
   scrollHintPopup() {
@@ -102,6 +134,8 @@ struct Schedule {
       })
     }
   }
+
+
   /**
    * 详情弹窗部分
    */
@@ -253,11 +287,12 @@ struct Schedule {
   /*
    * 详情弹窗部分
    */
-  @State showConflictClass: boolean = false;
+
 
   /**
    * 叠课弹窗部分
    */
+  @State showConflictClass: boolean = false;
   @Builder
   ConflictClass() {
     Column() {
@@ -276,6 +311,7 @@ struct Schedule {
         .height(42)
         .margin({ right: 8 })
         .onClick(() => {
+          this.showConflictClass = false;
           this.getUIContext().getRouter().pushUrl({ url: 'pages/Help' })
             .catch((err: Error) => { console.error(`Router ERROR: [${err.name}] ${err.message}`) });
         })
@@ -390,6 +426,7 @@ struct Schedule {
   /*
    * 叠课弹窗部分
    */
+
 
   sepConflictClass() {
     this.thisWeekSchedule = [];
@@ -720,221 +757,261 @@ struct Schedule {
       /**
        * 课表
        */
-      Grid() {
-        /**
-         * 表头
-         */
-        GridItem({ style: GridItemStyle.NONE }) {
-          Row() {
-            // 上午、下午、晚上
-            Column() {
-              Text($r('app.string.morning'))
-                .fontWeight(FontWeight.Bold)
-                .fontSize(14)
-                .layoutWeight(5)
-                .width('100%')
-                .textAlign(TextAlign.Center)
-                .border({
-                  width: { right: 1 },
-                  color: $r('app.color.grid_border')
-                })
-
-              Text($r('app.string.afternoon'))
-                .fontWeight(FontWeight.Bold)
-                .fontSize(14)
-                .layoutWeight(5)
-                .width('100%')
-                .textAlign(TextAlign.Center)
-                .border({
-                  width: { top: 1, right: 1 },
-                  color: $r('app.color.grid_border')
-                })
-
-              Text($r('app.string.evening'))
-                .fontWeight(FontWeight.Bold)
-                .fontSize(14)
-                .layoutWeight(3)
-                .width('100%')
-                .textAlign(TextAlign.Center)
-                .border({
-                  width: { top: 1, right: 1 },
-                  color: $r('app.color.grid_border')
-                })
-            }
-            .layoutWeight(1)
-
-            // 13节课
-            Column() {
+      Scroll() {
+        Grid() {
+          /**
+           * 表头
+           */
+          GridItem({ style: GridItemStyle.NONE }) {
+            Row() {
+              // 上午、下午、晚上
               Column() {
-                Text(ScheduleSources.commonClassTime[1][0])
-                  .fontSize('8fp')
-                  .visibility(this.screenHeight < this.criticalHeight ? Visibility.None : Visibility.Visible)
-
-                Text('1')
+                Text($r('app.string.morning'))
                   .fontWeight(FontWeight.Bold)
                   .fontSize(14)
-                  .align(Alignment.Center)
+                  .layoutWeight(5)
+                  .width('100%')
+                  .textAlign(TextAlign.Center)
+                  .border({
+                    width: { right: 1 },
+                    color: $r('app.color.grid_border')
+                  })
 
-                Text(ScheduleSources.commonClassTime[1][1])
-                  .fontSize('8fp')
-                  .visibility(this.screenHeight < this.criticalHeight ? Visibility.None : Visibility.Visible)
+                Text($r('app.string.afternoon'))
+                  .fontWeight(FontWeight.Bold)
+                  .fontSize(14)
+                  .layoutWeight(5)
+                  .width('100%')
+                  .textAlign(TextAlign.Center)
+                  .border({
+                    width: { top: 1, right: 1 },
+                    color: $r('app.color.grid_border')
+                  })
+
+                Text($r('app.string.evening'))
+                  .fontWeight(FontWeight.Bold)
+                  .fontSize(14)
+                  .layoutWeight(3)
+                  .width('100%')
+                  .textAlign(TextAlign.Center)
+                  .border({
+                    width: { top: 1, right: 1 },
+                    color: $r('app.color.grid_border')
+                  })
               }
-              .width('100%')
               .layoutWeight(1)
-              .justifyContent(FlexAlign.SpaceBetween)
-              .padding({ top: 2, bottom: 2 })
-              .border({
-                width: { right: 1 },
-                color: $r('app.color.grid_border')
-              });
 
-              ForEach(tools.getContArray([[2, 13]]), (item: number) => {
+              // 13节课
+              Column() {
                 Column() {
-                  Text(ScheduleSources.commonClassTime[item][0])
+                  Text(ScheduleSources.commonClassTime[1][0])
                     .fontSize('8fp')
-                    .visibility(this.screenHeight < this.criticalHeight ? Visibility.None : Visibility.Visible)
+                    .visibility(this.hideTime ? Visibility.None : Visibility.Visible)
 
-                  Text(item.toString())
+                  Text('1')
                     .fontWeight(FontWeight.Bold)
                     .fontSize(14)
                     .align(Alignment.Center)
 
-                  Text(ScheduleSources.commonClassTime[item][1])
+                  Text(ScheduleSources.commonClassTime[1][1])
                     .fontSize('8fp')
-                    .visibility(this.screenHeight < this.criticalHeight ? Visibility.None : Visibility.Visible)
+                    .visibility(this.hideTime ? Visibility.None : Visibility.Visible)
                 }
                 .width('100%')
                 .layoutWeight(1)
                 .justifyContent(FlexAlign.SpaceBetween)
                 .padding({ top: 2, bottom: 2 })
                 .border({
-                  width: { top: 1, right: 1 },
+                  width: { right: 1 },
                   color: $r('app.color.grid_border')
+                })
+                .onSizeChange((_oldValue: SizeOptions, newValue: SizeOptions) => {
+                  if (tools.LengthToNumber(newValue.height, 100) < criticalHeight + 6) // 加6是因为padding和border
+                    this.hideTime = true;
+                  else
+                    this.hideTime = false;
                 });
-              })
-            }
-            .layoutWeight(1)
-          }
-        }
-        .rowStart(0)
-        .rowEnd(12)
-        .columnStart(0)
-        .columnEnd(0)
-        .backgroundBlurStyle(BackgroundImage.blurLevel)
-        .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.normal_background') : undefined)
-        .opacity(BackgroundImage.opacityLevel)
 
-        /**
-         * 课程内容
-         */
-        if (this.thisWeekSchedule.length === 0) {
-          GridItem({ style: GridItemStyle.NONE }) {
-            Column() {
-              Image($r('app.media.no_course_this_week'))
-                .height(100)
-                .width(100)
-                .interpolation(ImageInterpolation.Medium)
-                .draggable(false)
-              Text($r('app.string.no_class_this_week')).fontSize(18).textAlign(TextAlign.Center)
+                ForEach(tools.getContArray([[2, 13]]), (item: number) => {
+                  Column() {
+                    Text(ScheduleSources.commonClassTime[item][0])
+                      .fontSize('8fp')
+                      .visibility(this.hideTime ? Visibility.None : Visibility.Visible)
+
+                    Text(item.toString())
+                      .fontWeight(FontWeight.Bold)
+                      .fontSize(14)
+                      .align(Alignment.Center)
+
+                    Text(ScheduleSources.commonClassTime[item][1])
+                      .fontSize('8fp')
+                      .visibility(this.hideTime ? Visibility.None : Visibility.Visible)
+                  }
+                  .width('100%')
+                  .layoutWeight(1)
+                  .justifyContent(FlexAlign.SpaceBetween)
+                  .padding({ top: 2, bottom: 2 })
+                  .border({
+                    width: { top: 1, right: 1 },
+                    color: $r('app.color.grid_border')
+                  });
+                })
+              }
+              .layoutWeight(1)
             }
-            .backgroundBlurStyle(BackgroundImage.blurLevel)
-            .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.normal_background') : undefined)
-            .opacity(BackgroundImage.opacityLevel)
-            .padding({
-              top: 5,
-              left: 10,
-              right: 10,
-              bottom: 10
-            })
-            .borderRadius(12);
           }
           .rowStart(0)
-          .rowEnd(10)
-          .columnStart(1)
-          .columnEnd(7);
-        } else {
-          ForEach(this.thisWeekSchedule, (lesson: ScheduleSources.classAttribute) => {
-            GridItem({ style: GridItemStyle.PLAIN }) {
+          .rowEnd(12)
+          .columnStart(0)
+          .columnEnd(0)
+          .backgroundBlurStyle(BackgroundImage.blurLevel)
+          .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.grid_background') : undefined)
+          .opacity(BackgroundImage.opacityLevel)
+
+          /**
+           * 课程内容
+           */
+          if (this.thisWeekSchedule.length === 0) {
+            GridItem({ style: GridItemStyle.NONE }) {
               Column() {
-                Text(lesson.name)
-                  .fontColor('#000000')
-                  .fontWeight(FontWeight.Bold)
-                  .fontSize(13)
-                  .maxLines(this.screenHeight < this.criticalHeight ? 1 : 4)
-                  .textOverflow({
-                    overflow: (this.screenHeight < this.criticalHeight ? TextOverflow.MARQUEE : TextOverflow.Ellipsis)
-                  })
-
-                Text(lesson.location)
-                  .fontColor('#000000')
-                  .fontSize(9)
-                  .maxLines(1)
-                  .textOverflow({ overflow: TextOverflow.MARQUEE })
-
-                Text(lesson.teacher)
-                  .fontColor('#000000')
-                  .fontSize(9)
-                  .maxLines(1)
-                  .textOverflow({ overflow: TextOverflow.MARQUEE })
+                Image($r('app.media.no_course_this_week'))
+                  .height(100)
+                  .width(100)
+                  .interpolation(ImageInterpolation.Medium)
+                  .draggable(false)
+                Text($r('app.string.no_class_this_week')).fontSize(18).textAlign(TextAlign.Center)
               }
-              .width('100%')
-              .height('100%')
-              .justifyContent(FlexAlign.Center)
+              .backgroundBlurStyle(BackgroundImage.blurLevel)
+              .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.normal_background') :
+                undefined)
+              .opacity(BackgroundImage.opacityLevel)
+              .padding({
+                top: 5,
+                left: 10,
+                right: 10,
+                bottom: 10
+              })
+              .borderRadius(12);
             }
-            .onClick(() => {
-              this.checkBoxGroup = (this.checkBoxGroup + 1) % 2;
-              this.isChangeSchedule = true;
-              this.oriClassInfo = {
-                name: lesson.name,
-                teacher: lesson.teacher,
-                weekOfTerm: [...lesson.weekOfTerm], // 以枚举形式写出哪几周
-                timeSpan: [...lesson.timeSpan], // 应当仅包含开始和结束是第几节课
-                dayOfWeek: lesson.dayOfWeek,
-                location: lesson.location,
-                id: lesson.id,
-                color: lesson.color,
-                priority: lesson.priority
-              };
-              this.classInfo = {
-                name: lesson.name,
-                teacher: lesson.teacher,
-                weekOfTerm: [...lesson.weekOfTerm], // 以枚举形式写出哪几周
-                timeSpan: [...lesson.timeSpan], // 应当仅包含开始和结束是第几节课
-                dayOfWeek: lesson.dayOfWeek,
-                location: lesson.location,
-                id: lesson.id,
-                color: lesson.color,
-                priority: lesson.priority
-              };
-              this.classColor = this.oriClassInfo.color;
-              this.rectifyWeekOfTerm = [];
-              for (let weekRepeat = 1; weekRepeat <= 20; weekRepeat++) {
-                this.rectifyWeekOfTerm[weekRepeat] = false;
+            .rowStart(0)
+            .rowEnd(10)
+            .columnStart(1)
+            .columnEnd(7);
+          } else {
+            ForEach(this.thisWeekSchedule, (lesson: ScheduleSources.classAttribute) => {
+              GridItem({ style: GridItemStyle.PLAIN }) {
+                Column() {
+                  Text(lesson.name)
+                    .fontColor('#000000')
+                    .fontWeight(FontWeight.Bold)
+                    .fontSize(13)
+                    .maxLines(Math.floor(this.maxLinesH * lesson.timeSpan.length))
+                    .textOverflow({
+                      overflow: (Math.floor(this.maxLinesH * lesson.timeSpan.length) === 1 ? TextOverflow.MARQUEE : TextOverflow.Ellipsis)
+                    })
+
+                  Text(lesson.location)
+                    .fontColor('#000000')
+                    .fontSize(9)
+                    .maxLines(1)
+                    .textOverflow({ overflow: TextOverflow.MARQUEE })
+                    .visibility(this.hideTime && (Math.floor(this.maxLinesH * lesson.timeSpan.length) === 1) ? Visibility.None : Visibility.Visible)
+
+                  Text(lesson.teacher)
+                    .fontColor('#000000')
+                    .fontSize(9)
+                    .maxLines(1)
+                    .textOverflow({ overflow: TextOverflow.MARQUEE })
+                    .visibility(this.hideTime && (Math.floor(this.maxLinesH * lesson.timeSpan.length) < 3) ? Visibility.None : Visibility.Visible)
+                }
+                .width('100%')
+                .height('100%')
+                .justifyContent(FlexAlign.Center)
               }
-              for (let weekRepeat of lesson.weekOfTerm) {
-                this.rectifyWeekOfTerm[weekRepeat] = true;
-              }
-              this.rectifyTimeSpan = [lesson.timeSpan[0], lesson.timeSpan[lesson.timeSpan.length - 1]];
-              this.showSheet = true;
-            })
-            .rowStart(lesson.timeSpan[0] - 1)
-            .rowEnd(lesson.timeSpan[lesson.timeSpan.length - 1] - 1)
-            .columnStart((lesson.dayOfWeek + 1) % 7 + 1)
-            .columnEnd((lesson.dayOfWeek + 1) % 7 + 1)
-            .padding(2)
-            .backgroundColor(lesson.color)
-            .border({
-              width: 1,
-              color: $r('app.color.grid_border')
+              .onClick(() => {
+                this.checkBoxGroup = (this.checkBoxGroup + 1) % 2;
+                this.isChangeSchedule = true;
+                this.oriClassInfo = {
+                  name: lesson.name,
+                  teacher: lesson.teacher,
+                  weekOfTerm: [...lesson.weekOfTerm], // 以枚举形式写出哪几周
+                  timeSpan: [...lesson.timeSpan], // 应当仅包含开始和结束是第几节课
+                  dayOfWeek: lesson.dayOfWeek,
+                  location: lesson.location,
+                  id: lesson.id,
+                  color: lesson.color,
+                  priority: lesson.priority
+                };
+                this.classInfo = {
+                  name: lesson.name,
+                  teacher: lesson.teacher,
+                  weekOfTerm: [...lesson.weekOfTerm], // 以枚举形式写出哪几周
+                  timeSpan: [...lesson.timeSpan], // 应当仅包含开始和结束是第几节课
+                  dayOfWeek: lesson.dayOfWeek,
+                  location: lesson.location,
+                  id: lesson.id,
+                  color: lesson.color,
+                  priority: lesson.priority
+                };
+                this.classColor = this.oriClassInfo.color;
+                this.rectifyWeekOfTerm = [];
+                for (let weekRepeat = 1; weekRepeat <= 20; weekRepeat++) {
+                  this.rectifyWeekOfTerm[weekRepeat] = false;
+                }
+                for (let weekRepeat of lesson.weekOfTerm) {
+                  this.rectifyWeekOfTerm[weekRepeat] = true;
+                }
+                this.rectifyTimeSpan = [lesson.timeSpan[0], lesson.timeSpan[lesson.timeSpan.length - 1]];
+                this.showSheet = true;
+              })
+              .rowStart(lesson.timeSpan[0] - 1)
+              .rowEnd(lesson.timeSpan[lesson.timeSpan.length - 1] - 1)
+              .columnStart((lesson.dayOfWeek + 1) % 7 + 1)
+              .columnEnd((lesson.dayOfWeek + 1) % 7 + 1)
+              .padding(2)
+              .backgroundColor(lesson.color)
+              .border({
+                width: 1,
+                color: $r('app.color.grid_border')
+              });
             });
-          });
+          }
         }
+        // .id('schedule_grid')
+        .columnsTemplate('1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr') // 8 列
+        .rowsTemplate('1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr') // 13 行
+        .height(this.gridHeight)
+        .bindPopup(this.showPinchHint, {
+          builder: this.pinchHintPopup(),
+          placement: Placement.Bottom,
+          width: 300,
+          onStateChange: (status) => {
+            if (!status.isVisible) {
+              this.showPinchHint = false;
+            }
+          }
+        });
       }
-      // .id('schedule_grid')
-      .columnsTemplate('1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr')    // 8 列
-      .rowsTemplate('1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr')    // 13 行
-      .margin({ bottom: 75 })
-      .padding(0)
+      .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
+      .layoutWeight(1)
+      .align(Alignment.Top)
+      .onSizeChange((_oldValue: SizeOptions, newValue: SizeOptions) => {
+        this.gridMinHeight = Math.max(208, tools.LengthToNumber(newValue.height, 1000) >> 1); // 神秘数字208
+        if (this.gridHeight < this.gridMinHeight)
+          this.maxLinesH = Math.max(1, ((this.gridHeight = this.gridMinHeight) / 13 - classAndTeacher) / font13fpHeight);
+      })
+      .gesture(PinchGesture({ fingers: 2 })
+        .onActionStart(() => {
+          this.initGridHeight = this.gridHeight;
+        })
+        .onActionUpdate((event: GestureEvent) => {
+          let tmpHeight: number = event.scale * this.initGridHeight;
+          if (tmpHeight > this.gridMinHeight && tmpHeight < 2600)
+            this.maxLinesH = Math.max(1, ((this.gridHeight = tmpHeight) / 13 - classAndTeacher) / font13fpHeight);
+        })
+        .onActionEnd(() => {
+          UnifiedPreferences.putSync('GridHeight', this.gridHeight);
+        }))
     }
     .height('100%')
     .width('100%')
