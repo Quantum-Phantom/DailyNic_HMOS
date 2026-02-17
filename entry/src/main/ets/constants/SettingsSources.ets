@@ -17,7 +17,7 @@ export class SettingsData {
       [
         new ItemData(5, $r('app.string.set_max_record'), $r('app.media.more')),
         new ItemData(6, $r('app.string.clear_function_history'), $r('app.media.eraser_line')),
-        new ItemData(7, $r('app.string.web_auto_dark_mode'), $r('app.media.moon_fill'), $r('app.string.setting_toggle')),
+        new ItemData(7, $r('app.string.web_auto_dark_mode'), $r('app.media.moon'), $r('app.string.setting_toggle')),
         new ItemData(8, $r('app.string.web_back_press'), $r('app.media.house'), $r('app.string.setting_toggle'))
       ],
       [

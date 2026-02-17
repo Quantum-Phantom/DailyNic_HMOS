@@ -1,6 +1,6 @@
 
 import { common } from '@kit.AbilityKit';
-import { mediaquery, PopoverDialog, Popup, window } from '@kit.ArkUI';
+import { display, mediaquery, PopoverDialog, Popup, window } from '@kit.ArkUI';
 import * as ScheduleSources from '../constants/ScheduleSources';
 import { classAttribute, obtainedData } from '../constants/ScheduleSources';
 import scheduleManager, { areClassAttributesEqual } from '../utils/TimeTable';
@@ -14,61 +14,11 @@ const criticalHeight: number = 32; // 紧凑模式临界值(vp)
 const classAndTeacher: number = 22; // 教室和教师占用高度
 const font13fpHeight: number = 16; // 包括行间距
 
-@Builder
-export function ScheduleBuilder(name: string, param?: number) {
-  if (param)
-    Schedule({ gridHeight: param, maxLinesH: Math.max(1, (param / 13 - classAndTeacher) / font13fpHeight) });
-  else
-    Schedule({ gridHeight: UnifiedPreferences.getNumberSync('GridHeight', 500) })
-}
-
 @Entry
 @Component
 struct Schedule {
-
-  /*
-   * 以下是监听屏幕旋转
-   */
-  readonly criticalHeight: number = 1500;    // 紧凑模式临界值
-  @State isLandscape: boolean = false;
-  @State screenWidth: number = 0;
-  @State screenHeight: number = 0;
-  private portraitListener: mediaquery.MediaQueryListener = this.getUIContext().getMediaQuery().matchMediaSync('(orientation: landscape)');
-  onPortrait(mediaQueryResult: mediaquery.MediaQueryResult) {
-    let windowClass: window.Window | undefined = undefined;
-    try {
-      let promise = window.getLastWindow(this.getUIContext().getHostContext());
-      promise.then((data)=> {
-        //Get window object
-        windowClass = data;
-        try {
-          //Get window properties
-          let properties = windowClass.getWindowProperties();
-          let rect = properties.windowRect;
-          this.screenWidth = rect.width;
-          this.screenHeight = rect.height;
-          if (rect.width > rect.height) { // 横屏
-            this.isLandscape = true;
-          } else { // 竖屏
-            this.isLandscape = false;
-          }
-          //rect.width: Window Width, rect.height: Window height
-        } catch (exception) {
-          console.error('Failed to obtain the window properties. Cause: ' + JSON.stringify(exception));
-        }
-        console.info('Succeeded in obtaining the top window. Data: ' + JSON.stringify(data));
-      }).catch((err: Error)=>{
-        console.error('Failed to obtain the top window. Cause: ' + JSON.stringify(err));
-      });} catch (exception) {
-      console.error('Failed to obtain the top window. Cause: ' + JSON.stringify(exception));
-    }
-  }
-  /*
-   * 以上是监听屏幕旋转
-   */
-
   initGridHeight: number = 0;
-  @State gridHeight: number = 0; // 课表grid高度
+  @State gridHeight: number = UnifiedPreferences.getNumberSync('GridHeight', px2vp(display.getDefaultDisplaySync().height)); // 课表grid高度
   @State hideTime: boolean = false;
   gridMinHeight: number = 0;
   @State maxLinesH: number = 1; // H意为height
@@ -480,16 +430,6 @@ struct Schedule {
         tong[i].push(false);
       }
     }
-  }
-
-  aboutToAppear(): void {
-    this.portraitListener.on('change', (mediaQueryResult: mediaquery.MediaQueryResult) => {
-      this.onPortrait(mediaQueryResult)
-    }); // 开启监听屏幕旋转
-  }
-
-  aboutToDisappear(): void {
-    this.portraitListener.off('change'); // 关闭监听屏幕旋转，防止内存泄露
   }
 
   build() {

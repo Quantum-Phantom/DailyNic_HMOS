@@ -105,7 +105,7 @@ struct Webview {
           }
         })
 
-      MenuItem({ content: $r('app.string.trim_memory'), startIcon: $r('app.media.arrowshape_3_triangle_path') })
+      MenuItem({ content: $r('app.string.trim_memory'), startIcon: $r('app.media.storage') })
         .onClick(() => {
           try {
             // 设置当前内存压力等级为适中，释放少量内存

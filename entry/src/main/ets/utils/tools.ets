@@ -247,3 +247,22 @@ export function LengthToNumber(length: Length | undefined, defaultLen: number): 
   else
     return defaultLen;
 }
+
+/**
+ * 增强版字节格式化函数
+ * @param bytes 字节数
+ * @param decimals 保留小数位数
+ * @param useBinary 是否使用二进制进制（1024），默认true
+ * @returns 格式化后的字符串
+ */
+export function formatBytes(bytes: number, decimals: number = 2, useBinary: boolean = true): string {
+  if (bytes === 0) return '0 B';
+
+  const k = useBinary ? 1024 : 1000;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = useBinary ? ['B', 'KB', 'MB', 'GB', 'TB', 'PB'] : ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+  return `${(bytes / Math.pow(k, i)).toFixed(dm)} ${sizes[i]}`;
+}

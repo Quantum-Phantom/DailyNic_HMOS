@@ -2,7 +2,7 @@
 import { application, common, contextConstant, Want } from '@kit.AbilityKit'
 import { LengthUnit } from '@kit.ArkUI'
 import { BusinessError } from '@kit.BasicServicesKit'
-import { fileIo } from '@kit.CoreFileKit'
+import { fileIo, storageStatistics } from '@kit.CoreFileKit'
 
 import { GridData, otherGridDataList } from '../../constants/GridListDataSources'
 import { ListDataConstants } from '../../constants/ListDataConstants'
@@ -193,34 +193,37 @@ struct Index {
   onPageShow(): void {
     FunctionOrder.refreshFunc(); // 刷新点击次数显示
     this.copyMostUsedFunc = FunctionOrder.mostUsedFunc;
+    storageStatistics.getCurrentBundleStats().then((dataSize: storageStatistics.BundleStats) => {
+      this.cacheSize = tools.formatBytes(dataSize.cacheSize, 2, false);
+    });
   }
 
   /**
    * 全局资源: 设置
    */
+  @State cacheSize: string = '计算中…'; // 未初始化时
   clearCache = async () => {
-    let paths: Array<string> = [];
+    this.cacheSize = '清理中…'
     let moduleContext: common.Context;
     moduleContext = await application.createModuleContext(this.context, 'entry');
     // 缓存路径/data/storage/el2/base/cache
-    paths.push(moduleContext.cacheDir);
     // 缓存路径/data/storage/el2/base/cache/web
-    paths.push(moduleContext.cacheDir + '/web');
     // 缓存路径/data/storage/el2/base/haps/entry/cache
-    paths.push(this.context.cacheDir);
+    let paths: Array<string> = [moduleContext.cacheDir, moduleContext.cacheDir + '/web', this.context.cacheDir];
     // 缓存路径/data/storage/el1/base/cache
     moduleContext.area = contextConstant.AreaMode.EL1;
     paths.push(moduleContext.cacheDir);
     // 缓存路径/data/storage/el1/base/haps/entry/cache
     this.context.area = contextConstant.AreaMode.EL1;
     paths.push(this.context.cacheDir);
+    this.context.area = contextConstant.AreaMode.EL2;
 
     // 遍历paths数组，彻底删除每个文件夹下的缓存数据
     for (let i = 0; i < paths.length; i++) {
       let path = paths[i];
       fileIo.listFile(path).then((filenames) => {
-        for (let i = 0; i < filenames.length; i++) {
-          let dirPath = path + '/' + filenames[i];
+        for (let j = 0; j < filenames.length; j++) {
+          let dirPath = path + '/' + filenames[j];
           if (dirPath === '/data/storage/el2/base/cache/web' || dirPath === '/data/storage/el2/base/cache/web/Cookies')
             continue;
           // 判断是否为文件夹
@@ -238,6 +241,11 @@ struct Index {
             });
           }
         }
+        // 清理完成后再次计算
+        if (i === paths.length - 1)
+          storageStatistics.getCurrentBundleStats().then((dataSize: storageStatistics.BundleStats) => {
+            this.cacheSize = tools.formatBytes(dataSize.cacheSize, 2, false);
+        });
       });
     }
   }
@@ -253,6 +261,11 @@ struct Index {
         Text(item.title)
           .fontSize('16fp')
           .fontColor($r('app.color.normal_text'))
+        if (item.id == 12) { // 清理缓存
+          Text(' (' + this.cacheSize + ')')
+            .fontSize('16fp')
+            .fontColor($r('app.color.normal_text'))
+        }
       }
 
       if (item.others === undefined) {
@@ -972,7 +985,6 @@ struct Index {
 
                 case 12:
                   this.clearCache();
-                  this.showMessage($r('app.string.wipe_cache_success'));
                   break;
 
                 case 13:
@@ -1015,8 +1027,10 @@ struct Index {
                     }
                   }
                   break;
+
                 default:
-                 this.showMessage($r('app.string.under_construction'));
+                  this.showMessage($r('app.string.under_construction'));
+                  break;
               }
             })
           })

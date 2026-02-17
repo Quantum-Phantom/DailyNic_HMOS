@@ -37,7 +37,7 @@ export default struct PasswordDialog {
   build() {
     Column() {
       Row() {
-        Image($r('app.media.key_horizontal'))
+        Image($r('app.media.key_shield'))
           .height(30)
           .margin({ right: 5, left: 6 });
         Text($r('app.string.set_account_info'))
