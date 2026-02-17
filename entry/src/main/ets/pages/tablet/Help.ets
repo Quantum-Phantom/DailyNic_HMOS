@@ -47,7 +47,7 @@ struct Help {
         .backgroundBlurStyle(BackgroundImage.blurLevel)
 
         List({ initialIndex: 0 }) {
-          ForEach(getContArray([[0, 9]]), (index: number) => {
+          ForEach(getContArray([[0, 11]]), (index: number) => {
             ListItem() {
               Column() {
                 Row() {

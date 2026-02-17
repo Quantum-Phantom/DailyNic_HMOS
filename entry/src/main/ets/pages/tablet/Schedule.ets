@@ -39,6 +39,23 @@ struct Schedule {
   @State conflictSchedule: ScheduleSources.classAttribute[] = [];
 
 
+  @State showXiuHint: boolean = false;
+  @Builder
+  xiuHintPopup() {
+    Row() {
+      Popup({
+        icon: { image: $r('app.media.lightbulb') },
+        message: { text: $r('app.string.back_to_current_week') },
+        showClose: false,
+        buttons: [{
+          text: $r('app.string.next_hint'),
+          action: () => {
+            this.showXiuHint = false;
+            this.showPinchHint = true;
+          }
+        }]
+      })}
+  }
   @State showPinchHint: boolean = false;
   @Builder
   pinchHintPopup() {
@@ -637,8 +654,7 @@ struct Schedule {
 
           // 星期几
           Row() {
-            Text(this.weekDisplayed === scheduleManager.weekDisplayed ? $r('app.string.class_span') :
-              $r('app.string.back_to_current_week'))
+            Text(this.weekDisplayed === scheduleManager.weekDisplayed ? $r('app.string.class_span') : $r('app.string.xiu'))
               .fontWeight(FontWeight.Bold)
               .fontSize(12)
               .height('100%')
@@ -647,6 +663,16 @@ struct Schedule {
               .border({
                 width: { right: 1 },
                 color: $r('app.color.grid_border')
+              })
+              .bindPopup(this.showXiuHint, {
+                builder: this.xiuHintPopup(),
+                placement: Placement.Right,
+                width: 300,
+                onStateChange: (status) => {
+                  if (!status.isVisible) {
+                    this.showXiuHint = false;
+                  }
+                }
               })
               .onClick(() => {
                 if (this.weekDisplayed !== scheduleManager.weekDisplayed) {
@@ -917,7 +943,7 @@ struct Schedule {
           .height(this.gridHeight)
           .bindPopup(this.showPinchHint, {
             builder: this.pinchHintPopup(),
-            placement: Placement.Bottom,
+            placement: Placement.Top,
             width: 300,
             onStateChange: (status) => {
               if (!status.isVisible) {
@@ -952,7 +978,7 @@ struct Schedule {
       .width('100%')
       .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
       .onAppear(() => {
-        this.showPinchHint = UnifiedPreferences.getBoolSync('ShowPinchHint', true);
+        this.showXiuHint = UnifiedPreferences.getBoolSync('ShowPinchHint', true);
       })
     }
     .backgroundColor('#00d00721')
@@ -1245,7 +1271,7 @@ struct Schedule {
                 .stroke(this.isColorLegal ? $r('app.color.grid_border') : $r('app.color.red'))
                 .bindPopup(this.showColorHint, {
                   builder: this.colorHintPopup(),
-                  placement: Placement.Top,
+                  placement: Placement.Left,
                   width: 300,
                   onStateChange: (status) => {
                     if (!status.isVisible) {

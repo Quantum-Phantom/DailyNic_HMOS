@@ -314,7 +314,7 @@ struct Index {
         Text(item.title)
           .fontSize('16fp')
           .fontColor($r('app.color.normal_text'))
-        if (item.id == 12) { // 清理缓存
+        if (item.id === 12) { // 清理缓存
           Text(' (' + this.cacheSize + ')')
             .fontSize('16fp')
             .fontColor($r('app.color.normal_text'))
@@ -326,27 +326,27 @@ struct Index {
           .width('12vp')
           .height('12vp')
           .draggable(false)
-      } else if (item.id == 1) {
+      } else if (item.id === 1) {
         Toggle({ type: ToggleType.Switch, isOn: $$this.showCheckIn })
           .onChange((value: boolean) => {
             UnifiedPreferences.putSync('showCheckIn', value);
           });
-      } else if (item.id == 2) {
+      } else if (item.id === 2) {
         Toggle({ type: ToggleType.Switch, isOn: $$this.showRecentCourse })
           .onChange((value: boolean) => {
             UnifiedPreferences.putSync('showRecentCourse', value);
           });
-      } else if (item.id == 3){
+      } else if (item.id === 3){
         Toggle({ type: ToggleType.Switch, isOn: $$this.showExamDetail })
           .onChange((value: boolean) => {
             UnifiedPreferences.putSync('showExamDetail', value);
           });
-      } else if (item.id == 7) {
+      } else if (item.id === 7) {
         Toggle({ type: ToggleType.Switch, isOn: $$this.webAutoDarkMode })
           .onChange((value: boolean) => {
             UnifiedPreferences.putSync('webAutoDarkMode', value);
           });
-      } else { // item.id == 8
+      } else { // item.id === 8
         Toggle({ type: ToggleType.Switch, isOn: $$this.webBackPress })
           .onChange((value: boolean) => {
             UnifiedPreferences.putSync('webBackPress', value);
@@ -372,7 +372,7 @@ struct Index {
       this.tomorrowCourse = [];
     } else {
       this.todayCourse = scheduleManager.formattedSchedule[scheduleManager.weekDisplayed][scheduleManager.today];
-      this.tomorrowCourse = scheduleManager.formattedSchedule[scheduleManager.weekDisplayed + (scheduleManager.today == 5 ? 1 : 0)][(scheduleManager.today + 1) % 7];
+      this.tomorrowCourse = scheduleManager.formattedSchedule[scheduleManager.weekDisplayed + (scheduleManager.today === 5 ? 1 : 0)][(scheduleManager.today + 1) % 7];
     }
     this.isTodayCourseEnd = true;
     for (let todaySingleCourse of this.todayCourse)
@@ -602,12 +602,12 @@ struct Index {
                       Text(`\udb81\uddf3 ${course.teacher}`)
                         .maxLines(1)
                         .textOverflow({ overflow: TextOverflow.Ellipsis })
-                        .visibility(course.teacher == '' ? Visibility.None : Visibility.Visible);
+                        .visibility(course.teacher === '' ? Visibility.None : Visibility.Visible);
 
                       Text(`\udb80\uddb8 ${course.location}`)
                         .maxLines(1)
                         .textOverflow({ overflow: TextOverflow.Ellipsis })
-                        .visibility(course.location == '' ? Visibility.None : Visibility.Visible);
+                        .visibility(course.location === '' ? Visibility.None : Visibility.Visible);
 
                       Text(`\udb80\udfdc ${ScheduleSources.commonClassTime[course.timeSpan[0]][0]}~${ScheduleSources.commonClassTime[course.timeSpan[course.timeSpan.length - 1]][1]}`)
                         .maxLines(1)
@@ -669,12 +669,12 @@ struct Index {
                     Text(`\udb81\uddf3 ${course.teacher}`)
                       .maxLines(1)
                       .textOverflow({ overflow: TextOverflow.Ellipsis })
-                      .visibility(course.teacher == '' ? Visibility.None : Visibility.Visible);
+                      .visibility(course.teacher === '' ? Visibility.None : Visibility.Visible);
 
                     Text(`\udb80\uddb8 ${course.location}`)
                       .maxLines(1)
                       .textOverflow({ overflow: TextOverflow.Ellipsis })
-                      .visibility(course.location == '' ? Visibility.None : Visibility.Visible);
+                      .visibility(course.location === '' ? Visibility.None : Visibility.Visible);
 
                     Text(`\udb80\udfdc ${ScheduleSources.commonClassTime[course.timeSpan[0]][0]}~${ScheduleSources.commonClassTime[course.timeSpan[course.timeSpan.length - 1]][1]}`)
                       .maxLines(1)
@@ -808,9 +808,9 @@ struct Index {
                     .margin({ bottom: 5 })
 
                     Text(`\udb80\uddb8 ${singleExam.campus} ${singleExam.building} ${singleExam.classroom}`)
-                      .visibility(singleExam.campus + singleExam.building + singleExam.classroom == '' ? Visibility.None : Visibility.Visible);
+                      .visibility(singleExam.campus + singleExam.building + singleExam.classroom === '' ? Visibility.None : Visibility.Visible);
                     Text(`\udb80\udfdc ${singleExam.date}`)
-                      .visibility(singleExam.date == '' ? Visibility.None : Visibility.Visible);
+                      .visibility(singleExam.date === '' ? Visibility.None : Visibility.Visible);
                   }
                   .width('70%')
                   .alignItems(HorizontalAlign.Start);
@@ -1065,7 +1065,8 @@ struct Index {
                   }
                   break;
                 default:
-                 this.showMessage($r('app.string.under_construction'));
+                  this.showMessage($r('app.string.under_construction'));
+                  break;
               }
             })
           })
@@ -1080,7 +1081,7 @@ struct Index {
         .backgroundBlurStyle(BackgroundImage.blurLevel)
         .borderRadius(20)
 
-      }, (item: ItemData) => JSON.stringify(item))
+      }/*, (item: ItemData) => JSON.stringify(item)*/)
 
       ListItem()
         .visibility(Visibility.Hidden)

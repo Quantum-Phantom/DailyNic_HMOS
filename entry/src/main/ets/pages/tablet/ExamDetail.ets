@@ -697,6 +697,7 @@ struct ExamDetail {
       .height('100%')
       .width('100%')
     }
+    .hideTitleBar(true)
     .backgroundColor('#00d00721')
     .onReady((context: NavDestinationContext) => {
       this.pathStack = context.pathStack;
