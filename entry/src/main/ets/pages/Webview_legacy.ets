@@ -10,20 +10,11 @@ import { fillInformationJS, deleteAIHelper } from '../utils/TimeTable';
 import accountInfoProvider from '../utils/Encryption';
 import PasswordDialog from '../view/PasswordDialog';
 import BackgroundImage from '../view/BgImageManager';
-import { Link } from '../constants/Links'
 
 const desktopUrl: string[] = ['https://young.ustc.edu.cn/login'] // 需要默认访问桌面版站点时使用
 const autoJumpUrl: string[] = ['https://jw.ustc.edu.cn/for-std/course-table', 'https://jw.ustc.edu.cn/for-std/exam-arrange', 'https://jw.ustc.edu.cn/for-std/grade/sheet'];
 
 let eachDownloadPercent = new Map<string, number>();
-
-@Builder
-export function WebBuilder(name: string, param?: Link) {
-  if (param)
-    Webview({ title: param.title as string, url: param.url as string });
-  else
-    Webview();
-}
 
 @Entry
 @Component
@@ -61,7 +52,17 @@ struct Webview {
     }
   }
 
-  @StorageLink('isSplit')isSplit: NavigationMode = NavigationMode.Auto;
+  onBackPress() {
+    if (this.webBackPress)
+      return false;
+    if (this.webviewController.accessStep(-1)) {
+      this.webviewController.backward();
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   @State allowSysOpen: boolean = true;
   @Builder
   WebviewMenu() {
@@ -117,21 +118,24 @@ struct Webview {
         })
 
       MenuItemGroup({ header: $r('app.string.switch_ua') }) {
-        MenuItem({ content: $r('app.string.visit_desktop_ua'), startIcon: $r('app.media.desktop'),
+        MenuItem({ content: $r('app.string.visit_desktop_ua'),
+          startIcon: $r('app.media.desktop'),
           endIcon: (this.uaMode == DESKTOP_MODE ? $r('app.media.checkmark') : undefined) })
           .onClick(() => {
             this.webviewController.setCustomUserAgent(DESKTOP_UA);
             this.webviewController.refresh();
             this.uaMode = DESKTOP_MODE;
           })
-        MenuItem({ content: $r('app.string.visit_mobile_ua'), startIcon: $r('app.media.mobile'),
+        MenuItem({ content: $r('app.string.visit_mobile_ua'),
+          startIcon: $r('app.media.mobile'),
           endIcon: (this.uaMode == MOBILE_MODE ? $r('app.media.checkmark') : undefined) })
           .onClick(() => {
             this.webviewController.setCustomUserAgent(MOBILE_UA);
             this.webviewController.refresh();
             this.uaMode = MOBILE_MODE;
           })
-        MenuItem({ content: $r('app.string.visit_tablet_ua'), startIcon: $r('app.media.tablet'),
+        MenuItem({ content: $r('app.string.visit_tablet_ua'),
+          startIcon: $r('app.media.tablet'),
           endIcon: (this.uaMode == TABLET_MODE ? $r('app.media.checkmark') : undefined) })
           .onClick(() => {
             this.webviewController.setCustomUserAgent(TABLET_UA);
@@ -139,17 +143,6 @@ struct Webview {
             this.uaMode = TABLET_MODE;
           })
       }
-
-      MenuItem({ content: $r('app.string.open_in_full_screen'), startIcon: $r('app.media.arrow_right_up_and_square') })
-        .enabled(this.isSplit === NavigationMode.Split)
-        .onClick(() => {
-          this.getUIContext().getRouter().pushUrl({
-            url: 'pages/Webview_legacy',
-            params: { title: this.title, url: this.webviewController.getUrl() }
-          }).catch((err: Error) => {
-            console.error(`Router ERROR: [${err.name}] ${err.message}`)
-          });
-        })
 
       MenuItem({ content: $r('app.string.open_in_browser'), startIcon: $r('app.media.browser') })
         .enabled(this.allowSysOpen)
@@ -171,13 +164,84 @@ struct Webview {
     }
   }
 
+  aboutToAppear() { // Receive parameters before loading the page
+    const params = this.getUIContext().getRouter().getParams() as Record<string, string>;
+    if (params) {
+      this.title = params.title ?? '';
+      this.url = params.url ?? '';
+    }
+    if (autoJumpUrl.includes(this.url))
+      this.haveJumped = false;
+  }
+
   @State loadError: boolean = false;
-  pathStack: NavPathStack = new NavPathStack();
   build() {
-    NavDestination() {
+    Column() {
+      Row() {
+        Image($r('app.media.close'))
+          .padding({ left: 12 })
+          .height(22)
+          .draggable(false)
+          .onClick(() => {
+            this.webviewController.terminateRenderProcess();
+            this.getUIContext().getRouter().back();
+          })
+        Image($r('app.media.back'))
+          .padding(({ left: 12, right: 4 }))
+          .height(16)
+          .draggable(false)
+          .parallelGesture(
+            GestureGroup(
+              GestureMode.Exclusive,
+              TapGesture({ count: 1 })
+                .onAction(() => {
+                  if (this.webviewController.accessBackward()) {
+                    this.webviewController.backward();
+                  } else {
+                    this.webviewController.terminateRenderProcess();
+                    this.getUIContext().getRouter().back();
+                  }
+                }),
+              LongPressGesture()
+                .onAction(() => {
+                  if (this.webviewController.accessBackward()) {
+                    let i: number = -1;
+                    while (this.webviewController.accessStep(i))
+                      i--;
+                    this.webviewController.backOrForward(i + 1);
+                  } else {
+                    this.showMessage($r('app.string.already_first_page'), 500);
+                  }
+                })
+            )
+          )
+        Blank()
+        Text(this.title)
+          .fontSize(18)
+          .fontColor($r('app.color.normal_text'))
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+          .height(48)
+        Blank()
+        Image($r('app.media.refresh'))
+          .padding({ right: 12 })
+          .height(22)
+          .draggable(false)
+          .onClick(() => this.webviewController.refresh())
+        Image($r('app.media.more_opinion'))
+          .padding({ right: 12 })
+          .height(22)
+          .draggable(false)
+          .bindMenu(this.WebviewMenu())
+      }
+      .id('header')
+      .width('100%')
+      .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
+      .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background') : undefined)
+      .opacity(BackgroundImage.opacityLevel)
+
       Stack({ alignContent: Alignment.TopStart}) {
         Web({ src: this.url, controller: this.webviewController })
-          .backgroundColor(BackgroundImage.blurLevel === undefined ? undefined : '#00d00721')
+          .backgroundColor('#00d00721')
           .opacity(BackgroundImage.opacityLevel)
           .javaScriptProxy({
             object: accountInfoProvider,
@@ -194,11 +258,11 @@ struct Webview {
           .forceDarkAccess(this.webAutoDarkMode)
           .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
           .onPageBegin(() => {
+            this.loadError = false;
             if (this.webviewController.getUrl().startsWith("resource://"))
               this.allowSysOpen = false;
             else
               this.allowSysOpen = true;
-            this.loadError = false;
             if (!this.haveJumped) { // 不在白名单中的网站已在 aboutToAppear 中设置不跳转
               if (this.webviewController.getUrl().startsWith('https://jw.ustc.edu.cn/home')) {
                 let i: number = -1;
@@ -243,23 +307,13 @@ struct Webview {
                   }
                 });
                 return true;
-              } else if (uri.indexOf('native://webview_error_backward') === 0) {
-                if (this.webviewController.accessBackward()) {
-                  this.webviewController.backward();
-                } else {
-                  this.webviewController.terminateRenderProcess();
-                  this.pathStack.pop();
-                }
-                return true;
               }
             }
             return false;
           })
           .onErrorReceive((event) => {
             // Only handle loading errors of the main framework to avoid duplicate processing of errors in sub-resources
-            if (event && event.request.isMainFrame()) {
-              this.loadError = true;
-            }
+            this.loadError = true;
           })
           .onProgressChange((event) => {
             this.loadingProgress = event.newProgress;
@@ -453,7 +507,7 @@ struct Webview {
                       this.webviewController.backward();
                     } else {
                       this.webviewController.terminateRenderProcess();
-                      this.pathStack.pop();
+                      this.getUIContext().getRouter().back();
                     }
                   })
                 Button($r('app.string.refresh'))
@@ -472,108 +526,11 @@ struct Webview {
       }
       .layoutWeight(1)
     }
-    .title(this.customTitle(), {
-      backgroundColor: (BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background') : '#00d00721')
-    })
-    .hideBackButton(true)
-    .backgroundColor('#00d00721')
     .backgroundBlurStyle(BackgroundImage.blurLevel)
-    .onReady((context: NavDestinationContext) => {
-      this.pathStack = context.pathStack;
-
-      if (autoJumpUrl.includes(this.url))
-        this.haveJumped = false;
-    })
-    .onBackPressed(() => {
-      if (this.webBackPress) {
-        this.webviewController.terminateRenderProcess();
-        return false;
-      }
-      if (this.webviewController.accessStep(-1)) {
-        this.webviewController.backward();
-        return true;
-      } else {
-        this.webviewController.terminateRenderProcess();
-        return false;
-      }
-    })
-  }
-
-  @Builder
-  customTitle() {
-    Row({ space: 6 }) {
-      Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
-        Image($r('app.media.close'))
-          .height(22)
-          .draggable(false)
-      }
-      .height(40)
-      .width(40)
-      .onClick(() => {
-        this.webviewController.terminateRenderProcess();
-        this.pathStack.pop();
-      })
-
-      Text(this.title)
-        .fontSize(20)
-        .fontWeight(FontWeight.Bold)
-        .layoutWeight(1)
-        .textOverflow({ overflow: TextOverflow.Ellipsis })
-
-      Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
-        Image($r('app.media.back'))
-          .height(20)
-          .draggable(false)
-      }
-      .height(40)
-      .width(40)
-      .parallelGesture(
-        GestureGroup(
-          GestureMode.Exclusive,
-          TapGesture({ count: 1 })
-            .onAction(() => {
-              if (this.webviewController.accessBackward()) {
-                this.webviewController.backward();
-              } else {
-                this.pathStack.pop();
-              }
-            }),
-          LongPressGesture()
-            .onAction(() => {
-              if (this.webviewController.accessBackward()) {
-                let i: number = -1;
-                while (this.webviewController.accessStep(i))
-                  i--;
-                this.webviewController.backOrForward(i + 1);
-              } else {
-                this.showMessage($r('app.string.already_first_page'), 500);
-              }
-            })
-        )
-      )
-
-      Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
-        Image($r('app.media.refresh'))
-          .height(22)
-          .draggable(false)
-      }
-      .height(40)
-      .width(40)
-      .onClick(() => this.webviewController.refresh())
-
-      Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
-        Image($r('app.media.more_opinion'))
-          .height(22)
-          .draggable(false)
-      }
-      .bindMenu(this.WebviewMenu())
-      .height(40)
-      .width(40)
-    }
-    .padding({ left: 12, right: 12 })
-    // .alignItems(VerticalAlign.Center)
-    .height(48)
-    .width('100%')
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+    .backgroundImage(BackgroundImage.pic)
+    .backgroundImageSize(ImageSize.Cover)
+    .backgroundImagePosition(Alignment.Center)
   }
 }
 

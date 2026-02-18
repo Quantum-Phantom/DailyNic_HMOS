@@ -1,6 +1,5 @@
 
-import { common } from '@kit.AbilityKit';
-import { display, mediaquery, PopoverDialog, Popup, window } from '@kit.ArkUI';
+import { PopoverDialog, Popup } from '@kit.ArkUI';
 import * as ScheduleSources from '../constants/ScheduleSources';
 import { classAttribute, obtainedData } from '../constants/ScheduleSources';
 import scheduleManager, { areClassAttributesEqual } from '../utils/TimeTable';
@@ -14,11 +13,20 @@ const criticalHeight: number = 32; // 紧凑模式临界值(vp)
 const classAndTeacher: number = 22; // 教室和教师占用高度
 const font13fpHeight: number = 16; // 包括行间距
 
+@Builder
+export function ScheduleBuilder(name: string, param?: number) {
+  if (param)
+    Schedule({ gridHeight: param, maxLinesH: Math.max(1, (param / 13 - classAndTeacher) / font13fpHeight) });
+  else
+    Schedule({ gridHeight: UnifiedPreferences.getNumberSync('GridHeight', 500) })
+}
+
 @Entry
 @Component
 struct Schedule {
+
   initGridHeight: number = 0;
-  @State gridHeight: number = UnifiedPreferences.getNumberSync('GridHeight', px2vp(display.getDefaultDisplaySync().height)); // 课表grid高度
+  @State gridHeight: number = 0; // 课表grid高度
   @State hideTime: boolean = false;
   gridMinHeight: number = 0;
   @State maxLinesH: number = 1; // H意为height
@@ -273,13 +281,14 @@ struct Schedule {
           Image($r('app.media.questionmark_circle'))
             .height(24)
             .width(24)
+            .draggable(false)
         }
         .width(42)
         .height(42)
         .margin({ right: 8 })
         .onClick(() => {
           this.showConflictClass = false;
-          this.getUIContext().getRouter().pushUrl({ url: 'pages/Help' })
+          this.getUIContext().getRouter().pushUrl({ url: 'pages/Help_legacy' })
             .catch((err: Error) => { console.error(`Router ERROR: [${err.name}] ${err.message}`) });
         })
 
@@ -287,6 +296,7 @@ struct Schedule {
           Image($r('app.media.close'))
             .height(24)
             .width(24)
+            .draggable(false)
         }
         .width(42)
         .height(42)
@@ -302,6 +312,7 @@ struct Schedule {
             Column() {
               Image($r('app.media.no_conflict_class'))
                 .height(120)
+                .draggable(false)
               Text($r('app.string.no_conflict_class'))
                 .fontSize(18)
             }
@@ -429,298 +440,9 @@ struct Schedule {
     }
   }
 
-  onPageShow(): void {
-    const routerParams = this.getUIContext().getRouter().getParams() as ScheduleSources.obtainedData;
-    if (routerParams != undefined)
-      scheduleManager.refreshParsedSchedule(routerParams);
-    scheduleManager.getFormattedSchedule();
-    this.termStart = scheduleManager.termStart;
-    this.weekDisplayed = scheduleManager.weekDisplayed;
-    this.weekStart = scheduleManager.weekStart;
-    this.weekEnd = scheduleManager.weekEnd;
-    this.sepConflictClass();
-    let tong: boolean[][] = [];
-    for (let i = 0; i < 7; i++) {
-      tong[i] = [];
-      for(let j = 0; j < 14; j++) {
-        tong[i].push(false);
-      }
-    }
-    this.showXiuHint = UnifiedPreferences.getBoolSync('ShowPinchHint', true);
-  }
-
+  pathStack: NavPathStack = new NavPathStack();
   build() {
-    Column() {
-      /**
-       * Header
-       */
-      Column() {
-        Row() {
-          Image($r('app.media.close'))
-            .padding({ left: 12 })
-            .height(22)
-            .draggable(false)
-            .onClick(() => {
-              this.getUIContext().getRouter().back();
-            })
-
-          Badge({ count: this.conflictSchedule.length, style: { badgeSize: 14, badgeColor: '#FA2A2D' } }) {
-            Image($r('app.media.pile'))
-              .height(22)
-              .width(22)
-              .draggable(false)
-              .margin({ left: 12 })
-              .bindSheet($$this.showConflictClass, this.ConflictClass(), {
-                detents: [SheetSize.LARGE, SheetSize.MEDIUM],
-                preferType: SheetType.POPUP,
-                backgroundColor: '#00d00721',
-                blurStyle: BlurStyle.Regular,
-                showClose: false,
-                enableOutsideInteractive: false,
-                enableFloatingDragBar: true,
-                mode: SheetMode.OVERLAY
-              })
-          }
-          .height(22)
-          .width(34)
-          .padding({ left: 12 })
-          .onClick(() => {
-            this.showConflictClass = true;
-          })
-
-          Text($r('app.string.local_schedule'))
-            .fontSize(18)
-            .fontColor($r('app.color.normal_text'))
-            .height(48)
-            .layoutWeight(1)
-            .textAlign(TextAlign.Center)
-            .bindSheet($$this.showSheet, this.ClassDetailDialog(), {
-              // 如果与 gridItem 绑定，会弹出很多个！
-              detents: [SheetSize.MEDIUM, SheetSize.LARGE],
-              preferType: SheetType.CENTER,
-              showClose: false,
-              scrollSizeMode: ScrollSizeMode.CONTINUOUS,
-              backgroundColor: '#00d00721',
-              blurStyle: BlurStyle.Regular,
-              onAppear: () => {
-                this.showColorHint = UnifiedPreferences.getBoolSync('ShowColorHint', true);
-              },
-              onWillDismiss: ((DismissSheetAction: DismissSheetAction) => {
-                this.classInfo.weekOfTerm = [...this.weekOfTerm];
-                if (this.rectifyTimeSpan[0] > this.rectifyTimeSpan[1]) {
-                  let swapTemp = this.rectifyTimeSpan[0];
-                  this.rectifyTimeSpan[0] = this.rectifyTimeSpan[1];
-                  this.rectifyTimeSpan[1] = swapTemp;
-                }
-                this.classInfo.timeSpan = tools.getContArray([this.rectifyTimeSpan]) as number[];
-                if (!areClassAttributesEqual(this.oriClassInfo, this.classInfo)) {
-                  this.getUIContext().showAlertDialog({
-                    title: $r('app.string.unsaved_change'),
-                    message: $r('app.string.back_to_schedule_or_not'),
-                    autoCancel: true,
-                    alignment: DialogAlignment.Center,
-                    gridCount: 4,
-                    primaryButton: {
-                      value: $r('app.string.cancel'),
-                      action: () => {
-                      }
-                    },
-                    secondaryButton: {
-                      enabled: true,
-                      defaultFocus: true,
-                      style: DialogButtonStyle.HIGHLIGHT,
-                      value: $r('app.string.ok'),
-                      action: () => {
-                        DismissSheetAction.dismiss();
-                      }
-                    },
-                    cancel: () => {
-                    },
-                    onWillDismiss: (dismissDialogAction: DismissDialogAction) => {
-                      if (dismissDialogAction.reason === DismissReason.PRESS_BACK) {
-                        dismissDialogAction.dismiss();
-                      }
-                      if (dismissDialogAction.reason === DismissReason.TOUCH_OUTSIDE) {
-                        dismissDialogAction.dismiss();
-                      }
-                    }
-                  });
-                } else {
-                  DismissSheetAction.dismiss();
-                }
-              })
-            })
-
-          Image($r('app.media.plus_square'))
-            .padding({ right: 12 })
-            .height(22)
-            .draggable(false)
-            .onClick(() => {
-              this.checkBoxGroup = (this.checkBoxGroup + 1) % 2;
-              this.isChangeSchedule = false;
-              this.oriClassInfo = {
-                name: '计算机程序设计',
-                teacher: '李卫海',
-                location: '3A212',
-                id: 'CS1003.H2',
-                weekOfTerm: tools.getContArray([[2, 4], [6, 10], [14, 16]]) as number[],
-                timeSpan: [6, 7],
-                dayOfWeek: 0,
-                color: tools.colorSet[tools.getRandomInt(0, tools.colorSetLen - 1)],
-                priority: 5
-              };
-              this.classInfo = {
-                name: '计算机程序设计',
-                teacher: '李卫海',
-                location: '3A212',
-                id: 'CS1003.H2',
-                weekOfTerm: tools.getContArray([[2, 4], [6, 10], [14, 16]]) as number[],
-                timeSpan: [6, 7],
-                dayOfWeek: 0,
-                color: tools.colorSet[tools.getRandomInt(0, tools.colorSetLen - 1)],
-                priority: 5
-              };
-              this.classColor = this.oriClassInfo.color;
-              this.rectifyWeekOfTerm = [true, false, true, true, true, false, true, true, true, true, true,
-                false, false, false, true, true, true, false, false, false, false];
-              this.rectifyTimeSpan = [6, 7];
-              this.showSheet = true;
-            })
-
-          Image($r('app.media.get'))
-            .padding({ right: 12 })
-            .height(22)
-            .draggable(false)
-            .onClick(() => {
-              this.getUIContext().getRouter().pushUrl({
-                url: 'pages/GetSchedule',
-                params: { title: $r('app.string.online_schedule'), url: 'https://jw.ustc.edu.cn/for-std/course-table' }
-              }).catch((err: Error) => {
-                console.error(`Router ERROR: [${err.name}] ${err.message}`)
-              })
-            })
-        }
-        .width('100%')
-        .backgroundColor(BackgroundImage.showImage ? undefined : $r('app.color.shaded_background'))
-        .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
-
-        /**
-         * 周数信息与翻页
-         */
-        Row() {
-          Text(tools.timestampToDateTime(this.weekStart) + ' ~ ' + tools.timestampToDateTime(this.weekEnd))
-            .id('week_of_term_span')
-            .fontWeight(FontWeight.Bold)
-            .fontSize(14)
-
-          Blank()
-
-          Image(this.weekDisplayed == 1 ? $r('app.media.arrow_left_circle_unavailable') :
-            $r('app.media.arrow_left_circle'))
-            .height(18)
-            .width(40)
-            .objectFit(ImageFit.Contain)
-            .draggable(false)
-            .onClick(() => {
-              if (this.weekDisplayed > 1) {
-                this.weekDisplayed--;
-                this.weekStart -= 604800000;
-                this.weekEnd -= 604800000;
-                this.sepConflictClass();
-              }
-            })
-
-          Text($r('app.string.week_of_term_no_d', this.weekDisplayed))
-            .id('week_of_term_no')
-            .fontWeight(FontWeight.Bold)
-            .fontSize(14)
-
-          Image(this.weekDisplayed == 20 ? $r('app.media.arrow_right_circle_unavailable') :
-            $r('app.media.arrow_right_circle'))
-            .height(18)
-            .width(40)
-            .objectFit(ImageFit.Contain)
-            .draggable(false)
-            .onClick(() => {
-              if (this.weekDisplayed < 20) {
-                this.weekDisplayed++;
-                this.weekStart += 604800000;
-                this.weekEnd += 604800000;
-                this.sepConflictClass();
-              }
-            })
-        }
-        .width('100%')
-        .height(30)
-        .padding({ left: 15, right: 5 })
-        .justifyContent(FlexAlign.Center)
-        .border({
-          width: { bottom: 1 },
-          color: $r('app.color.grid_border')
-        })
-
-        // 星期几
-        Row() {
-          Text(this.weekDisplayed === scheduleManager.weekDisplayed ? $r('app.string.class_span') : $r('app.string.xiu'))
-            .fontWeight(FontWeight.Bold)
-            .fontSize(12)
-            .height('100%')
-            .textAlign(TextAlign.Center)
-            .layoutWeight(1)
-            .border({
-              width: { right: 1 },
-              color: $r('app.color.grid_border')
-            })
-            .onClick(() => {
-              if (this.weekDisplayed !== scheduleManager.weekDisplayed) {
-                this.weekDisplayed = scheduleManager.weekDisplayed;
-                this.weekStart = scheduleManager.weekStart;
-                this.weekEnd = scheduleManager.weekEnd;
-                this.sepConflictClass();
-              }
-            })
-            .bindPopup(this.showXiuHint, {
-              builder: this.xiuHintPopup(),
-              placement: Placement.Right,
-              width: 300,
-              onStateChange: (status) => {
-                if (!status.isVisible) {
-                  this.showXiuHint = false;
-                }
-              }
-            });
-          Text(tools.weekTranslate[6])
-            .fontWeight(FontWeight.Bold)
-            .fontSize(12)
-            .textAlign(TextAlign.Center)
-            .height('100%')
-            .layoutWeight(1)
-          ForEach(tools.getContArray([[3, 8]]), (item: number) => {
-            Text(tools.weekTranslate[(item + 4) % 7])
-              .fontWeight(FontWeight.Bold)
-              .fontSize(12)
-              .textAlign(TextAlign.Center)
-              .height('100%')
-              .layoutWeight(1)
-              .border({
-                width: { left: 1 },
-                color: $r('app.color.grid_border')
-              })
-          })
-        }
-        .width('100%')
-        .height(25)
-        .border({
-          width: { bottom: 1 },
-          color: $r('app.color.grid_border')
-        })
-      }
-      .width('100%')
-      .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
-      .backgroundBlurStyle(BackgroundImage.blurLevel)
-      .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.normal_background') : undefined)
-      .opacity(BackgroundImage.opacityLevel)
-
+    NavDestination() {
       /**
        * 课表
        */
@@ -957,6 +679,9 @@ struct Schedule {
               this.showPinchHint = false;
             }
           }
+        })
+        .onAppear(() => {
+          this.showXiuHint = UnifiedPreferences.getBoolSync('ShowPinchHint', true);
         });
       }
       .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
@@ -968,26 +693,316 @@ struct Schedule {
           this.maxLinesH = Math.max(1, ((this.gridHeight = this.gridMinHeight) / 13 - classAndTeacher) / font13fpHeight);
       })
       .gesture(PinchGesture({ fingers: 2 })
-        .onActionStart(() => {
-          this.initGridHeight = this.gridHeight;
-        })
+        .onActionStart(() => this.initGridHeight = this.gridHeight)
         .onActionUpdate((event: GestureEvent) => {
           let tmpHeight: number = event.scale * this.initGridHeight;
           if (tmpHeight > this.gridMinHeight && tmpHeight < 2600)
             this.maxLinesH = Math.max(1, ((this.gridHeight = tmpHeight) / 13 - classAndTeacher) / font13fpHeight);
         })
-        .onActionEnd(() => {
-          UnifiedPreferences.putSync('GridHeight', this.gridHeight);
-        }))
+        .onActionEnd(() => UnifiedPreferences.putSync('GridHeight', this.gridHeight))
+      )
     }
-    .height('100%')
-    .width('100%')
-    .backgroundColor($r('app.color.normal_background'))
-    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
-    .backgroundImage(BackgroundImage.pic)
-    .backgroundImageSize(ImageSize.Cover)
-    .backgroundImagePosition(Alignment.Center)
+    .backgroundColor(BackgroundImage.showImage ? '#00d00721' : $r('app.color.normal_background'))
+    .hideBackButton(true)
+    .title({ builder: this.customTitle(), height: 98 }, {
+      backgroundBlurStyle: BackgroundImage.blurLevel,
+      backgroundColor: (BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background') : '#00d00721')
+    })
+    .onReady((context: NavDestinationContext) => {
+      this.pathStack = context.pathStack;
+
+      scheduleManager.getFormattedSchedule();
+      this.termStart = scheduleManager.termStart;
+      this.weekDisplayed = scheduleManager.weekDisplayed;
+      this.weekStart = scheduleManager.weekStart;
+      this.weekEnd = scheduleManager.weekEnd;
+      this.sepConflictClass();
+      let tong: boolean[][] = [];
+      for (let i = 0; i < 7; i++) {
+        tong[i] = [];
+        for(let j = 0; j < 14; j++) {
+          tong[i].push(false);
+        }
+      }
+    });
   }
+
+  @Builder
+  customTitle() {
+    Column() {
+      Row({ space: 6 }) { // 上边距3，高度40
+        Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
+          Image($r('app.media.close'))
+            .height(22)
+            .draggable(false)
+        }
+        .height(40)
+        .width(40)
+        .onClick(() => {
+          this.pathStack.pop();
+        })
+
+        Badge({ count: this.conflictSchedule.length, style: { badgeSize: 14, badgeColor: /*'#FA2A2D'*/$r('sys.color.ohos_id_color_badge_red') } }) {
+          Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
+            Image($r('app.media.pile'))
+              .height(22)
+              .width(22)
+              .draggable(false)
+          }
+          .height(40)
+          .width(40)
+          .onClick(() => {
+            this.showConflictClass = true;
+          })
+          .bindSheet($$this.showConflictClass, this.ConflictClass(), {
+            detents: [SheetSize.LARGE, SheetSize.MEDIUM],
+            preferType: SheetType.POPUP,
+            backgroundColor: '#00d00721',
+            blurStyle: BlurStyle.Regular,
+            showClose: false,
+            enableOutsideInteractive: false,
+            enableFloatingDragBar: true,
+            mode: SheetMode.OVERLAY
+          })
+        }
+        .height(40)
+        .width(40)
+
+        Text($r('app.string.local_schedule'))
+          .fontSize(20)
+          .fontWeight(FontWeight.Bold)
+          .layoutWeight(1)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+          .bindSheet($$this.showSheet, this.ClassDetailDialog(), {
+            // 如果与 gridItem 绑定，会弹出很多个！
+            detents: [SheetSize.MEDIUM, SheetSize.LARGE],
+            preferType: SheetType.CENTER,
+            showClose: false,
+            scrollSizeMode: ScrollSizeMode.CONTINUOUS,
+            backgroundColor: '#00d00721',
+            blurStyle: BlurStyle.Regular,
+            onAppear: () => {
+              this.showColorHint = UnifiedPreferences.getBoolSync('ShowColorHint', true);
+            },
+            onWillDismiss: ((DismissSheetAction: DismissSheetAction) => {
+              this.classInfo.weekOfTerm = [...this.weekOfTerm];
+              if (this.rectifyTimeSpan[0] > this.rectifyTimeSpan[1]) {
+                let swapTemp = this.rectifyTimeSpan[0];
+                this.rectifyTimeSpan[0] = this.rectifyTimeSpan[1];
+                this.rectifyTimeSpan[1] = swapTemp;
+              }
+              this.classInfo.timeSpan = tools.getContArray([this.rectifyTimeSpan]) as number[];
+              if (!areClassAttributesEqual(this.oriClassInfo, this.classInfo)) {
+                this.getUIContext().showAlertDialog({
+                  title: $r('app.string.unsaved_change'),
+                  message: $r('app.string.back_to_schedule_or_not'),
+                  autoCancel: true,
+                  alignment: DialogAlignment.Center,
+                  gridCount: 4,
+                  primaryButton: {
+                    value: $r('app.string.cancel'),
+                    action: () => {
+                    }
+                  },
+                  secondaryButton: {
+                    enabled: true,
+                    defaultFocus: true,
+                    style: DialogButtonStyle.HIGHLIGHT,
+                    value: $r('app.string.ok'),
+                    action: () => {
+                      DismissSheetAction.dismiss();
+                    }
+                  },
+                  cancel: () => {
+                  },
+                  onWillDismiss: (dismissDialogAction: DismissDialogAction) => {
+                    if (dismissDialogAction.reason === DismissReason.PRESS_BACK) {
+                      dismissDialogAction.dismiss();
+                    }
+                    if (dismissDialogAction.reason === DismissReason.TOUCH_OUTSIDE) {
+                      dismissDialogAction.dismiss();
+                    }
+                  }
+                });
+              } else {
+                DismissSheetAction.dismiss();
+              }
+            })
+          })
+
+        Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
+          Image($r('app.media.plus_square'))
+            .height(22)
+            .draggable(false)
+        }
+        .width(40)
+        .height(40)
+        .onClick(() => {
+          this.checkBoxGroup = (this.checkBoxGroup + 1) % 2;
+          this.isChangeSchedule = false;
+          this.oriClassInfo = {
+            name: '计算机程序设计',
+            teacher: '李卫海',
+            location: '3A212',
+            id: 'CS1003.H2',
+            weekOfTerm: tools.getContArray([[2, 4], [6, 10], [14, 16]]) as number[],
+            timeSpan: [6, 7],
+            dayOfWeek: 0,
+            color: tools.colorSet[tools.getRandomInt(0, tools.colorSetLen - 1)],
+            priority: 5
+          };
+          this.classInfo = {
+            name: '计算机程序设计',
+            teacher: '李卫海',
+            location: '3A212',
+            id: 'CS1003.H2',
+            weekOfTerm: tools.getContArray([[2, 4], [6, 10], [14, 16]]) as number[],
+            timeSpan: [6, 7],
+            dayOfWeek: 0,
+            color: tools.colorSet[tools.getRandomInt(0, tools.colorSetLen - 1)],
+            priority: 5
+          };
+          this.classColor = this.oriClassInfo.color;
+          this.rectifyWeekOfTerm = [true, false, true, true, true, false, true, true, true, true, true,
+            false, false, false, true, true, true, false, false, false, false];
+          this.rectifyTimeSpan = [6, 7];
+          this.showSheet = true;
+        });
+
+        Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
+          Image($r('app.media.get'))
+            .height(22)
+            .draggable(false)
+        }
+        .width(40)
+        .height(40)
+        .onClick(() => {
+          this.pathStack.pushPath({ name: "GetSchedule",
+            param: [$r('app.string.online_schedule'), 'https://jw.ustc.edu.cn/for-std/course-table'],
+            onPop: (popInfo: PopInfo) => {
+              scheduleManager.refreshParsedSchedule(popInfo.result as obtainedData);
+              scheduleManager.getFormattedSchedule();
+            }
+          });
+        });
+      }
+      .padding({ left: 12, right: 12, top: 3 })
+      .width('100%')
+
+      /**
+       * 周数信息与翻页
+       */
+      Row() { // 高度30
+        Text(tools.timestampToDateTime(this.weekStart) + ' ~ ' + tools.timestampToDateTime(this.weekEnd))
+          .id('week_of_term_span')
+          .fontWeight(FontWeight.Bold)
+          .fontSize(14)
+
+        Blank()
+
+        Image(this.weekDisplayed == 1 ? $r('app.media.arrow_left_circle_unavailable') :
+          $r('app.media.arrow_left_circle'))
+          .height(18)
+          .padding({ left: 20, right: 20 })
+          .draggable(false)
+          .onClick(() => {
+            if (this.weekDisplayed > 1) {
+              this.weekDisplayed--;
+              this.weekStart -= 604800000;
+              this.weekEnd -= 604800000;
+              this.sepConflictClass();
+            }
+          })
+
+        Text($r('app.string.week_of_term_no_d', this.weekDisplayed))
+          .id('week_of_term_no')
+          .fontWeight(FontWeight.Bold)
+          .fontSize(14)
+
+        Image(this.weekDisplayed == 20 ? $r('app.media.arrow_right_circle_unavailable') :
+          $r('app.media.arrow_right_circle'))
+          .height(18)
+          .padding({ left: 20, right: 20 })
+          .objectFit(ImageFit.Contain)
+          .draggable(false)
+          .onClick(() => {
+            if (this.weekDisplayed < 20) {
+              this.weekDisplayed++;
+              this.weekStart += 604800000;
+              this.weekEnd += 604800000;
+              this.sepConflictClass();
+            }
+          })
+      }
+      .width('100%')
+      .height(30)
+      .padding({ left: 15, right: 5 })
+      .border({
+        width: { bottom: 1 },
+        color: $r('app.color.grid_border')
+      })
+
+      // 星期几
+      Row() { // 高度25
+        Text(this.weekDisplayed === scheduleManager.weekDisplayed ? $r('app.string.class_span') : $r('app.string.xiu'))
+          .fontWeight(FontWeight.Bold)
+          .fontSize(12)
+          .height('100%')
+          .textAlign(TextAlign.Center)
+          .layoutWeight(1)
+          .border({
+            width: { right: 1 },
+            color: $r('app.color.grid_border')
+          })
+          .bindPopup(this.showXiuHint, {
+            builder: this.xiuHintPopup(),
+            placement: Placement.Right,
+            width: 300,
+            onStateChange: (status) => {
+              if (!status.isVisible) {
+                this.showXiuHint = false;
+              }
+            }
+          })
+          .onClick(() => {
+            if (this.weekDisplayed !== scheduleManager.weekDisplayed) {
+              this.weekDisplayed = scheduleManager.weekDisplayed;
+              this.weekStart = scheduleManager.weekStart;
+              this.weekEnd = scheduleManager.weekEnd;
+              this.sepConflictClass();
+            }
+          })
+        Text(tools.weekTranslate[6])
+          .fontWeight(FontWeight.Bold)
+          .fontSize(12)
+          .textAlign(TextAlign.Center)
+          .height('100%')
+          .layoutWeight(1)
+        ForEach(tools.getContArray([[3, 8]]), (item: number) => {
+          Text(tools.weekTranslate[(item + 4) % 7])
+            .fontWeight(FontWeight.Bold)
+            .fontSize(12)
+            .textAlign(TextAlign.Center)
+            .height('100%')
+            .layoutWeight(1)
+            .border({
+              width: { left: 1 },
+              color: $r('app.color.grid_border')
+            })
+        })
+      }
+      .width('100%')
+      .height(25)
+      .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.grid_background') : undefined)
+      .border({
+        width: { bottom: 1 },
+        color: $r('app.color.grid_border')
+      })
+    }
+    .height(95)
+    .width('100%')
+  }
+
 
   @Builder
   ClassDetailDialog() {

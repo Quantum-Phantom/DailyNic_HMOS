@@ -1,7 +1,6 @@
 
 import { application, common, contextConstant, Want } from '@kit.AbilityKit'
-import { LengthUnit, mediaquery, window } from '@kit.ArkUI'
-import { BusinessError } from '@kit.BasicServicesKit'
+import { LengthUnit } from '@kit.ArkUI'
 import { fileIo, storageStatistics } from '@kit.CoreFileKit'
 
 import { GridData, otherGridDataList } from '../constants/GridListDataSources'
@@ -24,6 +23,7 @@ import PasswordDialog from '../view/PasswordDialog'
 import ItemData from '../view/SettingsComponent'
 
 import { setUSTCLink, setHUSTLink } from '../constants/Links'
+import display from '@ohos.display'
 
 // 滚动条参数
 enum ScrollPosition {
@@ -32,57 +32,11 @@ enum ScrollPosition {
   end = 2
 }
 
-interface Rect {
-  width: number,
-  height: number
-}
-
 // 主界面UI
 @Entry
 @Component
 struct Index {
-  /*
-   * 以下是监听屏幕旋转
-   */
-  @State tabWidth: string = '100%';
-  @State tabHeight: string = 'auto';
-  @State tabHorizontal: boolean = false;
-  private windowRect: Rect = { width: 1840, height: 2800 };
-  portraitListener: mediaquery.MediaQueryListener = this.getUIContext().getMediaQuery().matchMediaSync('(orientation: landscape)');
-  onPortrait(mediaQueryResult: mediaquery.MediaQueryResult) {
-    let windowClass: window.Window | undefined = undefined;
-    try {
-      let promise = window.getLastWindow(this.context);
-      promise.then((data)=> {
-        //Get window object
-        windowClass = data;
-        try {
-          //Get window properties
-          let properties = windowClass.getWindowProperties();
-          this.windowRect.width = properties.windowRect.width;
-          this.windowRect.height = properties.windowRect.height;
-          if (this.windowRect.width > this.windowRect.height) { // 横屏
-            this.tabWidth = '52vp';
-            this.tabHeight = '100%';
-            this.tabHorizontal = true;
-          } else { // 竖屏
-            this.tabWidth = '100%';
-            this.tabHeight = 'auto';
-            this.tabHorizontal = false;
-          }
-        } catch (exception) {
-          console.error('Failed to obtain the window properties. Cause: ' + JSON.stringify(exception));
-        }
-        console.info('Succeeded in obtaining the top window. Data: ' + JSON.stringify(data));
-      }).catch((err: BusinessError)=>{
-        console.error('Failed to obtain the top window. Cause: ' + JSON.stringify(err));
-      });} catch (exception) {
-      console.error('Failed to obtain the top window. Cause: ' + JSON.stringify(exception));
-    }
-  }
-  /*
-   * 以上是监听屏幕旋转
-   */
+  private windowRect: display.Display = display.getDefaultDisplaySync();
 
   @State currentIndex: number = 0; // 当前标签索引 (从0开始), 初始值即为默认标签索引
   private tabsController: TabsController = new TabsController();
@@ -91,7 +45,7 @@ struct Index {
     builder: PasswordDialog({
       isFromSetting: true
     }),
-    autoCancel: true,
+    autoCancel: false,
     gridCount: 4
   })
 
@@ -100,7 +54,7 @@ struct Index {
       windowWidth: Math.min(this.windowRect.width, this.windowRect.height),
       windowHeight: Math.max(this.windowRect.width, this.windowRect.height)
     }),
-    autoCancel: true,
+    autoCancel: false,
     gridCount: 4
   })
 
@@ -174,19 +128,11 @@ struct Index {
     WriteCalendar.initializeCalendar(this.getUIContext());
     //初始化背景
     BackgroundImage.init(this.context);
-    // 开启监听屏幕旋转
-    this.portraitListener.on('change', (mediaQueryResult: mediaquery.MediaQueryResult) => {
-      this.onPortrait(mediaQueryResult)
-    });
     // 首次启动提示
     if (UnifiedPreferences.getBoolSync('InitialLaunch', true)) {
       this.getUIContext().getRouter().pushUrl({ url: 'pages/Declaration' })
         .catch((err: Error) => { console.error(`Router ERROR: [${err.name}] ${err.message}`) })
     }
-  }
-
-  aboutToDisappear(): void {
-    this.portraitListener.off('change'); // 关闭监听屏幕旋转，防止内存泄露
   }
 
   /**
@@ -248,7 +194,7 @@ struct Index {
     this.copyMostUsedFunc = FunctionOrder.mostUsedFunc;
     storageStatistics.getCurrentBundleStats().then((dataSize: storageStatistics.BundleStats) => {
       this.cacheSize = tools.formatBytes(dataSize.cacheSize, 2, false);
-    })
+    });
   }
 
   /**
@@ -511,8 +457,13 @@ struct Index {
           .width('100%')
           .padding({ left: 8, right: 8, top: 8, bottom: 8 })
           .onClick(() => {
-            this.getUIContext().getRouter().pushUrl({ url: 'pages/Schedule' })
-              .catch((err: Error) => { console.error(`Router ERROR: [${err.name}] ${err.message}`) })
+            if (this.pageInfo.popToName('Schedule') === -1) {
+              this.pageInfo.clear();
+              this.pageInfo.pushPath({ name: 'Schedule',
+                param: UnifiedPreferences.getNumberSync('GridHeight', px2vp(this.windowRect.height) - 75) });
+            }
+            // this.getUIContext().getRouter().pushUrl({ url: 'pages/Schedule' })
+            //   .catch((err: Error) => { console.error(`Router ERROR: [${err.name}] ${err.message}`) })
           })
 
           if (this.showRecentCourse) {
@@ -533,7 +484,8 @@ struct Index {
                       .interpolation(ImageInterpolation.Medium)
                       .draggable(false);
                     Text($r('app.string.no_class_today'))
-                      .textAlign(TextAlign.Center);}
+                      .textAlign(TextAlign.Center);
+                  }
                 } else {
                   Image($r('app.media.no_course_term_not_start'))
                     .height(75)
@@ -561,7 +513,7 @@ struct Index {
                         .margin({ right: 4 });
                     }
                     .alignItems(HorizontalAlign.End)
-                    .width('5%')
+                    .width('5%');
 
                     Column() {
                       Text(course.name)
@@ -611,7 +563,7 @@ struct Index {
 
                       Text(`\udb80\udfdc ${ScheduleSources.commonClassTime[course.timeSpan[0]][0]}~${ScheduleSources.commonClassTime[course.timeSpan[course.timeSpan.length - 1]][1]}`)
                         .maxLines(1)
-                        .textOverflow({ overflow: TextOverflow.Ellipsis })
+                        .textOverflow({ overflow: TextOverflow.Ellipsis });
                     }
                     .width('45%')
                     .alignItems(HorizontalAlign.Start);
@@ -631,7 +583,7 @@ struct Index {
                   Image($r('app.media.course_finish_today'))
                     .height(75)
                     .interpolation(ImageInterpolation.Medium)
-                    .draggable(false)
+                    .draggable(false);
                   Text($r('app.string.class_finish_today'));
                 }
                 .margin({ top: 12, bottom: 12 });
@@ -736,8 +688,10 @@ struct Index {
           .width('100%')
           .padding({ left: 8, right: 8, top: 8, bottom: 8 })
           .onClick(() => {
-            this.getUIContext().getRouter().pushUrl({ url: 'pages/ExamDetail' })
-              .catch((err: Error) => { console.error(`Router ERROR: [${err.name}] ${err.message}`) })
+            if (this.pageInfo.popToName('ExamDetail') === -1) {
+              this.pageInfo.clear();
+              this.pageInfo.pushPath({ name: 'ExamDetail' });
+            }
           })
 
           if (this.showExamDetail) {
@@ -857,12 +811,12 @@ struct Index {
       Scroll(this.scrollerForScroll) {
         Column() {
           // 常用区 Grid
-          GridComponent({ gridData: this.copyMostUsedFunc, gridIndex: -1 })
+          GridComponent({ gridData: this.copyMostUsedFunc, gridIndex: -1, pageInfo: this.pageInfo })
           // 常用区下面的所有功能区 GridComponent
           this.listBuilder();
           List({ scroller: this.scrollerForList }) {
             ForEach(otherGridDataList, (item: GridData, index: number) => {
-              GridComponent({ gridData: item, isLastItem: index === otherGridDataList.length - 1, gridIndex: index })
+              GridComponent({ gridData: item, isLastItem: index === otherGridDataList.length - 1, gridIndex: index, pageInfo: this.pageInfo })
             }, (item: GridData,index:number) => index + JSON.stringify(item))
           }
           .padding({ bottom: '40vp' })
@@ -1030,14 +984,18 @@ struct Index {
 
                 case 13:
                   // 帮助
-                  this.getUIContext().getRouter().pushUrl({ url: 'pages/Help' })
-                    .catch((err: Error) => { console.error(`Router ERROR: [${err.name}] ${err.message}`) });
+                  if (this.pageInfo.popToName('Help') === -1) {
+                    this.pageInfo.clear();
+                    this.pageInfo.pushPath({ name: 'Help' });
+                  }
                   break;
 
                 case 14:
                   // 关于
-                  this.getUIContext().getRouter().pushUrl({ url: 'pages/About' })
-                    .catch((err: Error) => { console.error(`Router ERROR: [${err.name}] ${err.message}`) });
+                  if (this.pageInfo.popToName('About') === -1) {
+                    this.pageInfo.clear();
+                    this.pageInfo.pushPath({ name: 'About' });
+                  }
                   break;
 
                 case 15:
@@ -1064,6 +1022,7 @@ struct Index {
                     }
                   }
                   break;
+
                 default:
                   this.showMessage($r('app.string.under_construction'));
                   break;
@@ -1129,71 +1088,78 @@ struct Index {
   /**
    * Tabs 主控程序
    */
+  pageInfo: NavPathStack = new NavPathStack();
+  @StorageLink('isSplit') isSplit: NavigationMode = NavigationMode.Auto;
+
   build() {
     Column() {
-      Tabs({
-        barPosition: BarPosition.End,
-        controller: this.tabsController
-      }) {
+      Navigation(this.pageInfo) {
+        Tabs({ barPosition: BarPosition.End, controller: this.tabsController }) {
+          /**
+           * Tab: 首页
+           */
+          TabContent() {
+            this.pageStart()
+          }
+          .padding({ left: 7, right: 7 })
+          .backgroundColor(BackgroundImage.showImage ? undefined : $r('app.color.normal_background'))
+          .tabBar(this.tabBuilder($r('app.string.page_start'), 0, $r('app.media.tab0_selected'), $r('app.media.tab0_unselected')))
+          .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
 
-        /**
-         * Tab: 首页
-         */
-        TabContent() {
-          this.pageStart()
+          /**
+           * Tab: 功能
+           */
+          TabContent() {
+            this.pageFunction()
+          }
+          .padding({ left: 7, right: 7 })
+          .backgroundColor(BackgroundImage.showImage ? undefined : $r('app.color.normal_background'))
+          .tabBar(this.tabBuilder($r('app.string.page_function'), 1, $r('app.media.tab1_selected'), $r('app.media.tab1_unselected')))
+          .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+
+          /**
+           * Tab: 设置
+           */
+          TabContent() {
+            this.pageSettings()
+          }
+          .padding({ left: 7, right: 7 })
+          .backgroundColor(BackgroundImage.showImage ? undefined : $r('app.color.normal_background'))
+          .tabBar(this.tabBuilder($r('app.string.page_settings'), 2, $r('app.media.tab2_selected'),
+            $r('app.media.tab2_unselected')))
+          .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+
         }
-        .padding({ left: 7, right: 7 })
-        .backgroundColor(BackgroundImage.showImage ? undefined : $r('app.color.normal_background'))
-        .tabBar(this.tabBuilder($r('app.string.page_start'), 0, $r('app.media.tab0_selected'),
-          $r('app.media.tab0_unselected')))
+        .barBackgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background') : undefined)
+        .barBackgroundBlurStyle(BackgroundImage.blurLevel)
+        .barHeight('auto')
+        .barWidth('100%')
+        .vertical(false)
+        .barPosition(BarPosition.End)
+        .barMode(BarMode.Fixed)
         .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
-
-        /**
-         * Tab: 功能
-         */
-        TabContent() {
-          this.pageFunction()
-        }
-        .padding({ left: 7, right: 7 })
-        .backgroundColor(BackgroundImage.showImage ? undefined : $r('app.color.normal_background'))
-        .tabBar(this.tabBuilder($r('app.string.page_function'), 1, $r('app.media.tab1_selected'),
-          $r('app.media.tab1_unselected')))
-        .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
-
-        /**
-         * Tab: 设置
-         */
-        TabContent() {
-          this.pageSettings()
-        }
-        .padding({ left: 7, right: 7 })
-        .backgroundColor(BackgroundImage.showImage ? undefined : $r('app.color.normal_background'))
-        .tabBar(this.tabBuilder($r('app.string.page_settings'), 2, $r('app.media.tab2_selected'),
-          $r('app.media.tab2_unselected')))
-        .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
-
+        .onAnimationStart((_index: number, targetIndex: number) => {
+          this.currentIndex = targetIndex;
+          if (this.currentIndex === 1) {
+            FunctionOrder.refreshFunc(); // 刷新点击次数显示
+            this.copyMostUsedFunc = FunctionOrder.mostUsedFunc;
+          }
+        })
       }
-      .barBackgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background') : undefined)
-      .barBackgroundBlurStyle(BackgroundImage.blurLevel)
+      .enableDragBar(true)
+      .backgroundColor('#00d00721')
       .opacity(BackgroundImage.opacityLevel)
-      .barHeight(this.tabHeight)
-      .barWidth(this.tabWidth)
-      .vertical(this.tabHorizontal)
-      .barPosition(BarPosition.End)
-      .barMode(BarMode.Fixed)
-      .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
-      .onAnimationStart((_index: number, targetIndex: number) => {
-        this.currentIndex = targetIndex;
-        if (this.currentIndex === 1) {
-          FunctionOrder.refreshFunc(); // 刷新点击次数显示
-          this.copyMostUsedFunc = FunctionOrder.mostUsedFunc;
-        }
+      .navBarWidthRange(['360vp', '50%'])
+      .hideTitleBar(true)
+      .hideToolBar(true)
+      .onNavigationModeChange((mode: NavigationMode) => {
+        this.isSplit = mode;
       })
     }
     .height('100%')
     .width('100%')
     .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
-    .backgroundColor($r('app.color.shaded_background'))
+    .backgroundColor($r('app.color.normal_background'))
     .backgroundImage(BackgroundImage.pic)
     .backgroundImageSize(ImageSize.Cover)
     .backgroundImagePosition(Alignment.Center)

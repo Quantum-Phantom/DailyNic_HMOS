@@ -5,6 +5,11 @@ import { obtainedData } from '../constants/ScheduleSources'
 import examManager, { examAttribute, areExamAttributesEqual } from '../utils/ExamManager';
 import BackgroundImage from '../view/BgImageManager';
 
+@Builder
+export function ExamBuilder(name: string, param?: Object) {
+  ExamDetail();
+}
+
 @Entry
 @Component
 struct ExamDetail {
@@ -351,312 +356,322 @@ struct ExamDetail {
     .padding({ top: 16, right: 16, left: 16});
   }
 
-  /**
-   * 页面初始化
-   */
-  onPageShow(): void {
-    try {
-      const routerParams = this.getUIContext().getRouter().getParams() as obtainedData;
-      if (routerParams != undefined && routerParams.timeTable != '') {
-        examManager.storeExam(JSON.parse(routerParams.timeTable));
+  menuItems: Array<NavigationMenuItem> = [
+    {
+      value: $r('app.string.refresh'),
+      icon: $r('app.media.refresh'),
+      action: () => {
+        examManager.readStoredExam();
+        this.examInfo = examManager.allExamInfo;
+        this.currentTime = new Date();
       }
-      this.currentTime = new Date();
-    } catch (error) {
-      console.error(`getRouter ERROR: [${error.name}] ${error.message}`);
-    }
-    examManager.readStoredExam();
-    this.examInfo = examManager.allExamInfo;
-  }
-
-  build() {
-
-    Column() {
-      Row() {
-        Image($r('app.media.close'))
-          .padding({ left: 12 })
-          .height(22)
-          .draggable(false)
-          .onClick(() => {
-            this.context.getRouter().back();
-          })
-        Image($r('app.media.refresh'))
-          .padding({ left: 12 })
-          .height(22)
-          .draggable(false)
-          .onClick(() => {
+    },
+    {
+      value: $r('app.string.new'),
+      icon: $r('app.media.plus_square'),
+      action: () => {
+        this.oriExamInfo = {
+          id: '',
+          type: '',
+          name: '',
+          importance: 5,
+          date: `${this.currentTime.getFullYear()}-${(this.currentTime.getMonth() + 1).toString().padStart(2, '0')}-${this.currentTime.getDate().toString().padStart(2, '0')} ${this.currentTime.getHours().toString().padStart(2, '0')}:${this.currentTime.getMinutes().toString().padStart(2, '0')}~${(this.currentTime.getHours() + 2).toString().padStart(2, '0')}:${this.currentTime.getMinutes().toString().padStart(2, '0')}`,
+          classroom: '',
+          building: '',
+          campus: '',
+          info: '',
+          beginTimeStamp: this.currentTime.getTime(),
+          endTimeStamp: this.currentTime.getTime() + 7200000
+        };
+        this.newExamInfo = {
+          id: '',
+          type: '',
+          name: '',
+          importance: 5,
+          date: `${this.currentTime.getFullYear()}-${(this.currentTime.getMonth() + 1).toString().padStart(2, '0')}-${this.currentTime.getDate().toString().padStart(2, '0')} ${this.currentTime.getHours().toString().padStart(2, '0')}:${this.currentTime.getMinutes().toString().padStart(2, '0')}~${(this.currentTime.getHours() + 2).toString().padStart(2, '0')}:${this.currentTime.getMinutes().toString().padStart(2, '0')}`,
+          classroom: '',
+          building: '',
+          campus: '',
+          info: '',
+          beginTimeStamp: this.currentTime.getTime(),
+          endTimeStamp: this.currentTime.getTime() + 7200000
+        };
+        this.isChangeSchedule = false;
+        this.date = this.newExamInfo.date.slice(0, 10);
+        this.startHour = this.currentTime.getHours();
+        this.startMinute = this.currentTime.getMinutes();
+        this.endHour = this.currentTime.getHours() + 2;
+        this.endMinute = this.currentTime.getMinutes();
+        this.showSheet = true;
+      }
+    },
+    {
+      value: $r('app.string.online_exam_info'),
+      icon: $r('app.media.get'),
+      action: () => {
+        this.pathStack.pushPath({
+          name: "GetSchedule",
+          param: [$r('app.string.online_exam_info'), 'https://jw.ustc.edu.cn/for-std/exam-arrange'],
+          onPop: (popInfo: PopInfo) => {
+            const routerParams = popInfo.result as obtainedData;
+            if (routerParams != undefined && routerParams.timeTable != '') {
+              examManager.storeExam(JSON.parse(routerParams.timeTable));
+            }
             examManager.readStoredExam();
             this.currentTime = new Date();
             this.examInfo = examManager.allExamInfo;
-          })
-
-        Blank()
-
-        Text($r('app.string.exam_detail'))
-          .fontSize(18)
-          .fontColor($r('app.color.normal_text'))
-          .height(48)
-          .bindSheet($$this.showSheet, this.examDetailDialog(), { // 如果与 gridItem 绑定，会弹出很多个！
-            detents: [SheetSize.MEDIUM, SheetSize.LARGE],
-            preferType: SheetType.CENTER,
-            showClose: false,
-            scrollSizeMode: ScrollSizeMode.CONTINUOUS,
-            backgroundColor: '#00d00721',
-            blurStyle: BlurStyle.Regular,
-            onWillDismiss: ((DismissSheetAction: DismissSheetAction) => {
-              if (this.startHour * 60 + this.startMinute > this.endHour * 60 + this.endMinute){
-                let temp: number = this.startHour;
-                this.startHour = this.endHour;
-                this.endHour = temp;
-                temp = this.startMinute;
-                this.startMinute = this.endMinute;
-                this.endMinute = temp;
-              }
-              this.newExamInfo.date = `${this.date} ${this.startHour.toString().padStart(2, '0')}:${this.startMinute.toString().padStart(2, '0')}~${this.endHour.toString().padStart(2, '0')}:${this.endMinute.toString().padStart(2, '0')}`;
-              if (!areExamAttributesEqual(this.oriExamInfo, this.newExamInfo)) {
-                this.getUIContext().showAlertDialog({
-                  title: $r('app.string.unsaved_change'),
-                  message: $r('app.string.back_to_schedule_or_not'),
-                  autoCancel: true,
-                  alignment: DialogAlignment.Center,
-                  gridCount: 4,
-                  primaryButton: {
-                    value: $r('app.string.cancel'),
-                    action: () => {}
-                  },
-                  secondaryButton: {
-                    enabled: true,
-                    defaultFocus: true,
-                    style: DialogButtonStyle.HIGHLIGHT,
-                    value: $r('app.string.ok'),
-                    action: () => {
-                      DismissSheetAction.dismiss();
-                    }
-                  },
-                  cancel: () => {},
-                  onWillDismiss: (dismissDialogAction: DismissDialogAction) => {
-                    if (dismissDialogAction.reason === DismissReason.PRESS_BACK) {
-                      dismissDialogAction.dismiss();
-                    }
-                    if (dismissDialogAction.reason === DismissReason.TOUCH_OUTSIDE) {
-                      dismissDialogAction.dismiss();
-                    }
-                  }
-                });
-              } else {
-                DismissSheetAction.dismiss();
-              }
-            })
-          })
-
-        Blank()
-        Image($r('app.media.plus_square'))
-          .padding({right: 12})
-          .height(22)
-          .draggable(false)
-          .onClick(() => {
-            this.oriExamInfo = {
-              id: '', type: '', name: '', importance: 5,
-              date: `${this.currentTime.getFullYear()}-${(this.currentTime.getMonth() + 1).toString().padStart(2, '0')}-${this.currentTime.getDate().toString().padStart(2, '0')} ${this.currentTime.getHours().toString().padStart(2, '0')}:${this.currentTime.getMinutes().toString().padStart(2, '0')}~${(this.currentTime.getHours() + 2).toString().padStart(2, '0')}:${this.currentTime.getMinutes().toString().padStart(2, '0')}`,
-              classroom: '', building: '', campus: '', info: '', beginTimeStamp: this.currentTime.getTime(),
-              endTimeStamp: this.currentTime.getTime() + 7200000
-            };
-            this.newExamInfo = {
-              id: '', type: '', name: '', importance: 5,
-              date: `${this.currentTime.getFullYear()}-${(this.currentTime.getMonth() + 1).toString().padStart(2, '0')}-${this.currentTime.getDate().toString().padStart(2, '0')} ${this.currentTime.getHours().toString().padStart(2, '0')}:${this.currentTime.getMinutes().toString().padStart(2, '0')}~${(this.currentTime.getHours() + 2).toString().padStart(2, '0')}:${this.currentTime.getMinutes().toString().padStart(2, '0')}`,
-              classroom: '', building: '', campus: '', info: '', beginTimeStamp: this.currentTime.getTime(),
-              endTimeStamp: this.currentTime.getTime() + 7200000
-            };
-            this.isChangeSchedule = false;
-            this.date = this.newExamInfo.date.slice(0, 10);
-            this.startHour = this.currentTime.getHours();
-            this.startMinute = this.currentTime.getMinutes();
-            this.endHour = this.currentTime.getHours() + 2;
-            this.endMinute = this.currentTime.getMinutes();
-            this.showSheet = true;
-          })
-        Image($r('app.media.get'))
-          .padding({ right: 12 })
-          .height(22)
-          .draggable(false)
-          .onClick(() => {
-            this.context.getRouter().pushUrl({
-              url: 'pages/GetSchedule',
-              params: { title: $r('app.string.online_exam_info'), url: 'https://jw.ustc.edu.cn/for-std/exam-arrange'}
-            }).catch((err: Error) => {
-              console.error(`Router ERROR: [${err.name}] ${err.message}`)
-            })
-          })
-      }
-      .width('100%')
-      .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background') : undefined)
-      .opacity(BackgroundImage.opacityLevel)
-      .backgroundBlurStyle(BackgroundImage.blurLevel)
-      .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
-
-      if (this.examInfo.length === 0) {
-        Column() {
-          Column() {
-            Image($r('app.media.no_exam2'))
-              .width(100)
-              .interpolation(ImageInterpolation.Medium)
-              .draggable(false)
-            Text($r('app.string.no_exam_info2')).fontSize(18).textAlign(TextAlign.Center);
           }
-          .backgroundBlurStyle(BackgroundImage.blurLevel)
-          .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.normal_background') : undefined)
-          .opacity(BackgroundImage.opacityLevel)
-          .padding({ top: 5, left: 10, right: 10, bottom: 10})
-          .borderRadius(12);
-        }
-        .height('80%')
-        .justifyContent(FlexAlign.Center);
-      } else {
-        List() {
-          ForEach(this.examInfo, (singleExam: examAttribute) => {
-            ListItem() {
-              Row() {
-                if (this.currentTime.getTime() < singleExam.beginTimeStamp) {
-                  Flex({ wrap: FlexWrap.Wrap, alignItems: ItemAlign.End }) {
-                    Row() {
-                      Text(tools.formatTimeDiff(this.currentTime.getTime(), singleExam.beginTimeStamp, 0).toString())
-                        .fontSize(36)
-                        .fontWeight(FontWeight.Bold)
-                        .fontColor($r('app.color.green'))
-                      Text($r('app.string.day'))
-                        .fontColor($r('app.color.green'))
-                        .lineSpacing({ value: 5, unit: LengthUnit.FP })
-                        .maxFontSize(18)
-                        .fontWeight(FontWeight.Bold)
-                        .padding({ bottom: 6 })
-                    }
-                    .alignItems(VerticalAlign.Bottom)
-
-                    Row() {
-                      Text(tools.formatTimeDiff(this.currentTime.getTime(), singleExam.beginTimeStamp, 1).toString())
-                        .fontSize(28)
-                        .fontWeight(FontWeight.Bold)
-                        .fontColor($r('app.color.hour'))
-                      Text($r('app.string.hour'))
-                        .fontColor($r('app.color.hour'))
-                        .fontSize(14)
-                        .fontWeight(FontWeight.Bold)
-                        .padding({ bottom: 5 })
-                    }
-                    .margin({ bottom: 2 })
-                    .alignItems(VerticalAlign.Bottom)
-
-                    Row() {
-                      Text(tools.formatTimeDiff(this.currentTime.getTime(), singleExam.beginTimeStamp, 2).toString())
-                        .fontSize(28)
-                        .fontWeight(FontWeight.Bold)
-                        .fontColor($r('app.color.minute'))
-                      Text($r('app.string.minute'))
-                        .fontColor($r('app.color.minute'))
-                        .fontSize(14)
-                        .fontWeight(FontWeight.Bold)
-                        .padding({ bottom: 5 })
-                    }
-                    .margin({ bottom: 2 })
-                    .alignItems(VerticalAlign.Bottom)
-                  }
-                  .width('30%');
-                } else if (this.currentTime.getTime() < singleExam.endTimeStamp) {
-                  Text($r('app.string.exam_processing'))
-                    .fontSize(20)
-                    .fontColor($r('app.color.transparent_text'))
-                    .width('30%')
-                    .textAlign(TextAlign.Start);
-                } else {
-                  Text($r('app.string.ended'))
-                    .fontSize(20)
-                    .fontColor($r('app.color.transparent_text'))
-                    .width('30%')
-                    .textAlign(TextAlign.Start);
-                }
-
-                Column() {
-                  Flex({ wrap: FlexWrap.Wrap, alignItems: ItemAlign.End }) {
-                    Text(singleExam.name + '  ')
-                      .fontSize(18)
-                      .fontWeight(FontWeight.Bold)
-                      .margin({ right: 5 })
-                    Text(singleExam.type)
-                      .fontSize(16)
-                  }
-                  .margin({ bottom: 5 })
-
-                  Text(`\udb80\uddb8 ${singleExam.campus} ${singleExam.building} ${singleExam.classroom}`)
-                    .visibility(singleExam.campus + singleExam.building + singleExam.classroom == '' ? Visibility.None :
-                      Visibility.Visible);
-                  Text(`\udb80\udfdc ${singleExam.date}`)
-                    .visibility(singleExam.date == '' ? Visibility.None : Visibility.Visible);
-                  Text(`\udb80\ude95 ${singleExam.id} ${singleExam.info}`)
-                    .visibility(singleExam.id + singleExam.info == '' ? Visibility.None : Visibility.Visible);
-                }
-                .width('70%')
-                .alignItems(HorizontalAlign.Start)
-                .padding({ left: 10 })
-              }
-            }
-            .width('100%')
-            .padding({ top: 10, bottom: 10, left: 16, right: 16 })
-            .margin({ top: 8, bottom: 6 })
-            .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.grid_background') : undefined)
-            .opacity(BackgroundImage.opacityLevel)
-            .backgroundBlurStyle(BackgroundImage.blurLevel)
-            .borderRadius(20)
-            .onClick(() => {
-              this.oriExamInfo = {
-                id: singleExam.id,
-                type: singleExam.type,
-                name: singleExam.name,
-                date: singleExam.date,
-                classroom: singleExam.classroom,
-                building: singleExam.building,
-                campus: singleExam.campus,
-                info: singleExam.info,
-                beginTimeStamp: singleExam.beginTimeStamp,
-                endTimeStamp: singleExam.endTimeStamp,
-                importance: singleExam.importance
-              };
-              this.newExamInfo = {
-                id: singleExam.id,
-                type: singleExam.type,
-                name: singleExam.name,
-                date: singleExam.date,
-                classroom: singleExam.classroom,
-                building: singleExam.building,
-                campus: singleExam.campus,
-                info: singleExam.info,
-                beginTimeStamp: singleExam.beginTimeStamp,
-                endTimeStamp: singleExam.endTimeStamp,
-                importance: singleExam.importance
-              };
-              this.isChangeSchedule = true;
-              this.date = this.oriExamInfo.date.slice(0, 10);
-              this.startHour = Number(this.oriExamInfo.date.slice(11, 13));
-              this.startMinute = Number(this.oriExamInfo.date.slice(14, 16));
-              this.endHour = Number(this.oriExamInfo.date.slice(17, 19));
-              this.endMinute = Number(this.oriExamInfo.date.slice(20, 22));
-              this.showSheet = true;
-            });
-          })
-        }
-        .width('100%')
-        .layoutWeight(1)
-        .alignListItem(ListItemAlign.Center)
-        .scrollBar(BarState.Auto)
-        .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
-        .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
-        .padding({ left: 12, right: 12 })
+        });
       }
     }
-    .backgroundColor($r('app.color.normal_background'))
-    .backgroundImage(BackgroundImage.pic)
-    .backgroundImageSize(ImageSize.Cover)
-    .backgroundImagePosition(Alignment.Center)
-    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
-    .height('100%')
-    .width('100%')
+  ]
+
+  pathStack: NavPathStack = new NavPathStack();
+  build() {
+    NavDestination() {
+      Column() {
+        if (this.examInfo.length === 0) {
+          Column() {
+            Column() {
+              Image($r('app.media.no_exam2'))
+                .width(100)
+                .interpolation(ImageInterpolation.Medium)
+                .draggable(false)
+              Text($r('app.string.no_exam_info2')).fontSize(18).textAlign(TextAlign.Center);
+            }
+            .backgroundBlurStyle(BackgroundImage.blurLevel)
+            .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.normal_background') : undefined)
+            .padding({
+              top: 5,
+              left: 10,
+              right: 10,
+              bottom: 10
+            })
+            .borderRadius(12);
+          }
+          .height('80%')
+          .justifyContent(FlexAlign.Center);
+        } else {
+          List() {
+            ForEach(this.examInfo, (singleExam: examAttribute) => {
+              ListItem() {
+                Row() {
+                  if (this.currentTime.getTime() < singleExam.beginTimeStamp) {
+                    Flex({ wrap: FlexWrap.Wrap, alignItems: ItemAlign.End }) {
+                      Row() {
+                        Text(tools.formatTimeDiff(this.currentTime.getTime(), singleExam.beginTimeStamp, 0).toString())
+                          .fontSize(36)
+                          .fontWeight(FontWeight.Bold)
+                          .fontColor($r('app.color.green'))
+                        Text($r('app.string.day'))
+                          .fontColor($r('app.color.green'))
+                          .lineSpacing({ value: 5, unit: LengthUnit.FP })
+                          .maxFontSize(18)
+                          .fontWeight(FontWeight.Bold)
+                          .padding({ bottom: 6 })
+                      }
+                      .alignItems(VerticalAlign.Bottom)
+
+                      Row() {
+                        Text(tools.formatTimeDiff(this.currentTime.getTime(), singleExam.beginTimeStamp, 1).toString())
+                          .fontSize(28)
+                          .fontWeight(FontWeight.Bold)
+                          .fontColor($r('app.color.hour'))
+                        Text($r('app.string.hour'))
+                          .fontColor($r('app.color.hour'))
+                          .fontSize(14)
+                          .fontWeight(FontWeight.Bold)
+                          .padding({ bottom: 5 })
+                      }
+                      .margin({ bottom: 2 })
+                      .alignItems(VerticalAlign.Bottom)
+
+                      Row() {
+                        Text(tools.formatTimeDiff(this.currentTime.getTime(), singleExam.beginTimeStamp, 2).toString())
+                          .fontSize(28)
+                          .fontWeight(FontWeight.Bold)
+                          .fontColor($r('app.color.minute'))
+                        Text($r('app.string.minute'))
+                          .fontColor($r('app.color.minute'))
+                          .fontSize(14)
+                          .fontWeight(FontWeight.Bold)
+                          .padding({ bottom: 5 })
+                      }
+                      .margin({ bottom: 2 })
+                      .alignItems(VerticalAlign.Bottom)
+                    }
+                    .width('30%');
+                  } else if (this.currentTime.getTime() < singleExam.endTimeStamp) {
+                    Text($r('app.string.exam_processing'))
+                      .fontSize(20)
+                      .fontColor($r('app.color.transparent_text'))
+                      .width('30%')
+                      .textAlign(TextAlign.Start);
+                  } else {
+                    Text($r('app.string.ended'))
+                      .fontSize(20)
+                      .fontColor($r('app.color.transparent_text'))
+                      .width('30%')
+                      .textAlign(TextAlign.Start);
+                  }
+
+                  Column() {
+                    Flex({ wrap: FlexWrap.Wrap, alignItems: ItemAlign.End }) {
+                      Text(singleExam.name + '  ')
+                        .fontSize(18)
+                        .fontWeight(FontWeight.Bold)
+                        .margin({ right: 5 })
+                      Text(singleExam.type)
+                        .fontSize(16)
+                    }
+                    .margin({ bottom: 5 })
+
+                    Text(`\udb80\uddb8 ${singleExam.campus} ${singleExam.building} ${singleExam.classroom}`)
+                      .visibility(singleExam.campus + singleExam.building + singleExam.classroom == '' ?
+                        Visibility.None :
+                        Visibility.Visible);
+                    Text(`\udb80\udfdc ${singleExam.date}`)
+                      .visibility(singleExam.date == '' ? Visibility.None : Visibility.Visible);
+                    Text(`\udb80\ude95 ${singleExam.id} ${singleExam.info}`)
+                      .visibility(singleExam.id + singleExam.info == '' ? Visibility.None : Visibility.Visible);
+                  }
+                  .width('70%')
+                  .alignItems(HorizontalAlign.Start)
+                  .padding({ left: 10 })
+                }
+              }
+              .width('100%')
+              .padding({
+                top: 10,
+                bottom: 10,
+                left: 16,
+                right: 16
+              })
+              .margin({ top: 8, bottom: 6 })
+              .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.grid_background') : undefined)
+              .backgroundBlurStyle(BackgroundImage.blurLevel)
+              .borderRadius(20)
+              .onClick(() => {
+                this.oriExamInfo = {
+                  id: singleExam.id,
+                  type: singleExam.type,
+                  name: singleExam.name,
+                  date: singleExam.date,
+                  classroom: singleExam.classroom,
+                  building: singleExam.building,
+                  campus: singleExam.campus,
+                  info: singleExam.info,
+                  beginTimeStamp: singleExam.beginTimeStamp,
+                  endTimeStamp: singleExam.endTimeStamp,
+                  importance: singleExam.importance
+                };
+                this.newExamInfo = {
+                  id: singleExam.id,
+                  type: singleExam.type,
+                  name: singleExam.name,
+                  date: singleExam.date,
+                  classroom: singleExam.classroom,
+                  building: singleExam.building,
+                  campus: singleExam.campus,
+                  info: singleExam.info,
+                  beginTimeStamp: singleExam.beginTimeStamp,
+                  endTimeStamp: singleExam.endTimeStamp,
+                  importance: singleExam.importance
+                };
+                this.isChangeSchedule = true;
+                this.date = this.oriExamInfo.date.slice(0, 10);
+                this.startHour = Number(this.oriExamInfo.date.slice(11, 13));
+                this.startMinute = Number(this.oriExamInfo.date.slice(14, 16));
+                this.endHour = Number(this.oriExamInfo.date.slice(17, 19));
+                this.endMinute = Number(this.oriExamInfo.date.slice(20, 22));
+                this.showSheet = true;
+              });
+            })
+          }
+          .width('100%')
+          .layoutWeight(1)
+          .alignListItem(ListItemAlign.Center)
+          .scrollBar(BarState.Auto)
+          .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
+          .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
+          .padding({ left: 12, right: 12 })
+        }
+      }
+      .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+      .height('100%')
+      .width('100%')
+      .bindSheet($$this.showSheet, this.examDetailDialog(), {
+        // 如果与 gridItem 绑定，会弹出很多个！
+        detents: [SheetSize.MEDIUM, SheetSize.LARGE],
+        preferType: SheetType.CENTER,
+        showClose: false,
+        scrollSizeMode: ScrollSizeMode.CONTINUOUS,
+        backgroundColor: '#00d00721',
+        blurStyle: BlurStyle.Regular,
+        onWillDismiss: ((DismissSheetAction: DismissSheetAction) => {
+          if (this.startHour * 60 + this.startMinute > this.endHour * 60 + this.endMinute) {
+            let temp: number = this.startHour;
+            this.startHour = this.endHour;
+            this.endHour = temp;
+            temp = this.startMinute;
+            this.startMinute = this.endMinute;
+            this.endMinute = temp;
+          }
+          this.newExamInfo.date =
+            `${this.date} ${this.startHour.toString().padStart(2, '0')}:${this.startMinute.toString()
+              .padStart(2, '0')}~${this.endHour.toString().padStart(2, '0')}:${this.endMinute.toString()
+              .padStart(2, '0')}`;
+          if (!areExamAttributesEqual(this.oriExamInfo, this.newExamInfo)) {
+            this.getUIContext().showAlertDialog({
+              title: $r('app.string.unsaved_change'),
+              message: $r('app.string.back_to_schedule_or_not'),
+              autoCancel: true,
+              alignment: DialogAlignment.Center,
+              gridCount: 4,
+              primaryButton: {
+                value: $r('app.string.cancel'),
+                action: () => {
+                }
+              },
+              secondaryButton: {
+                enabled: true,
+                defaultFocus: true,
+                style: DialogButtonStyle.HIGHLIGHT,
+                value: $r('app.string.ok'),
+                action: () => {
+                  DismissSheetAction.dismiss();
+                }
+              },
+              cancel: () => {
+              },
+              onWillDismiss: (dismissDialogAction: DismissDialogAction) => {
+                if (dismissDialogAction.reason === DismissReason.PRESS_BACK) {
+                  dismissDialogAction.dismiss();
+                }
+                if (dismissDialogAction.reason === DismissReason.TOUCH_OUTSIDE) {
+                  dismissDialogAction.dismiss();
+                }
+              }
+            });
+          } else {
+            DismissSheetAction.dismiss();
+          }
+        })
+      })
+    }
+    .title({ main: $r('app.string.exam_detail'), sub: '\udb80\udfd5 '+ this.currentTime.toLocaleString('zh-cn') }, {
+      backgroundBlurStyle: BackgroundImage.blurLevel,
+      backgroundColor: BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background') : undefined
+    })
+    .backButtonIcon($r('app.media.close'))
+    .menus(this.menuItems)
+    .backgroundColor(BackgroundImage.showImage ? '#00d00721' : $r('app.color.normal_background'))
+    .onReady((context: NavDestinationContext) => {
+      this.pathStack = context.pathStack;
+
+      examManager.readStoredExam();
+      this.examInfo = examManager.allExamInfo;
+      this.currentTime = new Date();
+    })
   }
 }

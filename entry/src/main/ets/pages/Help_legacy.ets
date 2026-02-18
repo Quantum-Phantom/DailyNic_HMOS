@@ -4,32 +4,48 @@ import { getContArray } from '../utils/tools';
 import BackgroundImage from '../view/BgImageManager';
 import { common } from '@kit.AbilityKit';
 
-@Builder
-export function HelpBuilder(name: string, param?: Object) {
-  Help();
-}
-
 @Entry
 @Component
-struct Help {
+struct Index {
   @State isContentShow: boolean[] = new Array(15).fill(false);
   context: UIContext = this.getUIContext();
   @State rotateAngle: number[] = new Array(15).fill(0);
 
-  menuItems: Array<NavigationMenuItem> = [
-    {
-      value: $r('app.string.join_qq_group'),
-      icon: $r('app.media.message_on_message'),
-      action: () => {
-        (this.context.getHostContext() as common.UIAbilityContext)
-          .openLink("mqqapi://card/show_pslcard?src_type=internal&version=1&uin=931920982&card_type=group&source=external&jump_from=webapi",
-            { appLinkingOnly: false })
-      }
-    }
-  ];
-  pathStack: NavPathStack = new NavPathStack();
   build() {
-    NavDestination() {
+    Column() {
+      Row() {
+        Image($r('app.media.close'))
+          .padding({ left: 12 })
+          .height(22)
+          .draggable(false)
+          .onClick(() => {
+            this.getUIContext().getRouter().back();
+          })
+
+        Text($r('app.string.help'))
+          .fontSize(18)
+          .height(48)
+          .fontColor($r('app.color.normal_text'))
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+        Image($r('app.media.message_on_message'))
+          .height(22)
+          .padding({ right: 12 })
+          .draggable(false)
+          .onClick(() => {
+            (this.context.getHostContext() as common.UIAbilityContext)
+              .openLink("mqqapi://card/show_pslcard?src_type=internal&version=1&uin=931920982&card_type=group&source=external&jump_from=webapi",
+                { appLinkingOnly: false })
+          })
+      }
+      .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
+      .width('100%')
+      .id('header')
+      .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background') : undefined)
+      .opacity(BackgroundImage.opacityLevel)
+      .backgroundBlurStyle(BackgroundImage.blurLevel)
+      .justifyContent(FlexAlign.SpaceBetween)
+
       List({ initialIndex: 0 }) {
         ForEach(getContArray([[0, 11]]), (index: number) => {
           ListItem() {
@@ -103,15 +119,10 @@ struct Help {
       .height('100%')
       .width('100%');
     }
-    .title($r('app.string.help'), {
-      backgroundBlurStyle: BackgroundImage.blurLevel,
-      backgroundColor: BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background') : undefined
-    })
-    .menus(this.menuItems)
-    .backButtonIcon($r('app.media.close'))
-    .backgroundColor(BackgroundImage.showImage ? '#00d00721' : $r('app.color.normal_background'))
-    .onReady((context: NavDestinationContext) => {
-      this.pathStack = context.pathStack;
-    })
+    .backgroundImage(BackgroundImage.pic)
+    .backgroundImageSize(ImageSize.Cover)
+    .backgroundImagePosition(Alignment.Center)
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+    .backgroundColor($r('app.color.normal_background'));
   }
 }

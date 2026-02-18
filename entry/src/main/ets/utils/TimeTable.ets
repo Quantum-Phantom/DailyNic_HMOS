@@ -268,7 +268,7 @@ class scheduleManager {
               }
 
       UnifiedPreferences.putSync(SCHEDULE_KEY, JSON.stringify(this.parsedSchedule));
-      UnifiedPreferences.putSync('ScheduleVersion', '1.0.0');
+      UnifiedPreferences.putSync('ScheduleVersion', '2.0.0');
       this.weekDisplayed = Math.ceil((this.currentTime.getTime() - this.termStart) / millisecondsPerWeek);
       if (this.weekDisplayed > 20) { // 学期已结束
         this.weekDisplayed = 1;

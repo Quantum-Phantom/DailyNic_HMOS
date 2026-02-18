@@ -13,6 +13,7 @@ export default struct GridComponent {
   @State gridIndex: number = 0;
   CustomClickCnt: CustomDialogController | undefined;
 
+  pageInfo: NavPathStack = new NavPathStack();
   build() {
     Column() {
       Row() {
@@ -89,17 +90,16 @@ export default struct GridComponent {
                   // 在 string.ets 里添加时别忘了改 tools.getRandomInt(1, 5)！！
                   duration: 500
                 });
-              }
-              else {
+              } else {
                 let preName: string = FunctionOrder.order[index][0];
                 if (preName != undefined) {
                   FunctionOrder.recordClick(Number(preName.split('.')[0]), Number(preName.split('.')[1])); // 记录点击次数
-                  this.getUIContext().getRouter().pushUrl({
-                    url: 'pages/Webview',
-                    params: LINK.get(preName)
-                  }).catch((err: Error) => {
-                    console.error(`Router ERROR: [${err.name}] ${err.message}`)
-                  });
+                  if (this.pageInfo.popToName('Webview') === -1) {
+                    this.pageInfo.clear();
+                    this.pageInfo.pushPath({ name: "Webview", param: LINK.get(preName) });
+                  }
+                  else
+                    this.pageInfo.replacePath({ name: "Webview", param: LINK.get(preName) });
                 }
               }
             }
@@ -111,12 +111,15 @@ export default struct GridComponent {
               });
             } else { // 已设置对应网址
               FunctionOrder.recordClick(this.gridIndex, index); // 点击次数+1
-              this.getUIContext().getRouter().pushUrl({
-                url: 'pages/Webview',
-                params: LINK.get(this.gridIndex.toString() + '.' + index.toString())
-              }).catch((err: Error) => {
-                console.error(`Router ERROR: [${err.name}] ${err.message}`)
-              });
+              if (this.pageInfo.popToName('Webview') === -1) {
+                this.pageInfo.clear();
+                this.pageInfo.pushPath({
+                  name: "Webview",
+                  param: LINK.get(this.gridIndex.toString() + '.' + index.toString())
+                });
+              }
+              else
+                this.pageInfo.replacePath({ name: "Webview", param: LINK.get(this.gridIndex.toString() + '.' + index.toString()) });
             }
           })
         },(item:string,index:number)=>index+JSON.stringify(item))
@@ -128,7 +131,7 @@ export default struct GridComponent {
       .scrollBar(BarState.Off)
       .columnsTemplate('repeat(auto-fit, 70)')
       .backgroundBlurStyle(BackgroundImage.blurLevel)
-      .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.grid_background') : undefined)
+      .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.grid_background') : undefined);
 
       if (this.isLastItem) {
         Blank()

@@ -2,28 +2,33 @@
   "routerMap": [
     {
       "name": "Schedule",
-      "pageSourceFile": "src/main/ets/pages/tablet/Schedule.ets",
+      "pageSourceFile": "src/main/ets/pages/Schedule.ets",
       "buildFunction": "ScheduleBuilder"
     },
     {
       "name": "ExamDetail",
-      "pageSourceFile": "src/main/ets/pages/tablet/ExamDetail.ets",
+      "pageSourceFile": "src/main/ets/pages/ExamDetail.ets",
       "buildFunction": "ExamBuilder"
     },
     {
       "name": "GetSchedule",
-      "pageSourceFile": "src/main/ets/pages/tablet/GetSchedule.ets",
+      "pageSourceFile": "src/main/ets/pages/GetSchedule.ets",
       "buildFunction": "GetBuilder"
     },
     {
       "name": "About",
-      "pageSourceFile": "src/main/ets/pages/tablet/About.ets",
+      "pageSourceFile": "src/main/ets/pages/About.ets",
       "buildFunction": "AboutBuilder"
     },
     {
       "name": "Help",
-      "pageSourceFile": "src/main/ets/pages/tablet/Help.ets",
+      "pageSourceFile": "src/main/ets/pages/Help.ets",
       "buildFunction": "HelpBuilder"
+    },
+    {
+      "name": "Webview",
+      "pageSourceFile": "src/main/ets/pages/Webview.ets",
+      "buildFunction": "WebBuilder"
     }
   ]
 }

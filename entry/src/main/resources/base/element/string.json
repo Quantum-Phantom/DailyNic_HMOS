@@ -225,6 +225,14 @@
       "value": "在日历中新建考试提醒日程"
     },
     {
+      "name": "new",
+      "value": "新建"
+    },
+    {
+      "name": "refresh",
+      "value": "刷新"
+    },
+    {
       "name": "ok",
       "value": "确定"
     },
@@ -263,22 +271,6 @@
     {
       "name": "delete_exam_or_not",
       "value": "你真的要删掉这次考试吗？"
-    },
-    {
-      "name": "back_to_current_week",
-      "value": "如果你在时间的河流里迷了路，轻触此处的「咻~」就可以坐时光机穿越回来啦！"
-    },
-    {
-      "name": "pinch_to_scale",
-      "value": "当你双指按住课表区域，开合间便能优雅地调整组件高度；而指尖轻点课程，则能窥见其背后的详情。但请留心，若你采用上下方向缩放，或许会与上下滑动的意图产生微妙的纠缠，让操作不那么灵敏。因此，更推荐你以左右的方式，与它温柔对话"
-    },
-    {
-      "name": "more_color_option",
-      "value": "点击此处可以查看更多颜色选项"
-    },
-    {
-      "name": "change_detail_size",
-      "value": "在手机端或者平板小窗模式下，按住标题栏向上滑动可切换至全屏弹窗"
     },
     {
       "name": "class_detail_new",
@@ -429,6 +421,10 @@
       "value": "已是最近访问的 URL"
     },
     {
+      "name": "open_in_full_screen",
+      "value": "在全屏页面中打开"
+    },
+    {
       "name": "open_in_browser",
       "value": "在系统浏览器中打开"
     },
@@ -443,6 +439,18 @@
     {
       "name": "switch_ua",
       "value": "切换浏览器标识"
+    },
+    {
+      "name": "network_error",
+      "value": "网络错误"
+    },
+    {
+      "name": "network_error_explain",
+      "value": "诶？网络问题吗？让我看看喵~（歪头）\n要不要你试试检查一下网络设置？或者网址有没有问题？"
+    },
+    {
+      "name": "back_to_last_page",
+      "value": "返回上一页"
     },
     {
       "name": "no_class_this_week",
@@ -622,7 +630,7 @@
     },
     {
       "name": "version",
-      "value": "版本 1.0.0"
+      "value": "版本 2.0.0"
     },
     {
       "name": "EntryFormAbility_label",
@@ -826,7 +834,7 @@
     },
     {
       "name": "password_incomplete1",
-      "value": "已保存，但你可能输入误"
+      "value": "已保存，但你可能输入有误"
     },
     {
       "name": "password_incomplete2",

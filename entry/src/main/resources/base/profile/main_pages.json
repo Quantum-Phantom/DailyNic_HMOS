@@ -2,14 +2,8 @@
   "src": [
     "pages/Index",
     "pages/FaultOccurred",
-    "pages/Webview",
-    "pages/Schedule",
-    "pages/About",
-    "pages/Help",
-    "pages/ExamDetail",
-    "pages/GetSchedule",
-    "pages/Declaration",
-    "pages/test",
-    "pages/tablet/Index"
+    "pages/Webview_legacy",
+    "pages/Help_legacy",
+    "pages/Declaration"
   ]
 }
