@@ -24,6 +24,13 @@ struct Help {
         (this.context.getHostContext() as common.UIAbilityContext)
           .openLink("mqqapi://card/show_pslcard?src_type=internal&version=1&uin=931920982&card_type=group&source=external&jump_from=webapi",
             { appLinkingOnly: false })
+          .catch((error: Error) => {
+            (this.context.getHostContext() as common.UIAbilityContext).startAbility({
+              action: 'ohos.want.action.viewData',
+              entities: ['entity.system.browsable'],
+              uri: 'https://qm.qq.com/q/MM3mA0VeW4'
+            });
+          })
       }
     }
   ];
