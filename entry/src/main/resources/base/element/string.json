@@ -887,6 +887,10 @@
     {
       "name": "exam_info_display_name",
       "value": "考试信息"
+    },
+    {
+      "name": "stepper_bug",
+      "value": "下一步按钮在右下角。如果你看不见按钮，这是系统组件的 Bug，请切后台划走应用重新进入，或者再切换一次深色模式。"
     }
   ]
 }

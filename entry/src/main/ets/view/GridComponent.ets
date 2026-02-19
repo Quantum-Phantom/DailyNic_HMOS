@@ -65,7 +65,7 @@ export default struct GridComponent {
                   if (preName != undefined) {
                     this.CustomClickCnt = new CustomDialogController({
                       builder: CustomClickDialog({ gridIndex: Number(preName.split('.')[0]), index: Number(preName.split('.')[1]) }),
-                      autoCancel: true,
+                      autoCancel: false,
                       gridCount: 4
                     });
                     this.CustomClickCnt.open();
@@ -75,7 +75,7 @@ export default struct GridComponent {
               else {
                 this.CustomClickCnt = new CustomDialogController({
                   builder: CustomClickDialog({ gridIndex: this.gridIndex, index: index }),
-                  autoCancel: true,
+                  autoCancel: false,
                   gridCount: 4
                 });
                 this.CustomClickCnt.open();

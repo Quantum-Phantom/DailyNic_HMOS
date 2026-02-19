@@ -140,6 +140,10 @@ struct Index {
     if (UnifiedPreferences.getBoolSync('InitialLaunch', true)) {
       this.getUIContext().getRouter().pushUrl({ url: 'pages/Declaration' })
         .catch((err: Error) => { console.error(`Router ERROR: [${err.name}] ${err.message}`) })
+    } else if (UnifiedPreferences.getSync('AppVersion') !== '2.0') {
+      this.getUIContext().getRouter().pushUrl({ url: 'pages/UpdateLog' })
+        .catch((err: Error) => { console.error(`Router ERROR: [${err.name}] ${err.message}`) })
+      UnifiedPreferences.putSync('AppVersion', '2.0.0');
     }
   }
 

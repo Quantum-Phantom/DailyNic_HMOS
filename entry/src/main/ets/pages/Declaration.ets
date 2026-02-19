@@ -1,6 +1,7 @@
 import { webview } from '@kit.ArkWeb';
 import UnifiedPreferences from '../utils/UnifyPreference';
 import { setUSTCLink, setHUSTLink } from '../constants/Links';
+import UpdateInfo from '../constants/UpdateInfo';
 
 @Entry
 @Component
@@ -9,7 +10,7 @@ struct Declaration {
   @State chooseSchool: number = -1;
   @State showSheet: boolean = false;
   @State knowIndependence: boolean = false;
-  private webController: webview.WebviewController = new webview.WebviewController();
+  private webController: webview.WebviewController | undefined = undefined;
 
   onBackPress(): boolean {
     return true;
@@ -30,33 +31,40 @@ struct Declaration {
               .margin({ top: 10 })
           }
 
-          Row() {
-            Checkbox()
-              .onChange((value: boolean) => {
-                this.agreePolitic = value;
+          Column() {
+            Row() {
+              Checkbox()
+                .onChange((value: boolean) => {
+                  this.agreePolitic = value;
+                })
+              Text() {
+                Span($r('app.string.read_privacy_policy'))
+                Span($r('app.string.terms_of_use_and_privacy_policy'))
+                  .fontColor($r('app.color.active_text'))
+                  .onClick(() => {
+                    if (this.webController === undefined) {
+                      this.webController = new webview.WebviewController();
+                    }
+                    this.showSheet = true;
+                  })
+                  .decoration({
+                    type: TextDecorationType.Underline,
+                    color: $r('app.color.active_text')
+                  })
+              }
+              .bindSheet($$this.showSheet, this.agreementSheet(), {
+                detents: [SheetSize.LARGE],
+                preferType: SheetType.CENTER
               })
-            Text() {
-              Span($r('app.string.read_privacy_policy'))
-              Span($r('app.string.terms_of_use_and_privacy_policy'))
-                .fontColor($r('app.color.active_text'))
-                .onClick(() => {
-                  this.showSheet = true;
-                })
-                .decoration({
-                  type: TextDecorationType.Underline,
-                  color: $r('app.color.active_text')
-                })
             }
+
+            Text($r('app.string.stepper_bug'))
           }
         }
         .justifyContent(FlexAlign.SpaceAround)
         .padding(15)
         .height('90%')
         .width('90%')
-        .bindSheet($$this.showSheet, this.agreementSheet(), {
-          detents: [SheetSize.LARGE],
-          preferType: SheetType.CENTER
-        })
       }
       .status(this.agreePolitic ? ItemState.Normal: ItemState.Disabled)
 
@@ -107,8 +115,22 @@ struct Declaration {
         .height('90%')
         .width('90%')
       }
-      .nextLabel('妮可，启动！')
       .status(this.chooseSchool === -1 ? ItemState.Disabled : ItemState.Normal)
+
+      StepperItem() {
+        Column() {
+          Text($r('app.string.update_log'))
+            .fontSize(16)
+            .fontWeight(FontWeight.Bold)
+            .margin({ bottom: 10 })
+          UpdateInfo()
+        }
+        .margin({ top: 10, left: 10, right: 10 })
+        .padding({ top: 20, bottom: 20 })
+        .borderRadius(20)
+        .backgroundColor($r('app.color.normal_background'))
+      }
+      .nextLabel('妮可，启动！')
     }
     .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
     .onFinish(() => {
@@ -123,6 +145,7 @@ struct Declaration {
           break;
       }
       UnifiedPreferences.putSync('InitialLaunch', false);
+      UnifiedPreferences.putSync('AppVersion', '2.0.0');
       this.getUIContext().getRouter().back();
     })
   }

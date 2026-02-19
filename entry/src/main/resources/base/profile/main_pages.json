@@ -4,6 +4,7 @@
     "pages/FaultOccurred",
     "pages/Webview_legacy",
     "pages/Help_legacy",
-    "pages/Declaration"
+    "pages/Declaration",
+    "pages/UpdateLog"
   ]
 }
