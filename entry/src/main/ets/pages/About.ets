@@ -235,7 +235,7 @@ struct About {
               // 构造ShareData，需配置一条有效数据信息
               const shareData = new systemShare.SharedData({
                 utd: uniformTypeDescriptor.UniformDataType.TEXT,
-                content: '还在为找校园服务入口发愁？试试我正在使用的「妮可之记」鸿蒙版！一站式导航+课表/考试管理，适配HarmonyOS NEXT，科大师生必备～你可以直接在华为应用市场搜索，或者去https://github.com/Your-USTC/YourUSTC_HarmonyOSNEXT找到它！',
+                content: '还在为找校园服务入口发愁？试试我正在使用的「妮可之记」鸿蒙版！一站式导航+课表/考试管理，适配HarmonyOS NEXT，科大师生必备～你可以直接在华为应用市场搜索，或者去https://github.com/Your-USTC/DailyNic_HMOS找到它！',
                 title: '妮可之记 for HarmonyOS NEXT',
                 thumbnail: this.iconThumbnail,
                 description: '专为HarmonyOS NEXT开发，轻松查询课表、考试安排，支持校园服务网页一键访问，开源免费且无任何广告，深度适配鸿蒙系统特性，让你的校园生活更高效。'

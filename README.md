@@ -5,21 +5,21 @@
 
 <image src="resources/introduction.png" width="100%"/>
 
-[![Stars](https://img.shields.io/github/stars/Your-USTC/YourUSTC_HarmonyOSNEXT)](https://github.com/Your-USTC/YourUSTC_HarmonyOSNEXT)
+[![Stars](https://img.shields.io/github/stars/Your-USTC/DailyNic_HMOS)](https://github.com/Your-USTC/DailyNic_HMOS)
 &nbsp;
-[![Forks](https://img.shields.io/github/forks/Your-USTC/YourUSTC_HarmonyOSNEXT)](https://github.com/Your-USTC/YourUSTC_HarmonyOSNEXT)
+[![Forks](https://img.shields.io/github/forks/Your-USTC/DailyNic_HMOS)](https://github.com/Your-USTC/DailyNic_HMOS)
 
-[![Release](https://img.shields.io/github/v/release/Your-USTC/YourUSTC_HarmonyOSNEXT)](https://github.com/Your-USTC/YourUSTC_HarmonyOSNEXT/releases/latest)
+[![Release](https://img.shields.io/github/v/release/Your-USTC/DailyNic_HMOS)](https://github.com/Your-USTC/DailyNic_HMOS/releases/latest)
 &nbsp;
-[![Downloads](https://img.shields.io/github/downloads/Your-USTC/YourUSTC_HarmonyOSNEXT/total)](https://github.com/Your-USTC/YourUSTC_HarmonyOSNEXT/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/Your-USTC/DailyNic_HMOS/total)](https://github.com/Your-USTC/DailyNic_HMOS/releases/latest)
 
-![Repo size](https://img.shields.io/github/repo-size/Your-USTC/YourUSTC_HarmonyOSNEXT)
+![Repo size](https://img.shields.io/github/repo-size/Your-USTC/DailyNic_HMOS)
 &nbsp;
 ![ArkTS](https://img.shields.io/badge/ArkTS-blue)
 
 ### 中国科大一站式导航 · 开启你的智慧校园
 
-###### [App 主页](https://dailynic.feixu.site/) | [AppGallery](https://appgallery.huawei.com/app/detail?id=com.nic.dailynic) | [用户协议 & 隐私政策](https://cdn.jsdelivr.net/gh/Your-USTC/YourUSTC_HarmonyOSNEXT@main/entry/src/main/resources/rawfile/TermsOfUse.html)
+###### [App 主页](https://dailynic.feixu.site/) | [华为应用商店 AppGallery](https://appgallery.huawei.com/app/detail?id=com.nic.dailynic) | [用户协议 & 隐私政策](https://cdn.jsdelivr.net/gh/Your-USTC/DailyNic_HMOS@main/entry/src/main/resources/rawfile/TermsOfUse.html)
 
 </div>
 

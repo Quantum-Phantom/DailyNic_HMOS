@@ -251,7 +251,7 @@ struct FaultOccurred {
             (this.getUIContext().getHostContext() as common.UIAbilityContext).startAbility({
               action: 'ohos.want.action.viewData',
               entities: ['entity.system.browsable'],
-              uri: 'https://github.com/Your-USTC/YourUSTC_HarmonyOSNEXT/issues'
+              uri: 'https://github.com/Your-USTC/DailyNic_HMOS/issues'
             }).catch((err: BusinessError) => {
               console.error(`startAbility failed, code is ${err.code}, message is ${err.message}`);
             })
