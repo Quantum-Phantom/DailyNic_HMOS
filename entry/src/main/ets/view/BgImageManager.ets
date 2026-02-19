@@ -2,6 +2,17 @@
 import UnifiedPreferences from '../utils/UnifyPreference';
 import { fileIo, fileUri } from "@kit.CoreFileKit";
 
+/* probably todo:
+可以更改主题色
+目前比较好的
+> 绿色
+light: #E1F2F2
+light: #E1FFFF
+
+> 紫色
+dark：#2A3166
+ */
+
 class BackgroundImage {
   pic: ResourceStr | undefined = undefined;
   showImage: boolean = UnifiedPreferences.getBoolSync('ShowImage', false); // 是否展示

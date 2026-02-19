@@ -22,7 +22,7 @@
     },
     {
       "name": "shaded_background",
-      "value": "#071B58"
+      "value": "#102542"
     },
     {
       "name": "grid_background",
@@ -30,7 +30,7 @@
     },
     {
       "name": "normal_text",
-      "value": "#FFFFFF"
+      "value": "#F5F5F5"
     },
     {
       "name": "transparent_text",
