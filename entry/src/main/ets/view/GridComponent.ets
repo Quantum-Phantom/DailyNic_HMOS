@@ -12,6 +12,7 @@ export default struct GridComponent {
   @State isLastItem: boolean = false;
   @State gridIndex: number = 0;
   CustomClickCnt: CustomDialogController | undefined;
+  @Link copyMostUsedFunc: GridData
 
   pageInfo: NavPathStack = new NavPathStack();
   build() {
@@ -94,12 +95,14 @@ export default struct GridComponent {
                 let preName: string = FunctionOrder.order[index][0];
                 if (preName != undefined) {
                   FunctionOrder.recordClick(Number(preName.split('.')[0]), Number(preName.split('.')[1])); // 记录点击次数
-                  if (this.pageInfo.popToName('Webview') === -1) {
+                  if (this.pageInfo.popToName('Webview') === -1) { // 打开对应页面
                     this.pageInfo.clear();
                     this.pageInfo.pushPath({ name: "Webview", param: LINK.get(preName) });
                   }
                   else
                     this.pageInfo.replacePath({ name: "Webview", param: LINK.get(preName) });
+                  FunctionOrder.refreshFunc(); // 刷新点击次数显示
+                  this.copyMostUsedFunc = FunctionOrder.mostUsedFunc;
                 }
               }
             }
@@ -111,7 +114,7 @@ export default struct GridComponent {
               });
             } else { // 已设置对应网址
               FunctionOrder.recordClick(this.gridIndex, index); // 点击次数+1
-              if (this.pageInfo.popToName('Webview') === -1) {
+              if (this.pageInfo.popToName('Webview') === -1) { // 打开对应页面
                 this.pageInfo.clear();
                 this.pageInfo.pushPath({
                   name: "Webview",
@@ -120,6 +123,8 @@ export default struct GridComponent {
               }
               else
                 this.pageInfo.replacePath({ name: "Webview", param: LINK.get(this.gridIndex.toString() + '.' + index.toString()) });
+              FunctionOrder.refreshFunc(); // 刷新点击次数显示
+              this.copyMostUsedFunc = FunctionOrder.mostUsedFunc;
             }
           })
         },(item:string,index:number)=>index+JSON.stringify(item))

@@ -140,7 +140,7 @@ struct Index {
     if (UnifiedPreferences.getBoolSync('InitialLaunch', true)) {
       this.getUIContext().getRouter().pushUrl({ url: 'pages/Declaration' })
         .catch((err: Error) => { console.error(`Router ERROR: [${err.name}] ${err.message}`) })
-    } else if (UnifiedPreferences.getSync('AppVersion') !== '2.0') {
+    } else if (UnifiedPreferences.getSync('AppVersion') !== '2.0.0') {
       this.getUIContext().getRouter().pushUrl({ url: 'pages/UpdateLog' })
         .catch((err: Error) => { console.error(`Router ERROR: [${err.name}] ${err.message}`) })
       UnifiedPreferences.putSync('AppVersion', '2.0.0');
@@ -823,12 +823,19 @@ struct Index {
       Scroll(this.scrollerForScroll) {
         Column() {
           // 常用区 Grid
-          GridComponent({ gridData: this.copyMostUsedFunc, gridIndex: -1, pageInfo: this.pageInfo })
+          GridComponent({ gridData: this.copyMostUsedFunc, gridIndex: -1, pageInfo: this.pageInfo,
+            copyMostUsedFunc: this.copyMostUsedFunc })
           // 常用区下面的所有功能区 GridComponent
           this.listBuilder();
           List({ scroller: this.scrollerForList }) {
             ForEach(otherGridDataList, (item: GridData, index: number) => {
-              GridComponent({ gridData: item, isLastItem: index === otherGridDataList.length - 1, gridIndex: index, pageInfo: this.pageInfo })
+              GridComponent({
+                gridData: item,
+                isLastItem: index === otherGridDataList.length - 1,
+                gridIndex: index,
+                pageInfo: this.pageInfo,
+                copyMostUsedFunc: this.copyMostUsedFunc
+              })
             }, (item: GridData,index:number) => index + JSON.stringify(item))
           }
           .padding({ bottom: '40vp' })
@@ -1152,10 +1159,6 @@ struct Index {
         .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
         .onAnimationStart((_index: number, targetIndex: number) => {
           this.currentIndex = targetIndex;
-          if (this.currentIndex === 1) {
-            FunctionOrder.refreshFunc(); // 刷新点击次数显示
-            this.copyMostUsedFunc = FunctionOrder.mostUsedFunc;
-          }
         })
       }
       .enableDragBar(true)
