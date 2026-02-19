@@ -174,7 +174,7 @@ struct Class_schedule_dailyCard {
       postCardAction(this, {
         action: 'router',
         abilityName: 'EntryAbility',
-        params: { message: 'add detail', router: 'pages/Schedule'}
+        params: { message: 'add detail', router: 'Schedule'}
       });
     })
   }
