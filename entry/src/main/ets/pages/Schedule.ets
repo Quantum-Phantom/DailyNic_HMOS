@@ -462,7 +462,7 @@ struct Schedule {
                   .width('100%')
                   .textAlign(TextAlign.Center)
                   .border({
-                    width: { right: 1 },
+                    width: { right: 0.6 },
                     color: $r('app.color.grid_border')
                   })
 
@@ -473,7 +473,7 @@ struct Schedule {
                   .width('100%')
                   .textAlign(TextAlign.Center)
                   .border({
-                    width: { top: 1, right: 1 },
+                    width: { top: 0.6, right: 0.6 },
                     color: $r('app.color.grid_border')
                   })
 
@@ -484,7 +484,7 @@ struct Schedule {
                   .width('100%')
                   .textAlign(TextAlign.Center)
                   .border({
-                    width: { top: 1, right: 1 },
+                    width: { top: 0.6, right: 0.6 },
                     color: $r('app.color.grid_border')
                   })
               }
@@ -506,12 +506,13 @@ struct Schedule {
                     .fontSize('8fp')
                     .visibility(this.hideTime ? Visibility.None : Visibility.Visible)
                 }
+                .clip(true)
                 .width('100%')
                 .layoutWeight(1)
                 .justifyContent(FlexAlign.SpaceBetween)
                 .padding({ top: 2, bottom: 2 })
                 .border({
-                  width: { right: 1 },
+                  width: { right: 0.6 },
                   color: $r('app.color.grid_border')
                 })
                 .onSizeChange((_oldValue: SizeOptions, newValue: SizeOptions) => {
@@ -536,12 +537,13 @@ struct Schedule {
                       .fontSize('8fp')
                       .visibility(this.hideTime ? Visibility.None : Visibility.Visible)
                   }
+                  .clip(true)
                   .width('100%')
                   .layoutWeight(1)
                   .justifyContent(FlexAlign.SpaceBetween)
                   .padding({ top: 2, bottom: 2 })
                   .border({
-                    width: { top: 1, right: 1 },
+                    width: { top: 0.6, right: 0.6 },
                     color: $r('app.color.grid_border')
                   });
                 })
@@ -599,24 +601,16 @@ struct Schedule {
                       overflow: (Math.floor(this.maxLinesH * lesson.timeSpan.length) === 1 ? TextOverflow.MARQUEE : TextOverflow.Ellipsis)
                     })
 
-                  Text(lesson.location)
+                  Text(lesson.location + '\n' + lesson.teacher)
                     .fontColor('#000000')
                     .fontSize(9)
-                    .maxLines(1)
-                    .textOverflow({ overflow: TextOverflow.MARQUEE })
-                    .visibility(this.hideTime && (Math.floor(this.maxLinesH * lesson.timeSpan.length) === 1) ? Visibility.None : Visibility.Visible)
-
-                  Text(lesson.teacher)
-                    .fontColor('#000000')
-                    .fontSize(9)
-                    .maxLines(1)
-                    .textOverflow({ overflow: TextOverflow.MARQUEE })
-                    .visibility(this.hideTime && (Math.floor(this.maxLinesH * lesson.timeSpan.length) < 3) ? Visibility.None : Visibility.Visible)
+                    .textAlign(TextAlign.Center)
                 }
                 .width('100%')
                 .height('100%')
                 .justifyContent(FlexAlign.Center)
               }
+              .clip(true)
               .onClick(() => {
                 this.checkBoxGroup = (this.checkBoxGroup + 1) % 2;
                 this.isChangeSchedule = true;
@@ -660,7 +654,7 @@ struct Schedule {
               .padding(2)
               .backgroundColor(lesson.color)
               .border({
-                width: 1,
+                width: 0.6,
                 color: $r('app.color.grid_border')
               });
             });
@@ -742,9 +736,9 @@ struct Schedule {
           this.pathStack.pop();
         })
 
-        Badge({ count: this.conflictSchedule.length, style: { badgeSize: 14, badgeColor: /*'#FA2A2D'*/$r('sys.color.ohos_id_color_badge_red') } }) {
+        Badge({ count: this.conflictSchedule.length, style: { badgeSize: 15, badgeColor: /*'#FA2A2D'*/$r('sys.color.ohos_id_color_badge_red') } }) {
           Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
-            Image($r('app.media.pile'))
+            Image(this.conflictSchedule.length === 0 ? $r('app.media.pile') : $r('app.media.pile_fill'))
               .height(22)
               .width(22)
               .draggable(false)
@@ -880,8 +874,21 @@ struct Schedule {
           this.pathStack.pushPath({ name: "GetSchedule",
             param: [$r('app.string.online_schedule'), 'https://jw.ustc.edu.cn/for-std/course-table'],
             onPop: (popInfo: PopInfo) => {
+              // console.log(`!!`); 测试表明无返回值时不会执行回调
               scheduleManager.refreshParsedSchedule(popInfo.result as obtainedData);
               scheduleManager.getFormattedSchedule();
+              this.termStart = scheduleManager.termStart;
+              this.weekDisplayed = scheduleManager.weekDisplayed;
+              this.weekStart = scheduleManager.weekStart;
+              this.weekEnd = scheduleManager.weekEnd;
+              this.sepConflictClass();
+              let tong: boolean[][] = [];
+              for (let i = 0; i < 7; i++) {
+                tong[i] = [];
+                for(let j = 0; j < 14; j++) {
+                  tong[i].push(false);
+                }
+              }
             }
           });
         });
@@ -938,7 +945,7 @@ struct Schedule {
       .height(30)
       .padding({ left: 15, right: 5 })
       .border({
-        width: { bottom: 1 },
+        width: { bottom: 0.6 },
         color: $r('app.color.grid_border')
       })
 
@@ -951,7 +958,7 @@ struct Schedule {
           .textAlign(TextAlign.Center)
           .layoutWeight(1)
           .border({
-            width: { right: 1 },
+            width: { right: 0.6 },
             color: $r('app.color.grid_border')
           })
           .bindPopup(this.showXiuHint, {
@@ -986,7 +993,7 @@ struct Schedule {
             .height('100%')
             .layoutWeight(1)
             .border({
-              width: { left: 1 },
+              width: { left: 0.6 },
               color: $r('app.color.grid_border')
             })
         })
@@ -995,7 +1002,7 @@ struct Schedule {
       .height(25)
       .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.grid_background') : undefined)
       .border({
-        width: { bottom: 1 },
+        width: { bottom: 0.6 },
         color: $r('app.color.grid_border')
       })
     }
