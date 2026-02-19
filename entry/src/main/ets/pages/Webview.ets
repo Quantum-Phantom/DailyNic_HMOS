@@ -177,7 +177,7 @@ struct Webview {
     NavDestination() {
       Stack({ alignContent: Alignment.TopStart}) {
         Web({ src: this.url, controller: this.webviewController })
-          .backgroundColor(BackgroundImage.blurLevel === undefined ? undefined : '#00d00721')
+          .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.normal_background') : '#00d00721')
           .opacity(BackgroundImage.opacityLevel)
           .javaScriptProxy({
             object: accountInfoProvider,
@@ -395,6 +395,45 @@ struct Webview {
             return true;
           })
 
+        if (this.loadError) {
+          Column() {
+            Column() {
+              Image($r('app.media.thinking'))
+                .layoutWeight(1)
+                .objectFit(ImageFit.Contain)
+                .constraintSize({ maxWidth: '60%', maxHeight: 300 })
+              Text($r('app.string.network_error'))
+                .fontWeight(FontWeight.Bold)
+                .fontSize(30)
+                .fontColor($r('app.color.red'))
+              Text($r('app.string.network_error_explain'))
+                .textAlign(TextAlign.Center)
+                .margin({ top: 6, bottom: 10 })
+                .fontColor(this.webAutoDarkMode ? $r('app.color.normal_text') : '#000000')
+              Row({ space: 6 }) {
+                Button($r('app.string.back_to_last_page'))
+                  .onClick(() => {
+                    if (this.webviewController.accessBackward()) {
+                      this.webviewController.backward();
+                    } else {
+                      this.webviewController.terminateRenderProcess();
+                      this.pathStack.pop();
+                    }
+                  })
+                Button($r('app.string.refresh'))
+                  .onClick(() => {
+                    this.webviewController.refresh();
+                  })
+              }
+            }
+            .padding({ left: 12, right: 12 })
+          }
+          .width('100%')
+          .height('100%')
+          .justifyContent(FlexAlign.Center)
+          .alignItems(HorizontalAlign.Center)
+        }
+
         Line()
           .visibility(this.loadingProgress == 100 ? Visibility.None : Visibility.Visible)
           .width(`${this.loadingProgress}%`)
@@ -431,44 +470,6 @@ struct Webview {
         .width('100%')
         .padding({ left: 5, top: 5, right: 5 })
         .hitTestBehavior(HitTestMode.Transparent)
-
-        if (this.loadError) {
-          Column() {
-            Column() {
-              Image($r('app.media.thinking'))
-                .layoutWeight(1)
-                .objectFit(ImageFit.Contain)
-                .constraintSize({ maxWidth: '60%', maxHeight: 300 })
-              Text($r('app.string.network_error'))
-                .fontWeight(FontWeight.Bold)
-                .fontSize(30)
-                .fontColor($r('app.color.red'))
-              Text($r('app.string.network_error_explain'))
-                .textAlign(TextAlign.Center)
-                .margin({ top: 6, bottom: 10 })
-              Row({ space: 6 }) {
-                Button($r('app.string.back_to_last_page'))
-                  .onClick(() => {
-                    if (this.webviewController.accessBackward()) {
-                      this.webviewController.backward();
-                    } else {
-                      this.webviewController.terminateRenderProcess();
-                      this.pathStack.pop();
-                    }
-                  })
-                Button($r('app.string.refresh'))
-                  .onClick(() => {
-                    this.webviewController.refresh();
-                  })
-              }
-            }
-            .padding({ left: 12, right: 12 })
-          }
-          .width('100%')
-          .height('100%')
-          .justifyContent(FlexAlign.Center)
-          .alignItems(HorizontalAlign.Center)
-        }
       }
       .layoutWeight(1)
     }

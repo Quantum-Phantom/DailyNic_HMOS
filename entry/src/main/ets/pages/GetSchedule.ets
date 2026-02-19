@@ -162,23 +162,6 @@ struct Webview {
             }
           })
 
-        Line()
-          .visibility(this.loadingProgress == 100 ? Visibility.None : Visibility.Visible)
-          .width(`${this.loadingProgress}%`)
-          .height(5)
-          .startPoint([0, 0])
-          .backgroundColor($r('app.color.pink'));
-        Row({ space: 5 }) {
-          LoadingProgress()
-            .width(45)
-            .height(45)
-            .color($r('app.color.pink'));
-          Text($r('app.string.loading'))
-            .fontColor($r('app.color.pink'));
-        }
-        .padding({ left: 5, top: 5 })
-        .visibility(this.loadingProgress === 100 ? Visibility.None : Visibility.Visible);
-
         if (this.loadError) {
           Column() {
             Column() {
@@ -193,6 +176,7 @@ struct Webview {
               Text($r('app.string.network_error_explain'))
                 .textAlign(TextAlign.Center)
                 .margin({ top: 6, bottom: 10 })
+                .fontColor(this.webAutoDarkMode ? $r('app.color.normal_text') : '#000000')
               Row({ space: 6 }) {
                 Button($r('app.string.back_to_last_page'))
                   .onClick(() => {
@@ -216,6 +200,23 @@ struct Webview {
           .justifyContent(FlexAlign.Center)
           .alignItems(HorizontalAlign.Center)
         }
+
+        Line()
+          .visibility(this.loadingProgress == 100 ? Visibility.None : Visibility.Visible)
+          .width(`${this.loadingProgress}%`)
+          .height(5)
+          .startPoint([0, 0])
+          .backgroundColor($r('app.color.pink'));
+        Row({ space: 5 }) {
+          LoadingProgress()
+            .width(45)
+            .height(45)
+            .color($r('app.color.pink'));
+          Text($r('app.string.loading'))
+            .fontColor($r('app.color.pink'));
+        }
+        .padding({ left: 5, top: 5 })
+        .visibility(this.loadingProgress === 100 ? Visibility.None : Visibility.Visible);
       }
       .height('100%')
       .width('100%')
