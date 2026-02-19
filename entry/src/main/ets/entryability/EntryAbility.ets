@@ -50,25 +50,17 @@ export default class EntryAbility extends UIAbility {
         }
         hilog.info(DOMAIN, 'testTag', 'Succeeded in loading the content.');
         if (this.routerPath) {
-          const mainWindow = windowStage.getMainWindowSync();
-          setTimeout(() => {
-            mainWindow.getUIContext().getRouter().pushUrl({
-              url: this.routerPath
-            }, router.RouterMode.Standard);
-          }, 100);
+          setTimeout(() => this.context.eventHub.emit('navigation', this.routerPath), 0);
         }
       });
     }
   }
 
+  // 热启动
   onNewWant(want: Want) {
     if (want.parameters?.router) {
-      const windowRouter = this.context.windowStage.getMainWindowSync().getUIContext().getRouter();
-      if (!want.parameters?.router.toString().endsWith(windowRouter.getState().name)) {
-        windowRouter.pushUrl({
-          url: want.parameters?.router.toString()
-        }, router.RouterMode.Standard);
-      }
+      this.routerPath = want.parameters.router.toString();
+      this.context.eventHub.emit('navigation', this.routerPath);
     }
   }
 

@@ -116,6 +116,14 @@ struct Index {
   @State isTodayCourseEnd: boolean = true;
 
   aboutToAppear(): void {
+    // 快捷方式跳转
+    this.getUIContext().getHostContext()?.eventHub.on('navigation', (path: string) => {
+      let paths = this.pageInfo.getAllPathName();
+      if (paths.slice().pop() === path) {
+        return;
+      }
+      this.pageInfo.pushPath({ name: path }, false);
+    });
     // 获取课表
     ScheduleSources.initSchedulePre();
     const GeneratedDestructArray_1 = CheckInTools.loadCheckInOnStartup();

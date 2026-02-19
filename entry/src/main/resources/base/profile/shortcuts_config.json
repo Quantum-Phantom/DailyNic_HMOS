@@ -10,7 +10,7 @@
           "moduleName": "entry",
           "abilityName": "EntryAbility",
           "parameters": {
-            "router": "pages/Schedule"
+            "router": "Schedule"
           }
         }
       ]
@@ -25,7 +25,7 @@
           "moduleName": "entry",
           "abilityName": "EntryAbility",
           "parameters": {
-            "router": "pages/ExamDetail"
+            "router": "ExamDetail"
           }
         }
       ]
