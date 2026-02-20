@@ -1,5 +1,5 @@
 
-import UnifiedPreferences from '../utils/UnifyPreference';
+import UnifiedPreferences from './UnifyPreference';
 import { fileIo, fileUri } from "@kit.CoreFileKit";
 
 /* probably todo:
@@ -13,6 +13,16 @@ light: #E1FFFF
 dark：#2A3166
  */
 
+export const presetColor: string[][] = [
+  ['#BEDCF0', '#102542', '冰山蓝调'],
+  ['#BEF0C8', '#556B2F', '森屿青柠'],
+  ['#D7CDF0', '#2A3166', '暮光紫韵'],
+  ['#FAFAD2', '#7A5B00', '杏花春雨'],
+  ['#F5D7D7', '#A11616', '桃启绯红'],
+  ['#F8F9FA', '#202124', '纸墨绘世'],
+  ['#FFF0F6', '#831843', '樱花甜心']
+];
+
 class BackgroundImage {
   pic: ResourceStr | undefined = undefined;
   showImage: boolean = UnifiedPreferences.getBoolSync('ShowImage', false); // 是否展示
@@ -21,6 +31,7 @@ class BackgroundImage {
   blurLevel: BlurStyle | undefined = undefined;
   opacityLevel: number = 1;
   backgroundBlur: boolean = UnifiedPreferences.getBoolSync('BackgroundBlur', true); // 选择背景模糊
+  themeColor: number = UnifiedPreferences.getNumberSync('ThemeColor', 0);
 
   /**
    * 初始化

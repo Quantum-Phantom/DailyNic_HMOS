@@ -21,8 +21,32 @@
       "value": "#AA101015"
     },
     {
-      "name": "shaded_background",
+      "name": "shaded_background0",
       "value": "#102542"
+    },
+    {
+      "name": "shaded_background1",
+      "value": "#556B2F"
+    },
+    {
+      "name": "shaded_background2",
+      "value": "#2A3166"
+    },
+    {
+      "name": "shaded_background3",
+      "value": "#7A5B00"
+    },
+    {
+      "name": "shaded_background4",
+      "value": "#A11616"
+    },
+    {
+      "name": "shaded_background5",
+      "value": "#202124"
+    },
+    {
+      "name": "shaded_background6",
+      "value": "#831843"
     },
     {
       "name": "grid_background",

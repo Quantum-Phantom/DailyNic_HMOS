@@ -1,5 +1,5 @@
 
-import BackgroundImage from './BgImageManager';
+import BackgroundImage from '../utils/BgImageManager';
 import { common, Want } from '@kit.AbilityKit';
 import UnifiedPreferences from '../utils/UnifyPreference';
 import { photoAccessHelper } from '@kit.MediaLibraryKit';
