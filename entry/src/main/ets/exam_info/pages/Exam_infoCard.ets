@@ -71,12 +71,12 @@ struct Class_schedule_dailyCard {
                 .margin({ bottom: 2 })
                 .alignItems(VerticalAlign.Bottom)
             }
-            .width('20%');
+            .width('30%');
           } else {
             Text($r('app.string.exam_processing'))
               .fontSize(20)
               .fontColor($r('app.color.transparent_text'))
-              .width('20%')
+              .width('30%')
               .textAlign(TextAlign.Start);
           }
 
@@ -101,12 +101,12 @@ struct Class_schedule_dailyCard {
           .width('70%')
           .alignItems(HorizontalAlign.Start);
         }
-        .width('90%')
-        .margin({ top: 7, bottom: 7 })
+        //.width('90%')
+        .margin({ top: 7, bottom: 7, left: 10 })
         .borderRadius(20);
 
         if (index < this.examInfo.length - 1) {
-          Divider().width('90%');
+          Divider().width('95%');
         }
       })
     }
