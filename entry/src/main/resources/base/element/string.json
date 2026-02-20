@@ -142,7 +142,7 @@
     },
     {
       "name": "show_schedule_on_start_page",
-      "value": "在首页显示今日和明日课程"
+      "value": "在首页显示今明两日课程"
     },
     {
       "name": "show_exam_info_on_start_page",
@@ -181,6 +181,14 @@
       "value": "组件模糊"
     },
     {
+      "name": "custom_theme_color",
+      "value": "更改主题色"
+    },
+    {
+      "name": "custom_theme_color_into",
+      "value": "启用「自定义背景图片」并选择「组件模糊」时，主题色不可用。"
+    },
+    {
       "name": "ok_and_restart",
       "value": "重启并应用更改"
     },
@@ -193,12 +201,8 @@
       "value": "「最常访问」功能是根据点击次数排序的，计数上限为 2147483646。你可以将该值手动设置为 0 以删除「%s」，或者设置为 2147483647 以置顶。切换页签后生效。"
     },
     {
-      "name": "clear_function_history",
-      "value": "清空"
-    },
-    {
       "name": "set_max_record",
-      "value": "设置「最常访问」的显示数量"
+      "value": "设置「最常访问」显示数量"
     },
     {
       "name": "web_auto_dark_mode",
@@ -231,6 +235,10 @@
     {
       "name": "refresh",
       "value": "刷新"
+    },
+    {
+      "name": "close_this_hint",
+      "value": "关闭此提示"
     },
     {
       "name": "ok",
@@ -442,15 +450,19 @@
     },
     {
       "name": "network_error",
-      "value": "网络错误"
+      "value": "此页面或部分内容加载失败"
     },
     {
       "name": "network_error_explain",
-      "value": "诶？网络问题吗？让我看看喵~（歪头）\n要不要你试试检查一下网络设置？或者网址有没有问题？"
+      "value": "原因: %s\n诶？网络问题吗？让我看看喵~（歪头）\n要不要你试试检查一下网络设置？或者网址有没有问题？"
     },
     {
       "name": "back_to_last_page",
       "value": "返回上一页"
+    },
+    {
+      "name": "after_close",
+      "value": "关闭提示后，你仍可通过右上角按钮选择刷新或返回上一页"
     },
     {
       "name": "no_class_this_week",

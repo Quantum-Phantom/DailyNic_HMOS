@@ -51,7 +51,7 @@ struct Webview {
   }
 
   pathStack: NavPathStack = new NavPathStack();
-  @State loadError: boolean = false;
+  @State loadError: string = '';
   build() {
     NavDestination() {
       Stack({ alignContent: Alignment.TopStart }) {
@@ -87,13 +87,13 @@ struct Webview {
           })
           .onErrorReceive((event) => {
             // Only handle loading errors of the main framework to avoid duplicate processing of errors in sub-resources
-            this.loadError = true;
+            this.loadError = event.error.getErrorInfo();
           })
           .onProgressChange((event) => {
             this.loadingProgress = event.newProgress;
           })
           .onPageBegin(() => {
-            this.loadError = false;
+            this.loadError = '';
             this.isTimeTablePage = this.webviewController.getUrl().startsWith('https://jw.ustc.edu.cn/for-std/course-table');
             this.isExamInfoPage = this.webviewController.getUrl().startsWith('https://jw.ustc.edu.cn/for-std/exam-arrange');
             if ( /*!this.isTimeTablePage &&*/ this.webviewController.getUrl().startsWith('https://jw.ustc.edu.cn/home')) {
@@ -161,7 +161,7 @@ struct Webview {
             }
           })
 
-        if (this.loadError) {
+        if (this.loadError !== '') {
           Column() {
             Column() {
               Image($r('app.media.thinking'))
@@ -189,6 +189,11 @@ struct Webview {
                 Button($r('app.string.refresh'))
                   .onClick(() => {
                     this.webviewController.refresh();
+                  })
+                Button($r('app.string.close_this_hint'))
+                  .onClick(() => {
+                    this.loadError = '';
+                    this.getUIContext().getPromptAction().showToast({ message: $r('app.string.after_close') });
                   })
               }
             }

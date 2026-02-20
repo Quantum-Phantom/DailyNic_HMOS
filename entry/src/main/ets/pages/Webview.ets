@@ -9,7 +9,7 @@ import { picker, fileUri } from  '@kit.CoreFileKit';
 import { fillInformationJS, deleteAIHelper } from '../utils/TimeTable';
 import accountInfoProvider from '../utils/Encryption';
 import PasswordDialog from '../view/PasswordDialog';
-import BackgroundImage from '../view/BgImageManager';
+import BackgroundImage from '../utils/BgImageManager';
 import { Link } from '../constants/Links'
 
 const desktopUrl: string[] = ['https://young.ustc.edu.cn/login'] // 需要默认访问桌面版站点时使用
@@ -171,11 +171,11 @@ struct Webview {
     }
   }
 
-  @State loadError: boolean = false;
+  @State loadError: string = '';
   pathStack: NavPathStack = new NavPathStack();
   build() {
     NavDestination() {
-      Stack({ alignContent: Alignment.TopStart}) {
+      Stack({ alignContent: Alignment.TopStart }) {
         Web({ src: this.url, controller: this.webviewController })
           .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.normal_background') : '#00d00721')
           .javaScriptProxy({
@@ -197,7 +197,7 @@ struct Webview {
               this.allowSysOpen = false;
             else
               this.allowSysOpen = true;
-            this.loadError = false;
+            this.loadError = '';
             if (!this.haveJumped) { // 不在白名单中的网站已在 aboutToAppear 中设置不跳转
               if (this.webviewController.getUrl().startsWith('https://jw.ustc.edu.cn/home')) {
                 let i: number = -1;
@@ -257,7 +257,7 @@ struct Webview {
           .onErrorReceive((event) => {
             // Only handle loading errors of the main framework to avoid duplicate processing of errors in sub-resources
             if (event && event.request.isMainFrame()) {
-              this.loadError = true;
+              this.loadError = event.error.getErrorInfo();
             }
           })
           .onProgressChange((event) => {
@@ -383,7 +383,7 @@ struct Webview {
             if (event) {
               this.getUIContext().showAlertDialog({
                 title: "来自 " + event.url + " 的消息",
-                message: event.message + "\n󰊗此处应有输入框，但是我们没有在学校网站碰到过需要输入框的消息，因此没做（滑稽）。如果你不幸遇到了，在󰁡菜单中选择「在系统浏览器中打开」，并稍后在 GitHub 上向我们反馈。",
+                message: event.message + "\n󰊗此处应有输入框，但是我们没有在学校网站碰到过需要输入框的消息，因此没做（滑稽）。如果你不幸遇到了，在󰁡菜单中选择「在系统浏览器中打开」，并稍后通过「关于」页面的联系方式向我们反馈。",
                 confirm:{
                   value: "好吧",
                   action: () => { event.result.handleCancel(); }
@@ -394,7 +394,7 @@ struct Webview {
             return true;
           })
 
-        if (this.loadError) {
+        if (this.loadError !== '') {
           Column() {
             Column() {
               Image($r('app.media.thinking'))
@@ -403,9 +403,9 @@ struct Webview {
                 .constraintSize({ maxWidth: '60%', maxHeight: 300 })
               Text($r('app.string.network_error'))
                 .fontWeight(FontWeight.Bold)
-                .fontSize(30)
+                .fontSize(27)
                 .fontColor($r('app.color.red'))
-              Text($r('app.string.network_error_explain'))
+              Text($r('app.string.network_error_explain', this.loadError))
                 .textAlign(TextAlign.Center)
                 .margin({ top: 6, bottom: 10 })
                 .fontColor(this.webAutoDarkMode ? $r('app.color.normal_text') : '#000000')
@@ -423,6 +423,11 @@ struct Webview {
                   .onClick(() => {
                     this.webviewController.refresh();
                   })
+                Button($r('app.string.close_this_hint'))
+                  .onClick(() => {
+                    this.loadError = '';
+                    this.getUIContext().getPromptAction().showToast({ message: $r('app.string.after_close') });
+                  })
               }
             }
             .padding({ left: 12, right: 12 })
@@ -431,6 +436,7 @@ struct Webview {
           .height('100%')
           .justifyContent(FlexAlign.Center)
           .alignItems(HorizontalAlign.Center)
+          .hitTestBehavior(HitTestMode.Transparent);
         }
 
         Line()
@@ -473,7 +479,7 @@ struct Webview {
       .layoutWeight(1)
     }
     .title(this.customTitle(), {
-      backgroundColor: (BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background') : '#00d00721')
+      backgroundColor: (BackgroundImage.blurLevel === undefined ? $r(`app.color.shaded_background${BackgroundImage.themeColor}`) : '#00d00721')
     })
     .hideBackButton(true)
     .backgroundColor('#00d00721')

@@ -9,7 +9,7 @@ import { picker, fileUri } from  '@kit.CoreFileKit';
 import { fillInformationJS, deleteAIHelper } from '../utils/TimeTable';
 import accountInfoProvider from '../utils/Encryption';
 import PasswordDialog from '../view/PasswordDialog';
-import BackgroundImage from '../view/BgImageManager';
+import BackgroundImage from '../utils/BgImageManager';
 
 const desktopUrl: string[] = ['https://young.ustc.edu.cn/login'] // 需要默认访问桌面版站点时使用
 const autoJumpUrl: string[] = ['https://jw.ustc.edu.cn/for-std/course-table', 'https://jw.ustc.edu.cn/for-std/exam-arrange', 'https://jw.ustc.edu.cn/for-std/grade/sheet'];
@@ -174,7 +174,7 @@ struct Webview {
       this.haveJumped = false;
   }
 
-  @State loadError: boolean = false;
+  @State loadError: string = '';
   build() {
     Column() {
       Row() {
@@ -236,10 +236,10 @@ struct Webview {
       .id('header')
       .width('100%')
       .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
-      .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background') : undefined)
+      .backgroundColor(BackgroundImage.blurLevel === undefined ? $r(`app.color.shaded_background${BackgroundImage.themeColor}`) : undefined)
       .opacity(BackgroundImage.opacityLevel)
 
-      Stack({ alignContent: Alignment.TopStart}) {
+      Stack({ alignContent: Alignment.TopStart }) {
         Web({ src: this.url, controller: this.webviewController })
           .backgroundColor('#00d00721')
           .opacity(BackgroundImage.opacityLevel)
@@ -258,11 +258,11 @@ struct Webview {
           .forceDarkAccess(this.webAutoDarkMode)
           .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
           .onPageBegin(() => {
-            this.loadError = false;
             if (this.webviewController.getUrl().startsWith("resource://"))
               this.allowSysOpen = false;
             else
               this.allowSysOpen = true;
+            this.loadError = '';
             if (!this.haveJumped) { // 不在白名单中的网站已在 aboutToAppear 中设置不跳转
               if (this.webviewController.getUrl().startsWith('https://jw.ustc.edu.cn/home')) {
                 let i: number = -1;
@@ -313,7 +313,7 @@ struct Webview {
           })
           .onErrorReceive((event) => {
             // Only handle loading errors of the main framework to avoid duplicate processing of errors in sub-resources
-            this.loadError = true;
+            this.loadError = event.error.getErrorInfo();
           })
           .onProgressChange((event) => {
             this.loadingProgress = event.newProgress;
@@ -449,7 +449,7 @@ struct Webview {
             return true;
           })
 
-        if (this.loadError) {
+        if (this.loadError !== '') {
           Column() {
             Column() {
               Image($r('app.media.thinking'))
@@ -458,9 +458,9 @@ struct Webview {
                 .constraintSize({ maxWidth: '60%', maxHeight: 300 })
               Text($r('app.string.network_error'))
                 .fontWeight(FontWeight.Bold)
-                .fontSize(30)
+                .fontSize(27)
                 .fontColor($r('app.color.red'))
-              Text($r('app.string.network_error_explain'))
+              Text($r('app.string.network_error_explain', this.loadError))
                 .textAlign(TextAlign.Center)
                 .margin({ top: 6, bottom: 10 })
                 .fontColor(this.webAutoDarkMode ? $r('app.color.normal_text') : '#000000')
@@ -478,6 +478,11 @@ struct Webview {
                   .onClick(() => {
                     this.webviewController.refresh();
                   })
+                Button($r('app.string.close_this_hint'))
+                  .onClick(() => {
+                    this.loadError = '';
+                    this.getUIContext().getPromptAction().showToast({ message: $r('app.string.after_close') });
+                  })
               }
             }
             .padding({ left: 12, right: 12 })
@@ -486,6 +491,7 @@ struct Webview {
           .height('100%')
           .justifyContent(FlexAlign.Center)
           .alignItems(HorizontalAlign.Center)
+          .hitTestBehavior(HitTestMode.Transparent);
         }
 
         Line()
