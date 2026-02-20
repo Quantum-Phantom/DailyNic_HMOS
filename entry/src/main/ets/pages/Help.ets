@@ -92,7 +92,6 @@ struct Help {
               }
             }
             .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.grid_background') : undefined)
-            .opacity(BackgroundImage.opacityLevel)
             .backgroundBlurStyle(BackgroundImage.blurLevel)
             .width('100%')
             .margin({ top: 10 })

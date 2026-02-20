@@ -190,7 +190,6 @@ struct About {
             .borderRadius(12)
             .backgroundBlurStyle(BackgroundImage.blurLevel)
             .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.normal_background') : undefined)
-            .opacity(BackgroundImage.opacityLevel)
           }
           .width('100%')
           .justifyContent(FlexAlign.Center)

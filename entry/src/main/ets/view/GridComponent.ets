@@ -18,15 +18,41 @@ export default struct GridComponent {
   build() {
     Column() {
       Row() {
-        Text(this.gridData.groupName) // 功能界面各组的标题
-          .fontSize('20fp')
-          .height('30vp')
-          .fontWeight(FontWeight.Bold)
+        if (this.gridIndex === -1)
+          Text() {
+            Span(this.gridData.groupName) // 功能界面各组的标题
+              .fontSize('20fp')
+              .height('30vp')
+              .fontWeight(FontWeight.Bold)
+            ImageSpan($r('app.media.eraser_line'))
+              .height(20)
+              .width(20)
+              .verticalAlign(ImageSpanAlignment.CENTER)
+              .margin({ left: 6 })
+            Span($r('app.string.clear_function_history'))
+              .fontSize(15)
+          }
+          .height(30)
+          .padding({ left: 8, right: 8 })
           .margin({ top: '16vp' })
-          .padding({ left: 8, right: 8})
           .borderRadius(12)
           .backgroundBlurStyle(BackgroundImage.blurLevel)
-          .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.normal_background') : undefined)
+          .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background') : undefined)
+          .onClick(() => {
+            FunctionOrder.resetFunc();
+            FunctionOrder.refreshFunc(); // 刷新点击次数显示
+            this.copyMostUsedFunc = FunctionOrder.mostUsedFunc;
+          })
+        else
+          Text(this.gridData.groupName) // 功能界面各组的标题
+            .fontSize('20fp')
+            .height('30vp')
+            .fontWeight(FontWeight.Bold)
+            .margin({ top: '16vp' })
+            .padding({ left: 8, right: 8})
+            .borderRadius(12)
+            .backgroundBlurStyle(BackgroundImage.blurLevel)
+            .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.normal_background') : undefined)
       }
       .padding({ left: '16vp' })
       .width('100%')

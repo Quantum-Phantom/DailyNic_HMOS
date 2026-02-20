@@ -458,47 +458,32 @@ struct ExamDetail {
                 Row() {
                   if (this.currentTime.getTime() < singleExam.beginTimeStamp) {
                     Flex({ wrap: FlexWrap.Wrap, alignItems: ItemAlign.End }) {
-                      Row() {
-                        Text(tools.formatTimeDiff(this.currentTime.getTime(), singleExam.beginTimeStamp, 0).toString())
+                      Text() {
+                        Span(tools.formatTimeDiff(this.currentTime.getTime(), singleExam.beginTimeStamp, 0).toString())
                           .fontSize(36)
-                          .fontWeight(FontWeight.Bold)
-                          .fontColor($r('app.color.green'))
-                        Text($r('app.string.day'))
-                          .fontColor($r('app.color.green'))
-                          .lineSpacing({ value: 5, unit: LengthUnit.FP })
-                          .maxFontSize(18)
-                          .fontWeight(FontWeight.Bold)
-                          .padding({ bottom: 6 })
+                        Span($r('app.string.day'))
+                          .fontSize(18)
                       }
-                      .alignItems(VerticalAlign.Bottom)
+                      .fontColor($r('app.color.green'))
+                      .fontWeight(FontWeight.Bold)
 
-                      Row() {
-                        Text(tools.formatTimeDiff(this.currentTime.getTime(), singleExam.beginTimeStamp, 1).toString())
+                      Text() {
+                        Span(tools.formatTimeDiff(this.currentTime.getTime(), singleExam.beginTimeStamp, 1).toString())
                           .fontSize(28)
-                          .fontWeight(FontWeight.Bold)
-                          .fontColor($r('app.color.hour'))
-                        Text($r('app.string.hour'))
-                          .fontColor($r('app.color.hour'))
+                        Span($r('app.string.hour'))
                           .fontSize(14)
-                          .fontWeight(FontWeight.Bold)
-                          .padding({ bottom: 5 })
                       }
-                      .margin({ bottom: 2 })
-                      .alignItems(VerticalAlign.Bottom)
+                      .fontWeight(FontWeight.Bold)
+                      .fontColor($r('app.color.hour'))
 
-                      Row() {
-                        Text(tools.formatTimeDiff(this.currentTime.getTime(), singleExam.beginTimeStamp, 2).toString())
+                      Text() {
+                        Span(tools.formatTimeDiff(this.currentTime.getTime(), singleExam.beginTimeStamp, 2).toString())
                           .fontSize(28)
-                          .fontWeight(FontWeight.Bold)
-                          .fontColor($r('app.color.minute'))
-                        Text($r('app.string.minute'))
-                          .fontColor($r('app.color.minute'))
+                        Span($r('app.string.minute'))
                           .fontSize(14)
-                          .fontWeight(FontWeight.Bold)
-                          .padding({ bottom: 5 })
                       }
-                      .margin({ bottom: 2 })
-                      .alignItems(VerticalAlign.Bottom)
+                      .fontWeight(FontWeight.Bold)
+                      .fontColor($r('app.color.minute'))
                     }
                     .width('30%');
                   } else if (this.currentTime.getTime() < singleExam.endTimeStamp) {
@@ -526,11 +511,11 @@ struct ExamDetail {
                     }
                     .margin({ bottom: 5 })
 
-                    Text(`\udb80\uddb8 ${singleExam.campus} ${singleExam.building} ${singleExam.classroom}`)
+                    Text('\udb80\uddb8 ' + singleExam.campus + singleExam.building + singleExam.classroom)
                       .visibility(singleExam.campus + singleExam.building + singleExam.classroom == '' ?
                         Visibility.None :
                         Visibility.Visible);
-                    Text(`\udb80\udfdc ${singleExam.date}`)
+                    Text('\udb80\udfdc ' + singleExam.date)
                       .visibility(singleExam.date == '' ? Visibility.None : Visibility.Visible);
                     Text(`\udb80\ude95 ${singleExam.id} ${singleExam.info}`)
                       .visibility(singleExam.id + singleExam.info == '' ? Visibility.None : Visibility.Visible);

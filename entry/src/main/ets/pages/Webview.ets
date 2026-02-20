@@ -178,7 +178,6 @@ struct Webview {
       Stack({ alignContent: Alignment.TopStart}) {
         Web({ src: this.url, controller: this.webviewController })
           .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.normal_background') : '#00d00721')
-          .opacity(BackgroundImage.opacityLevel)
           .javaScriptProxy({
             object: accountInfoProvider,
             name: "infoProvider",

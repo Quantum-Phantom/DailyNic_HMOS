@@ -557,7 +557,6 @@ struct Schedule {
           .columnEnd(0)
           .backgroundBlurStyle(BackgroundImage.blurLevel)
           .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.grid_background') : undefined)
-          .opacity(BackgroundImage.opacityLevel)
 
           /**
            * 课程内容
@@ -575,7 +574,6 @@ struct Schedule {
               .backgroundBlurStyle(BackgroundImage.blurLevel)
               .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.normal_background') :
                 undefined)
-              .opacity(BackgroundImage.opacityLevel)
               .padding({
                 top: 5,
                 left: 10,

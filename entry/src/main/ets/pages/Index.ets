@@ -722,34 +722,25 @@ struct Index {
                 Row() {
                   if (this.currentTime.getTime() < singleExam.beginTimeStamp) {
                     Flex({ wrap: FlexWrap.Wrap, alignItems: ItemAlign.End }) {
-                      Row() {
-                        Text(tools.formatTimeDiff(this.currentTime.getTime(), singleExam.beginTimeStamp, 0).toString())
+                      Text() {
+                        Span(tools.formatTimeDiff(this.currentTime.getTime(), singleExam.beginTimeStamp, 0).toString())
                           .fontSize(36)
-                          .fontWeight(FontWeight.Bold)
-                          .fontColor($r('app.color.green'))
-                        Text($r('app.string.day'))
-                          .fontColor($r('app.color.green'))
-                          .lineSpacing({ value: 5, unit: LengthUnit.FP })
-                          .maxFontSize(18)
-                          .fontWeight(FontWeight.Bold)
-                          .padding({ bottom: 6 })
+                        Span($r('app.string.day'))
+                          .fontSize(18)
                       }
-                      .alignItems(VerticalAlign.Bottom)
+                      .fontWeight(FontWeight.Bold)
+                      .fontColor($r('app.color.green'))
 
-                      Row() {
-                        Text(Number((tools.formatTimeDiff(this.currentTime.getTime(), singleExam.beginTimeStamp, 1)
+                      Text() {
+                        Span(Number((tools.formatTimeDiff(this.currentTime.getTime(), singleExam.beginTimeStamp, 1)
                           + tools.formatTimeDiff(this.currentTime.getTime(), singleExam.beginTimeStamp, 2) / 60).toExponential(1)).toString())
                           .fontSize(28)
-                          .fontWeight(FontWeight.Bold)
-                          .fontColor($r('app.color.hour'))
-                        Text($r('app.string.hour'))
+                        Span($r('app.string.hour'))
                           .fontColor($r('app.color.hour'))
                           .fontSize(14)
-                          .fontWeight(FontWeight.Bold)
-                          .padding({ bottom: 5 })
                       }
-                      .margin({ bottom: 2 })
-                      .alignItems(VerticalAlign.Bottom)
+                      .fontWeight(FontWeight.Bold)
+                      .fontColor($r('app.color.hour'))
                     }
                     .width('30%');
                   } else {
@@ -773,20 +764,20 @@ struct Index {
                     }
                     .margin({ bottom: 5 })
 
-                    Text(`\udb80\uddb8 ${singleExam.campus} ${singleExam.building} ${singleExam.classroom}`)
+                    Text('\udb80\uddb8 ' + singleExam.campus + singleExam.building + singleExam.classroom)
                       .visibility(singleExam.campus + singleExam.building + singleExam.classroom === '' ? Visibility.None : Visibility.Visible);
-                    Text(`\udb80\udfdc ${singleExam.date}`)
+                    Text('\udb80\udfdc ' + singleExam.date)
                       .visibility(singleExam.date === '' ? Visibility.None : Visibility.Visible);
                   }
                   .width('70%')
                   .alignItems(HorizontalAlign.Start);
                 }
-                .width('90%')
+                .padding({ left: 15, right: 5 })
                 .margin({ top: 7, bottom: 7 })
                 .borderRadius(20);
 
                 if (index < this.exams.length - 1) {
-                  Divider().width('90%');
+                  Divider().padding({ left: 15, right: 15 });
                 }
               })
             }
