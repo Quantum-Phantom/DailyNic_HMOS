@@ -1,7 +1,7 @@
 
 import { LengthUnit } from '@kit.ArkUI';
 import { getContArray } from '../utils/tools';
-import BackgroundImage from '../view/BgImageManager';
+import BackgroundImage from '../utils/BgImageManager';
 import { common } from '@kit.AbilityKit';
 
 @Entry
@@ -48,7 +48,7 @@ struct Index {
       .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
       .width('100%')
       .id('header')
-      .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background') : undefined)
+      .backgroundColor(BackgroundImage.blurLevel === undefined ? $r(`app.color.shaded_background${BackgroundImage.themeColor}`) : undefined)
       .opacity(BackgroundImage.opacityLevel)
       .backgroundBlurStyle(BackgroundImage.blurLevel)
       .justifyContent(FlexAlign.SpaceBetween)

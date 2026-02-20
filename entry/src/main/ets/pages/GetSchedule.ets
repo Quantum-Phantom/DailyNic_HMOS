@@ -2,11 +2,10 @@
 import { webview } from '@kit.ArkWeb';
 import { examInfoQueryJS, fillInformationJS, startTimeQueryJS, timeTableQueryJS, pollUntilLoad } from '../utils/TimeTable';
 import { obtainedData } from '../constants/ScheduleSources';
-import { BusinessError } from '@kit.BasicServicesKit';
 import UnifiedPreferences, { PASSWORD_KEY, REMIND_KEY, UID_KEY}  from '../utils/UnifyPreference';
 import accountInfoProvider from '../utils/Encryption';
 import PasswordDialog from '../view/PasswordDialog';
-import BackgroundImage from '../view/BgImageManager';
+import BackgroundImage, { presetColor } from '../utils/BgImageManager';
 
 @Builder
 export function GetBuilder(name: string, param?: string[]) {
@@ -223,7 +222,7 @@ struct Webview {
       .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
     }
     .title(this.customTitle(), {
-      backgroundColor: (BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background') : '#00d00721')
+      backgroundColor: (BackgroundImage.blurLevel === undefined ? $r(`app.color.shaded_background${BackgroundImage.themeColor}`) : '#00d00721')
     })
     .hideBackButton(true)
     .backgroundColor('#00d00721')

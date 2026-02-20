@@ -1,7 +1,7 @@
 
 import { LengthUnit } from '@kit.ArkUI';
 import { getContArray } from '../utils/tools';
-import BackgroundImage from '../view/BgImageManager';
+import BackgroundImage from '../utils/BgImageManager';
 import { common } from '@kit.AbilityKit';
 
 @Builder
@@ -111,7 +111,7 @@ struct Help {
     }
     .title($r('app.string.help'), {
       backgroundBlurStyle: BackgroundImage.blurLevel,
-      backgroundColor: BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background') : undefined
+      backgroundColor: BackgroundImage.blurLevel === undefined ? $r(`app.color.shaded_background${BackgroundImage.themeColor}`) : undefined
     })
     .menus(this.menuItems)
     .backButtonIcon($r('app.media.close'))

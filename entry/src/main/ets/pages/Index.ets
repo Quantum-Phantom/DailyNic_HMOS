@@ -17,13 +17,14 @@ import UnifiedPreferences from '../utils/UnifyPreference'
 import WriteCalendar from '../utils/WriteCalendar'
 
 import BgImageDialog from '../view/BgImageDialog'
-import BackgroundImage from '../view/BgImageManager'
+import BackgroundImage from '../utils/BgImageManager'
 import GridComponent from '../view/GridComponent'
 import PasswordDialog from '../view/PasswordDialog'
 import ItemData from '../view/SettingsComponent'
 
 import { setUSTCLink, setHUSTLink } from '../constants/Links'
 import display from '@ohos.display'
+import ThemeColorDialog from '../view/ThemeColorDialog'
 
 // 滚动条参数
 enum ScrollPosition {
@@ -55,6 +56,12 @@ struct Index {
       windowHeight: Math.max(this.windowRect.width, this.windowRect.height)
     }),
     autoCancel: false,
+    gridCount: 4
+  })
+
+  dialogController3: CustomDialogController = new CustomDialogController({
+    builder: ThemeColorDialog(),
+    autoCancel: true,
     gridCount: 4
   })
 
@@ -905,139 +912,7 @@ struct Index {
               this.settingCell(cell)
             }
             .height('48vp')
-            .onClick(() => {
-              switch (cell.id) { // 根据 cell.id 区分设置项
-                case -1:
-                  this.getUIContext().showTextPickerDialog({
-                    selected: (UnifiedPreferences.getSync('school', 'USTC') === 'USTC' ? 1 : 0),
-                    range: ['华中科技大学', '中国科学技术大学'],
-                    defaultPickerItemHeight: 36,
-                    canLoop: false,
-                    onAccept: (value: TextPickerResult) => {
-                      switch(value.index) {
-                        case 1:
-                          UnifiedPreferences.putSync('school', 'USTC');
-                          setUSTCLink();
-                          break;
-                        case 0:
-                          UnifiedPreferences.putSync('school', 'HUST');
-                          setHUSTLink();
-                          break;
-                      }
-                      this.showMessage(`已更改为 ${value.value}`);
-                    }
-                  });
-                  break;
-
-                case 0:
-                  this.dialogController.open();
-                  break;
-                case 1:
-                case 2:
-                case 3:
-                  break;
-
-                case 4:
-                  // 自定义背景!
-                  this.dialogController2.open();
-                  break;
-
-                case 5:
-                  // 选择最常访问显示个数
-                  this.getUIContext().showTextPickerDialog({
-                    selected: FunctionOrder.maxRecord - 1,
-                    range: tools.getContArray([[1, 20]], true) as string[], // 在此处修改允许用户选择的最大显示数量上限！！（现在是20）
-                    defaultPickerItemHeight: 36,
-                    canLoop: false,
-                    onAccept: (value: TextPickerResult) => {
-                      FunctionOrder.setMaxRecord(Number(value.value));
-                      this.showMessage(`已更改为 ${value.value}`);
-                      FunctionOrder.refreshFunc(); // 刷新点击次数显示
-                      this.copyMostUsedFunc = FunctionOrder.mostUsedFunc;
-                    }
-                  })
-                  break;
-
-                case 6:
-                  // 重置最常访问
-                  FunctionOrder.resetFunc();
-                  FunctionOrder.refreshFunc(); // 刷新点击次数显示
-                  this.copyMostUsedFunc = FunctionOrder.mostUsedFunc;
-                  this.showMessage($r('app.string.have_cleared'));
-                  break;
-
-                case 7:
-                case 8:
-                  break;
-
-                case 9:
-                  if (WriteCalendar.askForCalendar(1)) {
-                    WriteCalendar.deleteCalendar();
-                  }
-                  break;
-
-                case 10:
-                  if (WriteCalendar.askForCalendar(2)) {
-                    WriteCalendar.setClassCalendar();
-                  }
-                  break;
-
-                case 11:
-                  if (WriteCalendar.askForCalendar(3)) {
-                    WriteCalendar.setExamCalendar();
-                  }
-                  break;
-
-                case 12:
-                  this.clearCache();
-                  break;
-
-                case 13:
-                  // 帮助
-                  if (this.pageInfo.popToName('Help') === -1) {
-                    this.pageInfo.clear();
-                    this.pageInfo.pushPath({ name: 'Help' });
-                  }
-                  break;
-
-                case 14:
-                  // 关于
-                  if (this.pageInfo.popToName('About') === -1) {
-                    this.pageInfo.clear();
-                    this.pageInfo.pushPath({ name: 'About' });
-                  }
-                  break;
-
-                case 15:
-                  // 进入恢复模式
-                  UnifiedPreferences.putSync('RecoveryMode', true);
-                  let applicationContext = (this.getUIContext().getHostContext() as common.UIAbilityContext).getApplicationContext();
-                  let want: Want = {
-                    bundleName: 'com.nic.dailynic',
-                    abilityName: 'EntryAbility'
-                  };
-                  try {
-                    applicationContext.restartApp(want);
-                  } catch (error) {
-                    console.error(`restartApp fail, error: ${JSON.stringify(error)}`);
-                    if (error.code === 16000064) {
-                      const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
-                      context.terminateSelf((err) => {
-                        if (!err) {
-                          context.getApplicationContext().killAllProcesses().catch((error: Error) => {
-                            console.error(`Quitting ERROR: [${error.name}] ${error.message}`);
-                          })
-                        }
-                      });
-                    }
-                  }
-                  break;
-
-                default:
-                  this.showMessage($r('app.string.under_construction'));
-                  break;
-              }
-            })
+            .onClick(() => this.settingAction(cell))
           })
         }
         .divider({
@@ -1063,6 +938,136 @@ struct Index {
     .scrollBar(BarState.Auto)
     .overlay(this.settingExitButton(), { align: Alignment.Bottom })
     .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+  }
+
+  settingAction(cell: ItemData) {
+    switch (cell.id) { // 根据 cell.id 区分设置项
+      case -1:
+        this.getUIContext().showTextPickerDialog({
+          selected: (UnifiedPreferences.getSync('school', 'USTC') === 'USTC' ? 1 : 0),
+          range: ['华中科技大学', '中国科学技术大学'],
+          defaultPickerItemHeight: 36,
+          canLoop: false,
+          onAccept: (value: TextPickerResult) => {
+            switch(value.index) {
+              case 1:
+                UnifiedPreferences.putSync('school', 'USTC');
+                setUSTCLink();
+                break;
+              case 0:
+                UnifiedPreferences.putSync('school', 'HUST');
+                setHUSTLink();
+                break;
+            }
+            this.showMessage(`已更改为 ${value.value}`);
+          }
+        });
+        break;
+
+      case 0:
+        this.dialogController.open();
+        break;
+      case 1:
+      case 2:
+      case 3:
+        break;
+
+      case 4:
+        // 自定义背景!
+        this.dialogController2.open();
+        break;
+
+      case 5:
+        this.dialogController3.open();
+        break;
+
+      case 6:
+        // 选择最常访问显示个数
+        this.getUIContext().showTextPickerDialog({
+          selected: FunctionOrder.maxRecord - 1,
+          range: tools.getContArray([[1, 20]], true) as string[], // 在此处修改允许用户选择的最大显示数量上限！！（现在是20）
+          defaultPickerItemHeight: 36,
+          canLoop: false,
+          onAccept: (value: TextPickerResult) => {
+            FunctionOrder.setMaxRecord(Number(value.value));
+            this.showMessage(`已更改为 ${value.value}`);
+            FunctionOrder.refreshFunc(); // 刷新点击次数显示
+            this.copyMostUsedFunc = FunctionOrder.mostUsedFunc;
+          }
+        })
+        break;
+
+      case 7:
+      case 8:
+        break;
+
+      case 9:
+        if (WriteCalendar.askForCalendar(1)) {
+          WriteCalendar.deleteCalendar();
+        }
+        break;
+
+      case 10:
+        if (WriteCalendar.askForCalendar(2)) {
+          WriteCalendar.setClassCalendar();
+        }
+        break;
+
+      case 11:
+        if (WriteCalendar.askForCalendar(3)) {
+          WriteCalendar.setExamCalendar();
+        }
+        break;
+
+      case 12:
+        this.clearCache();
+        break;
+
+      case 13:
+        // 帮助
+        if (this.pageInfo.popToName('Help') === -1) {
+          this.pageInfo.clear();
+          this.pageInfo.pushPath({ name: 'Help' });
+        }
+        break;
+
+      case 14:
+        // 关于
+        if (this.pageInfo.popToName('About') === -1) {
+          this.pageInfo.clear();
+          this.pageInfo.pushPath({ name: 'About' });
+        }
+        break;
+
+      case 15:
+        // 进入恢复模式
+        UnifiedPreferences.putSync('RecoveryMode', true);
+        let applicationContext = (this.getUIContext().getHostContext() as common.UIAbilityContext).getApplicationContext();
+        let want: Want = {
+          bundleName: 'com.nic.dailynic',
+          abilityName: 'EntryAbility'
+        };
+        try {
+          applicationContext.restartApp(want);
+        } catch (error) {
+          console.error(`restartApp fail, error: ${JSON.stringify(error)}`);
+          if (error.code === 16000064) {
+            const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+            context.terminateSelf((err) => {
+              if (!err) {
+                context.getApplicationContext().killAllProcesses().catch((error: Error) => {
+                  console.error(`Quitting ERROR: [${error.name}] ${error.message}`);
+                })
+              }
+            });
+          }
+        }
+        break;
+
+      default:
+        this.showMessage($r('app.string.under_construction'));
+        break;
+    }
   }
 
   @Builder
@@ -1140,7 +1145,7 @@ struct Index {
           .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
 
         }
-        .barBackgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background') : undefined)
+        .barBackgroundColor(BackgroundImage.blurLevel === undefined ? $r(`app.color.shaded_background${BackgroundImage.themeColor}`) : undefined)
         .barBackgroundBlurStyle(BackgroundImage.blurLevel)
         .barHeight('auto')
         .barWidth('100%')

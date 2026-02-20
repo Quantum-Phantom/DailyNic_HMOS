@@ -3,7 +3,7 @@ import { GridData } from '../constants/GridListDataSources';
 import { LINK } from '../constants/Links';
 import * as FunctionOrder from '../utils/FunctionOrder';
 import * as tools from '../utils/tools';
-import BackgroundImage from '../view/BgImageManager';
+import BackgroundImage from '../utils/BgImageManager';
 import CustomClickDialog from './CustomClickDialog';
 
 @Component
@@ -29,15 +29,13 @@ export default struct GridComponent {
               .width(20)
               .verticalAlign(ImageSpanAlignment.CENTER)
               .margin({ left: 6 })
-            Span($r('app.string.clear_function_history'))
-              .fontSize(15)
           }
           .height(30)
           .padding({ left: 8, right: 8 })
           .margin({ top: '16vp' })
           .borderRadius(12)
           .backgroundBlurStyle(BackgroundImage.blurLevel)
-          .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background') : undefined)
+          .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.normal_background') : undefined)
           .onClick(() => {
             FunctionOrder.resetFunc();
             FunctionOrder.refreshFunc(); // 刷新点击次数显示

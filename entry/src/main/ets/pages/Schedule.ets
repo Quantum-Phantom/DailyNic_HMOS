@@ -6,7 +6,7 @@ import scheduleManager, { areClassAttributesEqual } from '../utils/TimeTable';
 import * as tools from '../utils/tools';
 import { weekTranslate } from '../utils/tools';
 import UnifiedPreferences from '../utils/UnifyPreference';
-import BackgroundImage from '../view/BgImageManager';
+import BackgroundImage from '../utils/BgImageManager';
 
 
 const criticalHeight: number = 32; // 紧凑模式临界值(vp)
@@ -698,7 +698,7 @@ struct Schedule {
     .hideBackButton(true)
     .title({ builder: this.customTitle(), height: 98 }, {
       backgroundBlurStyle: BackgroundImage.blurLevel,
-      backgroundColor: (BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background') : '#00d00721')
+      backgroundColor: (BackgroundImage.blurLevel === undefined ? $r(`app.color.shaded_background${BackgroundImage.themeColor}`) : '#00d00721')
     })
     .onReady((context: NavDestinationContext) => {
       this.pathStack = context.pathStack;

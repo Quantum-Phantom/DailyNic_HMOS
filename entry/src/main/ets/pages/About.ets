@@ -4,7 +4,7 @@ import { fileIo } from '@kit.CoreFileKit'
 import { image } from '@kit.ImageKit'
 import { photoAccessHelper } from '@kit.MediaLibraryKit'
 import { getRandomInt } from '../utils/tools'
-import BackgroundImage from '../view/BgImageManager'
+import BackgroundImage from '../utils/BgImageManager'
 import { common } from '@kit.AbilityKit'
 import { systemShare } from '@kit.ShareKit';
 import { uniformTypeDescriptor } from '@kit.ArkData';
