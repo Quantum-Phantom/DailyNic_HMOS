@@ -36,7 +36,7 @@ struct Webview {
       isFromSetting: false,
       onConfirm: () => { this.webviewController.runJavaScript(fillInformationJS, (error, result) => {}); }
     }),
-    autoCancel: true
+    autoCancel: false
   })
 
   showMessage(message: string | ResourceStr, duration: number) {

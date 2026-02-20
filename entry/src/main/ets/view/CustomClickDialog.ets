@@ -2,7 +2,8 @@
 import { CounterComponent, CounterType } from '@kit.ArkUI';
 import { customizeClick, gIndex_to_pic } from '../utils/FunctionOrder';
 import UnifiedPreferences from '../utils/UnifyPreference';
-import { otherGridDataList } from '../constants/GridListDataSources';
+import { GridData, otherGridDataList } from '../constants/GridListDataSources';
+import { refreshFunc, mostUsedFunc } from '../utils/FunctionOrder';
 
 @CustomDialog
 export default struct CustomClick {
@@ -10,6 +11,7 @@ export default struct CustomClick {
   gridIndex: number = 0;
   index: number = 0;
   clickTimes: number = 0;
+  @Link copyMostUsedFunc: GridData;
 
   build() {
     Column() {
@@ -53,6 +55,8 @@ export default struct CustomClick {
           .width('50%')
           .onClick(() => {
             customizeClick(this.gridIndex, this.index, this.clickTimes);
+            refreshFunc(); // 刷新点击次数显示
+            this.copyMostUsedFunc = mostUsedFunc;
             this.dialogController.close();
           })
       }

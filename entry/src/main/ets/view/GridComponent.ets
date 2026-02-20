@@ -89,7 +89,11 @@ export default struct GridComponent {
                   let preName: string = FunctionOrder.order[index][0];
                   if (preName != undefined) {
                     this.CustomClickCnt = new CustomDialogController({
-                      builder: CustomClickDialog({ gridIndex: Number(preName.split('.')[0]), index: Number(preName.split('.')[1]) }),
+                      builder: CustomClickDialog({
+                        gridIndex: Number(preName.split('.')[0]),
+                        index: Number(preName.split('.')[1]),
+                        copyMostUsedFunc: this.copyMostUsedFunc
+                      }),
                       autoCancel: false,
                       gridCount: 4
                     });
@@ -99,7 +103,7 @@ export default struct GridComponent {
               }
               else {
                 this.CustomClickCnt = new CustomDialogController({
-                  builder: CustomClickDialog({ gridIndex: this.gridIndex, index: index }),
+                  builder: CustomClickDialog({ gridIndex: this.gridIndex, index: index, copyMostUsedFunc: this.copyMostUsedFunc }),
                   autoCancel: false,
                   gridCount: 4
                 });

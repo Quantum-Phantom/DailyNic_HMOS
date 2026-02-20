@@ -1,7 +1,7 @@
 
 import { webview } from '@kit.ArkWeb'
 import { DESKTOP_MODE, MOBILE_MODE, TABLET_MODE, DESKTOP_UA, MOBILE_UA, TABLET_UA } from '../constants/UserAgent'
-import { BusinessError } from '@kit.BasicServicesKit'
+import { BusinessError, deviceInfo } from '@kit.BasicServicesKit'
 import { common } from '@kit.AbilityKit'
 import UnifiedPreferences, { PASSWORD_KEY, REMIND_KEY, UID_KEY} from '../utils/UnifyPreference'
 import { call } from '@kit.TelephonyKit';
@@ -10,7 +10,7 @@ import { fillInformationJS, deleteAIHelper } from '../utils/TimeTable';
 import accountInfoProvider from '../utils/Encryption';
 import PasswordDialog from '../view/PasswordDialog';
 import BackgroundImage from '../utils/BgImageManager';
-import { Link } from '../constants/Links'
+import { Link } from '../constants/Links';
 
 const desktopUrl: string[] = ['https://young.ustc.edu.cn/login'] // 需要默认访问桌面版站点时使用
 const autoJumpUrl: string[] = ['https://jw.ustc.edu.cn/for-std/course-table', 'https://jw.ustc.edu.cn/for-std/exam-arrange', 'https://jw.ustc.edu.cn/for-std/grade/sheet'];
@@ -268,8 +268,16 @@ struct Webview {
               this.webviewController.setCustomUserAgent(DESKTOP_UA);
               this.uaMode = DESKTOP_MODE;
             } else {
-              this.webviewController.setCustomUserAgent(MOBILE_UA);
-              this.uaMode = MOBILE_MODE;
+              if (deviceInfo.deviceType === 'phone') {
+                this.webviewController.setCustomUserAgent(MOBILE_UA);
+                this.uaMode = MOBILE_MODE;
+              } else if (deviceInfo.deviceType === 'tablet') {
+                this.webviewController.setCustomUserAgent(TABLET_UA);
+                this.uaMode = TABLET_MODE;
+              } else {
+                this.webviewController.setCustomUserAgent(DESKTOP_UA);
+                this.uaMode = DESKTOP_MODE;
+              }
             }
             try {
               this.downloadDelegate.onBeforeDownload((webDownloadItem: webview.WebDownloadItem) => {

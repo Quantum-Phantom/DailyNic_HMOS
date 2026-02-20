@@ -20,7 +20,7 @@ export const presetColor: string[][] = [
   ['#FAFAD2', '#7A5B00', '杏花春雨'],
   ['#F5D7D7', '#A11616', '桃启绯红'],
   ['#F8F9FA', '#202124', '纸墨绘世'],
-  ['#FFF0F6', '#831843', '樱花甜心']
+  ['#FFF0F6', '#831843', '樱吹甜心']
 ];
 
 class BackgroundImage {

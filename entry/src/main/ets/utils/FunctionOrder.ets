@@ -41,7 +41,7 @@ export function recordClick(gridIndex: number, index: number): void {
   let preName: string = gridIndex.toString() + '.' + index.toString(); // 按钮对应首选项名称
   let latestTime: number = UnifiedPreferences.getNumberSync(preName, 0); // 读取点击次数
 
-  if (latestTime < 2147483646) {
+  if (latestTime < 2147483627) {
     latestTime++; // 点击次数+1
     UnifiedPreferences.putSync(preName, latestTime); // 保存新的点击次数
   }

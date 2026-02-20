@@ -664,7 +664,7 @@ struct Schedule {
         .height(this.gridHeight)
         .bindPopup(this.showPinchHint, {
           builder: this.pinchHintPopup(),
-          placement: Placement.Top,
+          placement: Placement.LeftTop,
           width: 300,
           onStateChange: (status) => {
             if (!status.isVisible) {
