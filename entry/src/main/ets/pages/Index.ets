@@ -131,6 +131,9 @@ struct Index {
       }
       this.pageInfo.pushPath({ name: path }, false);
     });
+    // 刷新点击次数显示
+    FunctionOrder.refreshFunc();
+    this.copyMostUsedFunc = FunctionOrder.mostUsedFunc;
     // 获取课表
     ScheduleSources.initSchedulePre();
     const GeneratedDestructArray_1 = CheckInTools.loadCheckInOnStartup();
@@ -209,8 +212,6 @@ struct Index {
 
   @State copyMostUsedFunc: GridData = FunctionOrder.mostUsedFunc;
   onPageShow(): void {
-    FunctionOrder.refreshFunc(); // 刷新点击次数显示
-    this.copyMostUsedFunc = FunctionOrder.mostUsedFunc;
     storageStatistics.getCurrentBundleStats().then((dataSize: storageStatistics.BundleStats) => {
       this.cacheSize = tools.formatBytes(dataSize.cacheSize, 2, false);
     });
@@ -329,9 +330,13 @@ struct Index {
   /*
    * 常用功能
    */
+  @State isTermBegin: boolean = scheduleManager.isTermBegin;
+  @State isTermEnd: boolean = scheduleManager.isTermEnd;
   refreshInfo() {
     this.currentTime = new Date();
     scheduleManager.getFormattedSchedule(); // 初始化首页课表
+    this.isTermBegin = scheduleManager.isTermBegin;
+    this.isTermEnd = scheduleManager.isTermEnd
     if (scheduleManager.isTermEnd || !scheduleManager.isTermBegin) {
       this.todayCourse = [];
       this.tomorrowCourse = [];
@@ -489,8 +494,8 @@ struct Index {
             Divider();
             if (this.todayCourse.length === 0) {
               Column() {
-                if (scheduleManager.isTermBegin) {
-                  if (scheduleManager.isTermEnd) {
+                if (this.isTermBegin) {
+                  if (this.isTermEnd) {
                     Image($r('app.media.no_course_term_end'))
                       .height(75)
                       .interpolation(ImageInterpolation.Medium)

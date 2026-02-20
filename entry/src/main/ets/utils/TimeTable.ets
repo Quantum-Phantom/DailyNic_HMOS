@@ -209,17 +209,17 @@ class scheduleManager {
   today: number = 0; // 星期几-1
   isTermBegin: boolean = true;
   isTermEnd: boolean = false;
+  finalWeek: number = UnifiedPreferences.getNumberSync('FinalWeek', 0);
 
   getParsedSchedule(): void {
     this.parsedSchedule = JSON.parse(UnifiedPreferences.getSync(SCHEDULE_KEY, '[[[]]]')) as classAttribute[][][];
     if (UnifiedPreferences.hasSync(START_TIME_KEY)) {
       this.weekDisplayed = Math.ceil((this.currentTime.getTime() - Number(UnifiedPreferences.getSync(START_TIME_KEY))) / millisecondsPerWeek);
-      if (this.weekDisplayed > 20) { // 学期已结束
+      if (this.weekDisplayed > this.finalWeek) { // 学期已结束 (此处本来是>20)
         this.weekDisplayed = 1;
         this.isTermBegin = true;
         this.isTermEnd = true;
-      }
-      if (this.weekDisplayed <= 0) { // 学期未开始
+      } else if (this.weekDisplayed <= 0) { // 学期未开始
         this.weekDisplayed = 1;
         this.isTermBegin = false;
         this.isTermEnd = false;
@@ -249,6 +249,7 @@ class scheduleManager {
 
       let courseToColor = new Map<string, string>();
       let randColor: number = tools.getRandomInt(0, tools.colorSetLen - 1);
+      this.finalWeek = 0;
       for (let i of this.parsedSchedule)
         if (i != null)
           for (let j of i)
@@ -265,12 +266,14 @@ class scheduleManager {
                 }
                 if (k.priority == undefined)
                   k.priority = 5;
+                 this.finalWeek = Math.max(k.weekOfTerm[k.weekOfTerm.length - 1], this.finalWeek);
               }
 
+      UnifiedPreferences.putSync('FinalWeek', this.finalWeek);
       UnifiedPreferences.putSync(SCHEDULE_KEY, JSON.stringify(this.parsedSchedule));
       UnifiedPreferences.putSync('ScheduleVersion', '2.0.0');
       this.weekDisplayed = Math.ceil((this.currentTime.getTime() - this.termStart) / millisecondsPerWeek);
-      if (this.weekDisplayed > 20) { // 学期已结束
+      if (this.weekDisplayed > this.finalWeek) { // 学期已结束 (此处本来是>20)
         this.weekDisplayed = 1;
         if (this.termStart == 0 ) { // 如果没有学期开始信息（默认是0）（即手动添加第一门课），将上一个周日作为一周开始
           const monday = new Date(this.currentTime);
