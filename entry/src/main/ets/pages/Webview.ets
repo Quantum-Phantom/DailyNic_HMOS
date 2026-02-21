@@ -177,7 +177,7 @@ struct Webview {
     NavDestination() {
       Stack({ alignContent: Alignment.TopStart }) {
         Web({ src: this.url, controller: this.webviewController })
-          .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.normal_background') : '#00d00721')
+          .backgroundColor('#00d00721')
           .javaScriptProxy({
             object: accountInfoProvider,
             name: "infoProvider",
@@ -416,7 +416,6 @@ struct Webview {
               Text($r('app.string.network_error_explain', this.loadError))
                 .textAlign(TextAlign.Center)
                 .margin({ top: 6, bottom: 10 })
-                .fontColor(this.webAutoDarkMode ? $r('app.color.normal_text') : '#000000')
               Row({ space: 6 }) {
                 Button($r('app.string.back_to_last_page'))
                   .onClick(() => {

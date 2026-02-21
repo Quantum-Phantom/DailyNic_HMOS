@@ -215,13 +215,18 @@ class scheduleManager {
     this.parsedSchedule = JSON.parse(UnifiedPreferences.getSync(SCHEDULE_KEY, '[[[]]]')) as classAttribute[][][];
     if (UnifiedPreferences.hasSync(START_TIME_KEY)) {
       this.weekDisplayed = Math.ceil((this.currentTime.getTime() - Number(UnifiedPreferences.getSync(START_TIME_KEY))) / millisecondsPerWeek);
+      console.log(`!!!${this.weekDisplayed}`)
       if (this.weekDisplayed > this.finalWeek) { // 学期已结束 (此处本来是>20)
-        this.weekDisplayed = 1;
+        if (this.weekDisplayed > 20)
+          this.weekDisplayed = 1;
         this.isTermBegin = true;
         this.isTermEnd = true;
       } else if (this.weekDisplayed <= 0) { // 学期未开始
         this.weekDisplayed = 1;
         this.isTermBegin = false;
+        this.isTermEnd = false;
+      } else { // 学期已开始，this.weekDisplayed在可接受范围内
+        this.isTermBegin = true;
         this.isTermEnd = false;
       }
       this.weekStart = Number(UnifiedPreferences.getSync(START_TIME_KEY)) + (this.weekDisplayed - 1) * millisecondsPerWeek;
@@ -273,8 +278,9 @@ class scheduleManager {
       UnifiedPreferences.putSync(SCHEDULE_KEY, JSON.stringify(this.parsedSchedule));
       UnifiedPreferences.putSync('ScheduleVersion', '2.0.0');
       this.weekDisplayed = Math.ceil((this.currentTime.getTime() - this.termStart) / millisecondsPerWeek);
-      if (this.weekDisplayed > this.finalWeek) { // 学期已结束 (此处本来是>20)
-        this.weekDisplayed = 1;
+      if (this.weekDisplayed > this.finalWeek) { // 未设置，或者学期已结束 (此处本来是>20)
+        if (this.weekDisplayed > 20)
+          this.weekDisplayed = 1;
         if (this.termStart == 0 ) { // 如果没有学期开始信息（默认是0）（即手动添加第一门课），将上一个周日作为一周开始
           const monday = new Date(this.currentTime);
           monday.setDate(this.currentTime.getDate() + (this.currentTime.getDay() === 0 ? 1 : -(this.currentTime.getDay() - 1)));
@@ -290,6 +296,8 @@ class scheduleManager {
       } else { // 学期未结束
         if (this.weekDisplayed <= 0) { // 学期未开始
           this.weekDisplayed = 1;
+          this.isTermBegin = false;
+        } else { // 学期已开始
           this.isTermBegin = true;
         }
         UnifiedPreferences.putSync(START_TIME_KEY, this.termStart);

@@ -336,7 +336,8 @@ struct Index {
     this.currentTime = new Date();
     scheduleManager.getFormattedSchedule(); // 初始化首页课表
     this.isTermBegin = scheduleManager.isTermBegin;
-    this.isTermEnd = scheduleManager.isTermEnd
+    this.isTermEnd = scheduleManager.isTermEnd;
+    console.log(`!!${this.isTermBegin} ${this.isTermEnd}`)
     if (scheduleManager.isTermEnd || !scheduleManager.isTermBegin) {
       this.todayCourse = [];
       this.tomorrowCourse = [];
