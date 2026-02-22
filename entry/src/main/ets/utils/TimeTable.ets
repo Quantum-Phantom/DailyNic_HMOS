@@ -216,6 +216,7 @@ class scheduleManager {
     if (UnifiedPreferences.hasSync(START_TIME_KEY)) {
       this.weekDisplayed = Math.ceil((this.currentTime.getTime() - Number(UnifiedPreferences.getSync(START_TIME_KEY))) / millisecondsPerWeek);
       console.log(`!!!${this.weekDisplayed}`)
+      this.finalWeek = UnifiedPreferences.getNumberSync('FinalWeek', 0);
       if (this.weekDisplayed > this.finalWeek) { // 学期已结束 (此处本来是>20)
         if (this.weekDisplayed > 20)
           this.weekDisplayed = 1;
