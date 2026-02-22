@@ -9,6 +9,8 @@ let localStorage = new LocalStorage();
 @Component
 struct Class_schedule_dailyCard {
   @LocalStorageProp('examInfo') examInfo: examAttribute[] = [];
+  @LocalStorageProp('title') title: ResourceStr = '';
+  @LocalStorageProp('count') count: number = 0;
 
   @LocalStorageProp('cardListParameter') cardListParameter: CardListParameter = new CardListParameter(
     /* backgroundColor          */ $r('sys.color.ohos_id_color_background'),
@@ -107,7 +109,7 @@ struct Class_schedule_dailyCard {
 
   build() {
     Column() {
-      CardListComponent({ cardListParameter: this.cardListParameter }) {
+      CardListComponent({ cardListParameter: this.cardListParameter, title: this.title, count: this.count}) {
         this.cardListBuilder();
       }
     }
