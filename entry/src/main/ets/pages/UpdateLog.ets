@@ -1,5 +1,7 @@
 import { webview } from '@kit.ArkWeb';
-import UpdateInfo from '../constants/UpdateInfo';
+import UpdateInfo from '../view/UpdateInfo';
+import scheduleManager from '../utils/TimeTable';
+import UnifiedPreferences from '../utils/UnifyPreference';
 
 @Entry
 @Component
@@ -13,71 +15,78 @@ struct UpdateLog {
   }
 
   build() {
-    Stepper() {
-      StepperItem(){
+    Column() {
+      Row() {
+        Image($r('app.media.icon_round'))
+          .height(80)
+          .width(80)
         Column() {
-          Column({ space: 7 }) {
-            Image($r('app.media.icon_round'))
-              .height(80)
-              .width(80)
-            Text($r('app.string.have_updated'))
-              .fontSize(22)
-              .fontWeight(FontWeight.Bold)
-              .margin({ top: 10 })
-            Text($r('app.string.version_2_0_0_date'))
-              .fontSize(16)
-              .margin({ top: 5 })
-            Text($r('app.string.update_log'))
-              .fontSize(16)
-              .fontWeight(FontWeight.Bold)
-              .margin({ bottom: 10 })
-          }
-
-          UpdateInfo()
-            .layoutWeight(1)
-            .borderWidth(6)
-            .borderColor($r('app.color.normal_background'))
-            .constraintSize({ maxWidth: 750 })
-            .width('95%')
-            .borderRadius(20)
-
-          Row() {
-            Checkbox()
-              .onChange((value: boolean) => {
-                this.agreePolitic = value;
-              })
-            Text() {
-              Span($r('app.string.updated_privacy_policy'))
-                .fontColor($r('app.color.red'))
-              Span($r('app.string.terms_of_use_and_privacy_policy'))
-                .fontColor($r('app.color.active_text'))
-                .onClick(() => {
-                  if (this.webController === undefined)
-                    this.webController = new webview.WebviewController();
-                  this.showSheet = true;
-                })
-                .decoration({
-                  type: TextDecorationType.Underline,
-                  color: $r('app.color.active_text')
-                })
-            }
-            .bindSheet($$this.showSheet, this.agreementSheet(), {
-              detents: [SheetSize.LARGE],
-              preferType: SheetType.CENTER
-            })
-          }
-          Text($r('app.string.stepper_bug'))
+          Text($r('app.string.have_updated'))
+            .fontSize(18)
+            .fontWeight(FontWeight.Bold)
+            .margin({ bottom: 6 })
+          Text($r('app.string.update_log'))
+            .fontSize(22)
+            .fontWeight(FontWeight.Bold)
         }
-        // .justifyContent(FlexAlign.SpaceAround)
-        .margin({ top: 10 })
-        .width('90%')
+        .margin({ left: 12 })
       }
-      .nextLabel('妮可，启动！')
-      .status(this.agreePolitic ? ItemState.Normal: ItemState.Disabled)
+      .margin({ bottom: 5 })
+
+      Column() {
+        UpdateInfo()
+          .width('100%')
+      }
+      .padding({ top: 16, bottom: 16 })
+      .margin({ left: 10, right: 10 })
+      .backgroundColor($r('app.color.normal_background'))
+      .borderRadius(20)
+      .width('100%')
+      .constraintSize({ maxWidth: 750 })
+      .layoutWeight(1)
+
+      Row() {
+        Checkbox()
+          .onChange((value: boolean) => {
+            this.agreePolitic = value;
+          })
+        Text() {
+          Span($r('app.string.updated_privacy_policy'))
+            .fontColor($r('app.color.red'))
+          Span($r('app.string.terms_of_use_and_privacy_policy'))
+            .fontColor($r('app.color.active_text'))
+            .onClick(() => {
+              if (this.webController === undefined)
+                this.webController = new webview.WebviewController();
+              this.showSheet = true;
+            })
+            .decoration({
+              type: TextDecorationType.Underline,
+              color: $r('app.color.active_text')
+            })
+        }
+        .bindSheet($$this.showSheet, this.agreementSheet(), {
+          detents: [SheetSize.LARGE],
+          preferType: SheetType.CENTER,
+          title: { title: $r('app.string.terms_of_use_and_privacy_policy'), subtitle: $r('app.string.version') }
+        })
+      }
+
+      Row() {
+        Blank()
+        Button($r('app.string.nic_launch'))
+          .buttonStyle(ButtonStyleMode.TEXTUAL)
+          .enabled(this.agreePolitic)
+          .onClick(() => {
+            scheduleManager.updateChange('2.0.0');
+            UnifiedPreferences.putSync('AppVersion', '2.0.0');
+            this.getUIContext().getRouter().back();
+          })
+      }
+      .width('100%')
     }
-    .onFinish(() => {
-      this.getUIContext().getRouter().back();
-    })
+    .width('100%')
+    .height('100%')
   }
 
   @Builder

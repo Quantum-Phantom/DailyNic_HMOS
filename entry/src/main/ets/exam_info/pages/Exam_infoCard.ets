@@ -9,6 +9,8 @@ let localStorage = new LocalStorage();
 @Component
 struct Class_schedule_dailyCard {
   @LocalStorageProp('examInfo') examInfo: examAttribute[] = [];
+  @LocalStorageProp('title') title: ResourceStr = '';
+  @LocalStorageProp('count') count: number = 0;
 
   @LocalStorageProp('cardListParameter') cardListParameter: CardListParameter = new CardListParameter(
     /* backgroundColor          */ $r('sys.color.ohos_id_color_background'),
@@ -42,28 +44,28 @@ struct Class_schedule_dailyCard {
         Row() {
           if (this.currentTime < singleExam.beginTimeStamp) {
             if (singleExam.beginTimeStamp - this.currentTime >= 86400000)
-              Text() {
-                Span(tools.formatTimeDiff(this.currentTime, singleExam.beginTimeStamp, 0).toString())
-                  .fontSize(36)
-                Span($r('app.string.day'))
-                  .fontSize(18)
-              }
-              .fontWeight(FontWeight.Bold)
-              .fontColor($r('app.color.green'))
-              .textAlign(TextAlign.Center)
-              .width('30%');
+            Text() {
+              Span(tools.formatTimeDiff(this.currentTime, singleExam.beginTimeStamp, 0).toString())
+                .fontSize(36)
+              Span($r('app.string.day'))
+                .fontSize(18)
+            }
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.green'))
+            .textAlign(TextAlign.Center)
+            .width('30%');
             else
-              Text() {
-                Span(Number((tools.formatTimeDiff(this.currentTime, singleExam.beginTimeStamp, 1)
-                  + tools.formatTimeDiff(this.currentTime, singleExam.beginTimeStamp, 2) / 60).toExponential(1)).toString())
-                  .fontSize(28)
-                Span($r('app.string.hour'))
-                  .fontSize(14)
-              }
-              .fontWeight(FontWeight.Bold)
-              .fontColor($r('app.color.hour'))
-              .textAlign(TextAlign.Center)
-              .width('30%');
+            Text() {
+              Span(Number((tools.formatTimeDiff(this.currentTime, singleExam.beginTimeStamp, 1)
+                + tools.formatTimeDiff(this.currentTime, singleExam.beginTimeStamp, 2) / 60).toExponential(1)).toString())
+                .fontSize(28)
+              Span($r('app.string.hour'))
+                .fontSize(14)
+            }
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.hour'))
+            .textAlign(TextAlign.Center)
+            .width('30%');
           } else {
             Text($r('app.string.exam_processing'))
               .fontSize(18)
@@ -107,7 +109,7 @@ struct Class_schedule_dailyCard {
 
   build() {
     Column() {
-      CardListComponent({ cardListParameter: this.cardListParameter }) {
+      CardListComponent({ cardListParameter: this.cardListParameter, title: this.title, count: this.count}) {
         this.cardListBuilder();
       }
     }

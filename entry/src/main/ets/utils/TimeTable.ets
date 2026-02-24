@@ -209,13 +209,13 @@ class scheduleManager {
   today: number = 0; // 星期几-1
   isTermBegin: boolean = true;
   isTermEnd: boolean = false;
-  finalWeek: number = UnifiedPreferences.getNumberSync('FinalWeek', 0);
+  finalWeek: number = 0;
 
   getParsedSchedule(): void {
     this.parsedSchedule = JSON.parse(UnifiedPreferences.getSync(SCHEDULE_KEY, '[[[]]]')) as classAttribute[][][];
     if (UnifiedPreferences.hasSync(START_TIME_KEY)) {
       this.weekDisplayed = Math.ceil((this.currentTime.getTime() - Number(UnifiedPreferences.getSync(START_TIME_KEY))) / millisecondsPerWeek);
-      console.log(`!!!${this.weekDisplayed}`)
+      this.finalWeek = UnifiedPreferences.getNumberSync('FinalWeek', 0);
       if (this.weekDisplayed > this.finalWeek) { // 学期已结束 (此处本来是>20)
         if (this.weekDisplayed > 20)
           this.weekDisplayed = 1;
@@ -362,6 +362,20 @@ class scheduleManager {
       }
     this.refreshParsedSchedule({ timeTable: `[${JSON.stringify(this.parsedSchedule)}]`, startTime: this.termStart.toString() });
     this.getFormattedSchedule();
+  }
+
+  updateChange(currentVer: string) {
+    const oldVer = UnifiedPreferences.getSync('ScheduleVersion');
+    if (oldVer === '1.0.0') {
+      this.finalWeek = 0;
+      for (let i of this.parsedSchedule)
+        if (i != null)
+          for (let j of i)
+            if (j != null)
+              for (let k of j)
+                this.finalWeek = Math.max(k.weekOfTerm[k.weekOfTerm.length - 1], this.finalWeek);
+      UnifiedPreferences.putSync('FinalWeek', this.finalWeek);
+    }
   }
 }
 

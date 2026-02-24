@@ -10,6 +10,8 @@ let localStorage = new LocalStorage();
 struct Class_schedule_dailyCard {
   @LocalStorageProp('todayCourse') todayCourse: ScheduleSources.classAttribute[] = [];
   @LocalStorageProp('tomorrowCourse') tomorrowCourse: ScheduleSources.classAttribute[] = [];
+  @LocalStorageProp('title') title: ResourceStr = '';
+  @LocalStorageProp('count') count: number = 0;
 
   @LocalStorageProp('cardListParameter') cardListParameter: CardListParameter = new CardListParameter(
     /* backgroundColor          */ $r('sys.color.ohos_id_color_background'),
@@ -34,6 +36,7 @@ struct Class_schedule_dailyCard {
         Column() {
           Image($r('app.media.no_course_today'))
             .height(50)
+            .interpolation(ImageInterpolation.Medium)
           Text(scheduleManager.isTermEnd ? $r('app.string.no_class_term_end') : $r('app.string.no_class_today'))
         }
         .justifyContent(FlexAlign.Center)
@@ -164,7 +167,7 @@ struct Class_schedule_dailyCard {
 
   build() {
     Column() {
-      CardListComponent({ cardListParameter: this.cardListParameter }) {
+      CardListComponent({ cardListParameter: this.cardListParameter, title: this.title, count: this.count }) {
         this.cardListBuilder();
       }
     }

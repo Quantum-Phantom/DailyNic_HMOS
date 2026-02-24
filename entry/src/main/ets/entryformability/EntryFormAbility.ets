@@ -14,38 +14,34 @@ const DOMAIN_NUMBER: number = 0xFF00;
 class FormDataClass {
   todayCourse: ScheduleSources.classAttribute[] = [];
   tomorrowCourse: ScheduleSources.classAttribute[] = [];
-  cardListParameter: CardListParameter = new CardListParameter(
-    /* backgroundColor          */ $r('sys.color.ohos_id_color_background'),
-    /* title                    */ $r('app.string.schedule_card_title'),
-    /* backgroundImage          */ undefined,
-    /* backgroundImageSize      */ ImageSize.Auto,
-    /* isMask                   */ true,
-    /* maskColor                */ $r('app.color.pure_white_or_black'),
-    /* isItemCount              */ true,
-    /* itemCount                */ 0,
-    /* itemCountColor           */ $r('sys.color.ohos_id_color_emphasize'),
-    /* itemCountBackgroundColor */ $r('app.color.list_item_count_background'),
-    /* titleColor               */ undefined,
-    /* isBottomIcon             */ false,
-    /* bottomIcon               */ undefined
-  )
+  title: ResourceStr = '';
+  count: number = 0;
   examInfo: examAttribute[] = [];
   currentTime: number = 0;
   lastRefresh: string = '';
   constructor(refreshType: number) {
     if (refreshType === 0) { // 0 → 刷新课表
+      this.title = $r("app.string.schedule_card_title");
       scheduleManager.getFormattedSchedule();
-      if (!scheduleManager.isTermEnd) {
+      if (!scheduleManager.isTermEnd && scheduleManager.isTermBegin) {
         this.todayCourse = scheduleManager.formattedSchedule[scheduleManager.weekDisplayed][scheduleManager.today];
         this.tomorrowCourse = scheduleManager.formattedSchedule[scheduleManager.weekDisplayed +
           (scheduleManager.today == 5 ? 1 : 0)][(scheduleManager.today + 1) % 7];
+      } else {
+        this.todayCourse = [];
+        this.tomorrowCourse = [];
       }
-      this.cardListParameter.itemCount = this.todayCourse.length;
+      //this.cardListParameter.itemCount = this.todayCourse.length;
+      this.count = this.todayCourse.length;
     } else if (refreshType === 1) { // 1 → 刷新考试
-      this.cardListParameter.title = $r("app.string.exam_detail");
+      this.title = $r("app.string.exam_detail");
       examManager.readStoredExam();
       this.examInfo = examManager.allExamInfo;
-      this.cardListParameter.itemCount = this.examInfo.length;
+      let currentTime: number = new Date().getTime(); // 删除已结束考试
+      for (let i = this.examInfo.length - 1; i >= 0; i--)
+        if (currentTime > this.examInfo[i].endTimeStamp)
+          this.examInfo.splice(i, 1);
+      this.count = this.examInfo.length;
     }
     const now = scheduleManager.currentTime;
     this.lastRefresh = `上次刷新: ${now.getMonth() + 1}月${now.getDate()}日${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;

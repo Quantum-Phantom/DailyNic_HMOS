@@ -134,7 +134,7 @@ struct Index {
     // 刷新点击次数显示
     FunctionOrder.refreshFunc();
     this.copyMostUsedFunc = FunctionOrder.mostUsedFunc;
-    // 获取课表
+    // 获取签到和课表
     ScheduleSources.initSchedulePre();
     const GeneratedDestructArray_1 = CheckInTools.loadCheckInOnStartup();
     this.checkInTotal = GeneratedDestructArray_1[0];
@@ -153,7 +153,6 @@ struct Index {
     } else if (UnifiedPreferences.getSync('AppVersion') !== '2.0.0') {
       this.getUIContext().getRouter().pushUrl({ url: 'pages/UpdateLog' })
         .catch((err: Error) => { console.error(`Router ERROR: [${err.name}] ${err.message}`) })
-      UnifiedPreferences.putSync('AppVersion', '2.0.0');
     }
   }
 
@@ -333,11 +332,9 @@ struct Index {
   @State isTermBegin: boolean = scheduleManager.isTermBegin;
   @State isTermEnd: boolean = scheduleManager.isTermEnd;
   refreshInfo() {
-    this.currentTime = new Date();
     scheduleManager.getFormattedSchedule(); // 初始化首页课表
     this.isTermBegin = scheduleManager.isTermBegin;
     this.isTermEnd = scheduleManager.isTermEnd;
-    console.log(`!!${this.isTermBegin} ${this.isTermEnd}`)
     if (scheduleManager.isTermEnd || !scheduleManager.isTermBegin) {
       this.todayCourse = [];
       this.tomorrowCourse = [];
@@ -352,6 +349,7 @@ struct Index {
         this.isTodayCourseEnd = false;
         break;
       }
+    this.currentTime = new Date();
     examManager.readStoredExam();
     this.exams = examManager.allExamInfo;
     for (let i = this.exams.length - 1; i >= 0; i--)

@@ -44,6 +44,7 @@ struct FaultOccurred {
               if (this.button1ClickTimes == 2) {
                 UnifiedPreferences.deleteSync(SCHEDULE_KEY);
                 UnifiedPreferences.deleteSync(START_TIME_KEY);
+                UnifiedPreferences.deleteSync('FinalWeek');
                 this.button1Text = $r('app.string.clear_success');
               } else if (this.button1ClickTimes == 1) {
                 this.button1Text = $r('app.string.click_again_to_delete');

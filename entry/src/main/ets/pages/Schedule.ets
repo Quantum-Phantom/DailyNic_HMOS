@@ -905,11 +905,11 @@ struct Schedule {
 
         Blank()
 
-        Image(this.weekDisplayed == 1 ? $r('app.media.arrow_left_circle_unavailable') :
-          $r('app.media.arrow_left_circle'))
+        Image($r('app.media.arrow_left_circle'))
           .height(18)
           .padding({ left: 20, right: 20 })
           .draggable(false)
+          .opacity(this.weekDisplayed === 1 ? 0.4 : 1)
           .onClick(() => {
             if (this.weekDisplayed > 1) {
               this.weekDisplayed--;
@@ -924,12 +924,12 @@ struct Schedule {
           .fontWeight(FontWeight.Bold)
           .fontSize(14)
 
-        Image(this.weekDisplayed == 20 ? $r('app.media.arrow_right_circle_unavailable') :
-          $r('app.media.arrow_right_circle'))
+        Image($r('app.media.arrow_right_circle'))
           .height(18)
           .padding({ left: 20, right: 20 })
           .objectFit(ImageFit.Contain)
           .draggable(false)
+          .opacity(this.weekDisplayed === 20 ? 0.4 : 1)
           .onClick(() => {
             if (this.weekDisplayed < 20) {
               this.weekDisplayed++;

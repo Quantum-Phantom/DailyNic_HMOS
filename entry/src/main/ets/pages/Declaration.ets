@@ -1,7 +1,7 @@
 import { webview } from '@kit.ArkWeb';
 import UnifiedPreferences from '../utils/UnifyPreference';
 import { setUSTCLink, setHUSTLink } from '../constants/Links';
-import UpdateInfo from '../constants/UpdateInfo';
+import UpdateInfo from '../view/UpdateInfo';
 
 @Entry
 @Component
@@ -11,64 +11,65 @@ struct Declaration {
   @State showSheet: boolean = false;
   @State knowIndependence: boolean = false;
   private webController: webview.WebviewController | undefined = undefined;
+  private swiperController: SwiperController = new SwiperController();
+  @State index: number = 0;
+  @State allowSwipe: boolean = true;
 
   onBackPress(): boolean {
     return true;
   }
 
   build() {
-    Stepper() {
-      // 同意用户协议和隐私政策
-      StepperItem() {
+    Column() {
+      Swiper(this.swiperController) {
+        // 同意用户协议和隐私政策
         Column() {
-          Column({ space: 7 }) {
-            Image($r('app.media.icon_round'))
-              .height(80)
-              .width(80)
-            Text($r('app.string.welcome_to_your_ustc'))
-              .fontSize(22)
-              .fontWeight(FontWeight.Bold)
-              .margin({ top: 10 })
-          }
-
           Column() {
-            Row() {
-              Checkbox()
-                .onChange((value: boolean) => {
-                  this.agreePolitic = value;
-                })
-              Text() {
-                Span($r('app.string.read_privacy_policy'))
-                Span($r('app.string.terms_of_use_and_privacy_policy'))
-                  .fontColor($r('app.color.active_text'))
-                  .onClick(() => {
-                    if (this.webController === undefined) {
-                      this.webController = new webview.WebviewController();
-                    }
-                    this.showSheet = true;
-                  })
-                  .decoration({
-                    type: TextDecorationType.Underline,
-                    color: $r('app.color.active_text')
-                  })
-              }
-              .bindSheet($$this.showSheet, this.agreementSheet(), {
-                detents: [SheetSize.LARGE],
-                preferType: SheetType.CENTER
-              })
+            Column({ space: 7 }) {
+              Image($r('app.media.icon_round'))
+                .height(80)
+                .width(80)
+              Text($r('app.string.welcome_to_your_ustc'))
+                .fontSize(22)
+                .fontWeight(FontWeight.Bold)
+                .margin({ top: 10 })
             }
 
-            Text($r('app.string.stepper_bug'))
+            Column() {
+              Row() {
+                Checkbox()
+                  .onChange((value: boolean) => {
+                    this.agreePolitic = value;
+                  })
+                Text() {
+                  Span($r('app.string.read_privacy_policy'))
+                  Span($r('app.string.terms_of_use_and_privacy_policy'))
+                    .fontColor($r('app.color.active_text'))
+                    .onClick(() => {
+                      if (this.webController === undefined) {
+                        this.webController = new webview.WebviewController();
+                      }
+                      this.showSheet = true;
+                    })
+                    .decoration({
+                      type: TextDecorationType.Underline,
+                      color: $r('app.color.active_text')
+                    })
+                }
+                .bindSheet($$this.showSheet, this.agreementSheet(), {
+                  detents: [SheetSize.LARGE],
+                  preferType: SheetType.CENTER,
+                  title: { title: $r('app.string.terms_of_use_and_privacy_policy'), subtitle: $r('app.string.version') }
+                })
+              }
+            }
           }
+          .justifyContent(FlexAlign.SpaceAround)
+          .padding(15)
+          .height('100%')
+          .width('100%')
         }
-        .justifyContent(FlexAlign.SpaceAround)
-        .padding(15)
-        .height('90%')
-        .width('90%')
-      }
-      .status(this.agreePolitic ? ItemState.Normal: ItemState.Disabled)
 
-      StepperItem() {
         Column({ space: 7 }) {
           Text($r('app.string.no_association1'))
             .fontSize(24)
@@ -77,6 +78,7 @@ struct Declaration {
             Text($r('app.string.no_association2'))
               .fontColor($r('app.color.red'))
           }
+
           Text($r('app.string.no_association3'))
             .copyOption(CopyOptions.InApp)
           TextArea()
@@ -92,12 +94,9 @@ struct Declaration {
         }
         .justifyContent(FlexAlign.Center)
         .padding(15)
-        .height('90%')
-        .width('90%')
-      }
-      .status(this.knowIndependence ? ItemState.Normal : ItemState.Disabled)
+        .height('100%')
+        .width('100%')
 
-      StepperItem() {
         Column({ space: 7 }) {
           Text($r('app.string.choose_school'))
             .fontSize(24)
@@ -112,42 +111,70 @@ struct Declaration {
         }
         .justifyContent(FlexAlign.Center)
         .padding(15)
-        .height('90%')
-        .width('90%')
-      }
-      .status(this.chooseSchool === -1 ? ItemState.Disabled : ItemState.Normal)
+        .height('100%')
+        .width('100%')
 
-      StepperItem() {
         Column() {
           Text($r('app.string.update_log'))
-            .fontSize(16)
+            .fontSize(18)
             .fontWeight(FontWeight.Bold)
             .margin({ bottom: 10 })
           UpdateInfo()
+            .layoutWeight(1)
         }
-        .margin({ top: 10, left: 10, right: 10 })
-        .padding({ top: 20, bottom: 20 })
+        .margin(10)
+        .padding({ top: 10, bottom: 20 })
         .borderRadius(20)
         .backgroundColor($r('app.color.normal_background'))
+        .height('100%')
+        .width('100%')
       }
-      .nextLabel('妮可，启动！')
+      .layoutWeight(1)
+      .disableSwipe(true)
+      .loop(false)
+      // .onAnimationStart(() => this.allowSwipe = false)
+      .onAnimationEnd(() => this.allowSwipe = true)
+      .onChange((index) => {
+        this.index = index;
+      })
+
+      Row() {
+        Button($r('app.string.last_step'))
+          .buttonStyle(ButtonStyleMode.TEXTUAL)
+          .enabled(this.allowSwipe)
+          .visibility(this.index === 0 ? Visibility.Hidden : Visibility.Visible)
+          .onClick(() => {
+            this.allowSwipe = false;
+            this.swiperController.showPrevious();
+          })
+        Blank()
+        Button(this.index === 3 ? $r('app.string.nic_launch') : $r('app.string.next_step'))
+          .buttonStyle(ButtonStyleMode.TEXTUAL)
+          .enabled((this.index !== 0 || this.agreePolitic) && (this.index !== 1 || this.knowIndependence) && (this.index !== 2 || this.chooseSchool !== -1) && this.allowSwipe)
+          .onClick(() => {
+            if (this.index === 3) {
+              switch (this.chooseSchool) {
+                case 0:
+                  UnifiedPreferences.putSync('school', 'HUST');
+                  setHUSTLink();
+                  break;
+                case 1:
+                  UnifiedPreferences.putSync('school', 'USTC');
+                  setUSTCLink();
+                  break;
+              }
+              UnifiedPreferences.putSync('InitialLaunch', false);
+              UnifiedPreferences.putSync('AppVersion', '2.0.0');
+              this.getUIContext().getRouter().back();
+            } else {
+              this.allowSwipe = false;
+              this.swiperController.showNext();
+            }
+          })
+      }
+      .width('100%')
     }
-    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
-    .onFinish(() => {
-      switch (this.chooseSchool) {
-        case 0:
-          UnifiedPreferences.putSync('school', 'HUST');
-          setHUSTLink();
-          break;
-        case 1:
-          UnifiedPreferences.putSync('school', 'USTC');
-          setUSTCLink();
-          break;
-      }
-      UnifiedPreferences.putSync('InitialLaunch', false);
-      UnifiedPreferences.putSync('AppVersion', '2.0.0');
-      this.getUIContext().getRouter().back();
-    })
+    .height('100%')
   }
 
   @Builder

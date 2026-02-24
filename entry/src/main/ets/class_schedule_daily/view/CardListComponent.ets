@@ -5,6 +5,8 @@ import { CardListParameter } from '../viewmodel/CardListParameter';
 export struct CardListComponent {
   @BuilderParam customBuilderParam: () => void = this.customBuilder;
   @Link cardListParameter: CardListParameter | undefined;
+  @Link title: ResourceStr;
+  @Link count: number;
   @LocalStorageProp('lastRefresh') lastRefresh: string = '点击右侧按钮刷新';
 
   @Builder
@@ -17,7 +19,7 @@ export struct CardListComponent {
       Stack({ alignContent: Alignment.Bottom }) {
         Column({ space: FlexAlign.Start }) {
           Row() {
-            Text(this.cardListParameter.title)
+            Text(this.title)
               .fontSize(15)
               .fontWeight(FontWeight.Bold)
               .height(20)
@@ -26,9 +28,8 @@ export struct CardListComponent {
               .maxLines(1)
               .textOverflow({ overflow: TextOverflow.Ellipsis })
 
-            if (this.cardListParameter.isItemCount === true && this.cardListParameter.itemCount !== undefined) {
-              Text(this.cardListParameter.itemCount > 99 ? '99+' :
-                this.cardListParameter.itemCount + '')
+            if (this.cardListParameter.isItemCount === true) {
+              Text(this.count > 99 ? '99+' : this.count + '')
                 .textAlign(TextAlign.Center)
                 .fontSize(10)
                 .fontWeight(FontWeight.Medium)
@@ -37,7 +38,7 @@ export struct CardListComponent {
                 .width(24)
                 .height(16)
                 .borderRadius(8)
-              }
+            }
 
             Text(this.lastRefresh)
               .opacity(0.8)

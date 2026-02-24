@@ -10,7 +10,7 @@ import { systemShare } from '@kit.ShareKit';
 import { uniformTypeDescriptor } from '@kit.ArkData';
 import { BusinessError } from '@kit.BasicServicesKit';
 import { Link } from '../constants/Links';
-import UpdateInfo from '../constants/UpdateInfo';
+import UpdateInfo from '../view/UpdateInfo';
 
 @Builder
 export function AboutBuilder(name: string, param?: Object) {
