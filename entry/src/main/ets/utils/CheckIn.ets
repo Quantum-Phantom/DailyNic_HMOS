@@ -1,6 +1,5 @@
 
-import UnifiedPreferences from '../utils/UnifyPreference';
-import { LAST_DAY_KEY, TOTAL_DAYS_KEY, CONSECUTIVE_DAYS_KEY, CONTENT_KEY } from '../utils/UnifyPreference';
+import UnifiedPreferences, { LAST_DAY_KEY, TOTAL_DAYS_KEY, CONSECUTIVE_DAYS_KEY, CONTENT_KEY } from '../utils/UnifyPreference';
 
 export class CheckInTools {
   private static CHECK_IN_CONTENT_LIST: string[] = [

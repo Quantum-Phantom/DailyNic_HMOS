@@ -29,6 +29,11 @@
       "name": "Webview",
       "pageSourceFile": "src/main/ets/pages/Webview.ets",
       "buildFunction": "WebBuilder"
+    },
+    {
+      "name": "ThemeSetting",
+      "pageSourceFile": "src/main/ets/pages/ThemeSetting.ets",
+      "buildFunction": "ThemeBuilder"
     }
   ]
 }

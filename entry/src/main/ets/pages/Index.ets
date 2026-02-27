@@ -16,7 +16,6 @@ import * as tools from '../utils/tools'
 import UnifiedPreferences from '../utils/UnifyPreference'
 import WriteCalendar from '../utils/WriteCalendar'
 
-import BgImageDialog from '../view/BgImageDialog'
 import BackgroundImage from '../utils/BgImageManager'
 import GridComponent from '../view/GridComponent'
 import PasswordDialog from '../view/PasswordDialog'
@@ -24,7 +23,6 @@ import ItemData from '../view/SettingsComponent'
 
 import { setUSTCLink, setHUSTLink } from '../constants/Links'
 import display from '@ohos.display'
-import ThemeColorDialog from '../view/ThemeColorDialog'
 
 // 滚动条参数
 enum ScrollPosition {
@@ -47,21 +45,6 @@ struct Index {
       isFromSetting: true
     }),
     autoCancel: false,
-    gridCount: 4
-  })
-
-  dialogController2: CustomDialogController = new CustomDialogController({
-    builder: BgImageDialog({
-      windowWidth: Math.min(this.windowRect.width, this.windowRect.height),
-      windowHeight: Math.max(this.windowRect.width, this.windowRect.height)
-    }),
-    autoCancel: false,
-    gridCount: 4
-  })
-
-  dialogController3: CustomDialogController = new CustomDialogController({
-    builder: ThemeColorDialog(),
-    autoCancel: true,
     gridCount: 4
   })
 
@@ -291,17 +274,17 @@ struct Index {
           .width('12vp')
           .height('12vp')
           .draggable(false)
-      } else if (item.id === 1) {
+      } else if (item.id === 2) {
         Toggle({ type: ToggleType.Switch, isOn: $$this.showCheckIn })
           .onChange((value: boolean) => {
             UnifiedPreferences.putSync('showCheckIn', value);
           });
-      } else if (item.id === 2) {
+      } else if (item.id === 3) {
         Toggle({ type: ToggleType.Switch, isOn: $$this.showRecentCourse })
           .onChange((value: boolean) => {
             UnifiedPreferences.putSync('showRecentCourse', value);
           });
-      } else if (item.id === 3){
+      } else if (item.id === 4){
         Toggle({ type: ToggleType.Switch, isOn: $$this.showExamDetail })
           .onChange((value: boolean) => {
             UnifiedPreferences.putSync('showExamDetail', value);
@@ -946,7 +929,7 @@ struct Index {
 
   settingAction(cell: ItemData) {
     switch (cell.id) { // 根据 cell.id 区分设置项
-      case -1:
+      case 0:
         this.getUIContext().showTextPickerDialog({
           selected: (UnifiedPreferences.getSync('school', 'USTC') === 'USTC' ? 1 : 0),
           range: ['华中科技大学', '中国科学技术大学'],
@@ -968,21 +951,19 @@ struct Index {
         });
         break;
 
-      case 0:
+      case 1:
         this.dialogController.open();
         break;
-      case 1:
       case 2:
       case 3:
-        break;
-
       case 4:
-        // 自定义背景!
-        this.dialogController2.open();
         break;
 
       case 5:
-        this.dialogController3.open();
+        if (this.pageInfo.popToName('ThemeSetting') === -1) {
+          this.pageInfo.clear();
+          this.pageInfo.pushPath({ name: 'ThemeSetting', param: [this.windowRect.width, this.windowRect.height] });
+        }
         break;
 
       case 6:
@@ -1164,7 +1145,8 @@ struct Index {
       .enableDragBar(true)
       .backgroundColor('#00d00721')
       .opacity(BackgroundImage.opacityLevel)
-      .navBarWidthRange(['360vp', '50%'])
+      .navBarWidth('360vp')
+      .navBarWidthRange(['336vp', '50%'])
       .hideTitleBar(true)
       .hideToolBar(true)
       .onNavigationModeChange((mode: NavigationMode) => {

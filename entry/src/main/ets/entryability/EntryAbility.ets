@@ -43,6 +43,13 @@ export default class EntryAbility extends UIAbility {
       });
     } else {
       UnifiedPreferences.putSync('FaultOccurred', true);
+      try {
+        this.context.getApplicationContext()
+          .setColorMode(UnifiedPreferences.getNumberSync('ColorMode',
+            ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET));
+      } catch (error) {
+        // 改变深浅色失败，不管它了
+      }
       windowStage.loadContent('pages/Index', (err) => {
         if (err.code) {
           hilog.error(DOMAIN, 'testTag', 'Failed to load the content. Cause: %{public}s', JSON.stringify(err));

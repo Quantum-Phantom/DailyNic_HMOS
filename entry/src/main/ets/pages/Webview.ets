@@ -242,14 +242,6 @@ struct Webview {
                   }
                 });
                 return true;
-              } else if (uri.indexOf('native://webview_error_backward') === 0) {
-                if (this.webviewController.accessBackward()) {
-                  this.webviewController.backward();
-                } else {
-                  this.webviewController.terminateRenderProcess();
-                  this.pathStack.pop();
-                }
-                return true;
               }
             }
             return false;

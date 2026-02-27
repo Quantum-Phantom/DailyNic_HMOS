@@ -138,15 +138,23 @@
     },
     {
       "name": "show_check_in",
-      "value": "在首页显示每日签到"
+      "value": "显示每日签到"
     },
     {
       "name": "show_schedule_on_start_page",
-      "value": "在首页显示今明两日课程"
+      "value": "显示今明两日课程"
     },
     {
       "name": "show_exam_info_on_start_page",
-      "value": "在首页显示考试信息"
+      "value": "显示考试信息"
+    },
+    {
+      "name": "theme_setting",
+      "value": "个性化你的妮可"
+    },
+    {
+      "name": "theme_setting_intro",
+      "value": "离开此页面即取消，右侧可重启并应用更改"
     },
     {
       "name": "custom_background",
@@ -190,7 +198,7 @@
     },
     {
       "name": "custom_theme_color_into",
-      "value": "启用「自定义背景图片」并选择「组件模糊」时，主题色不可用"
+      "value": "启用「自定义背景图片」并选择「组件模糊」时，主题色不可用；你仍然可以更改此处的设置"
     },
     {
       "name": "ok_and_restart",
@@ -210,7 +218,7 @@
     },
     {
       "name": "web_auto_dark_mode",
-      "value": "网页深色模式跟随系统"
+      "value": "网页自动深色模式"
     },
     {
       "name": "web_back_press",
@@ -226,11 +234,11 @@
     },
     {
       "name": "add_class_notification",
-      "value": "在日历中新建上课提醒日程"
+      "value": "在日历中新建上课日程"
     },
     {
       "name": "add_exam_notification",
-      "value": "在日历中新建考试提醒日程"
+      "value": "在日历中新建考试日程"
     },
     {
       "name": "new",
