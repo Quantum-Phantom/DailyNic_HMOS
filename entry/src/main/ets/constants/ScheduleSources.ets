@@ -10,12 +10,21 @@ export interface classAttribute {
   location: string,
   id: string,
   color: string,
-  priority: number
+  priority: number,
+  credits: number
 }
 
 export interface obtainedData {
   timeTable: string;
   startTime: string;
+}
+
+export interface semesterAttribute {
+  name: string, // 名称
+  createTime: number, // 课表创建时间戳，用于读取不同课表
+  source: string, // 最后一次编辑来源
+  beginTime: number, // 学期开始时间戳
+  totalWeekNum: number // 课程最大周数
 }
 
 export let remindBefore: number[] = [];

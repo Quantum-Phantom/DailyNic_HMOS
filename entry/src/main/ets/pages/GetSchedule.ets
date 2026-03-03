@@ -1,11 +1,11 @@
 
 import { webview } from '@kit.ArkWeb';
-import { examInfoQueryJS, fillInformationJS, startTimeQueryJS, timeTableQueryJS, pollUntilLoad } from '../utils/TimeTable';
-import { obtainedData } from '../constants/ScheduleSources';
-import UnifiedPreferences, { PASSWORD_KEY, REMIND_KEY, UID_KEY}  from '../utils/UnifyPreference';
-import accountInfoProvider from '../utils/Encryption';
+import ScheduleManager, { example } from '../utils/TimeTable';
 import PasswordDialog from '../view/PasswordDialog';
-import BackgroundImage, { presetColor } from '../utils/BgImageManager';
+import accountInfoProvider from '../utils/Encryption';
+import BackgroundImage from '../utils/BgImageManager';
+import { fillInformationJS } from '../utils/tools';
+import UnifiedPreferences, { PASSWORD_KEY, REMIND_KEY, UID_KEY}  from '../utils/UnifyPreference';
 
 @Builder
 export function GetBuilder(name: string, param?: string[]) {
@@ -15,18 +15,98 @@ export function GetBuilder(name: string, param?: string[]) {
     Webview();
 }
 
+const timeTableQueryJS = `
+function getWeekNumber(str) {
+    const parts = str.replace(/[^0-9,-]/g, '').split(',');
+    const result = [];
+    for (const part of parts) {
+        if (part.includes('-')) {
+            const [start, end] = part.split('-').map(Number);
+            for (let i = start; i <= end; i++) {
+                result.push(i);
+            }
+        } else {
+            result.push(Number(part));
+        }
+    }
+    return result;
+}
+
+function getTimeTable() {
+    const timeTable = document.evaluate(
+        "/html/body/div[2]/div[3]/div/div/table",
+        document,
+        null,
+        XPathResult.FIRST_ORDERED_NODE_TYPE,
+        null).singleNodeValue;
+    const rows = timeTable.getElementsByTagName("tr");
+    const getClassesOfDay = dayNumber => {
+        let classesOfDay = [];
+        for (let i = 0; i < rows.length; i++) {
+            if (rows[i].hasAttribute("class")) {
+                const classesOfWeek = rows[i].getElementsByTagName("td");
+                let count = 0;
+                const target = Array.from(classesOfWeek).find(elem => {
+                    if (!elem.hasAttribute("style")) { return ++count > dayNumber; }
+                    return false;
+                })
+                const classList = Array.from(target.querySelectorAll(".c")).map(element => ({
+                    name: element.querySelector(".title").innerText,
+                    teacher: Array.from(element.querySelectorAll(".teacher .name")).map(elem => elem.innerText).join(", "),
+                    weekOfTerm: getWeekNumber(element.querySelector(".time .week").innerText),
+                    timeSpan: getWeekNumber(element.querySelector(".timespan").innerText),
+                    dayOfWeek: dayNumber,
+                    location: element.querySelector(".classroom .name").innerText.trim(),
+                    id: element.querySelector(".number").innerText
+                }));
+                classesOfDay.push(classList);
+            }
+        }
+        return classesOfDay;
+    };
+    return ([0, 1, 2, 3, 4, 5, 6].map(i => getClassesOfDay(i)));
+}
+
+JSON.stringify(getTimeTable());
+`
+const timeTableQueryJSShort = `JSON.stringify(getTimeTable());`
+
+const startTimeQueryJS = `
+(() => {
+  const startTime = new Date(document.getElementById('startDate').innerText);
+  return startTime.setHours(0, 0, 0, 0);
+})();
+`
+
+const getSemesterNameJS = `
+function getSemesterText() {
+    const targetElement = document.querySelector('.selectize-input.items.full.has-options.has-items .item');
+    // 检查元素是否存在
+    if (targetElement) {
+        // 获取元素内的文本内容
+        const semesterText = targetElement.textContent.trim();
+        return semesterText;
+    } else {
+        // 未找到目标元素
+        return '自定义名称';
+    }
+}
+
+// 调用函数执行获取操作
+getSemesterText();
+`
+
+
 @Entry
 @Component
 struct Webview {
   webviewController: webview.WebviewController = new webview.WebviewController();
   title: string = '';
   url: string = '';
-  initUrl: string = (UnifiedPreferences.getSync('school') === 'USTC') ? 'https://id.ustc.edu.cn/cas/login?service=https://jw.ustc.edu.cn/ucas-sso/login' : 'https://hub.hust.edu.cn/';
-  isTimeTablePage: boolean = false;
-  gotTimeTable: boolean = false;
-  isExamInfoPage: boolean = false;
-  gotExamInfo: boolean = false;
-  obtainedData: obtainedData = {timeTable: '', startTime: '0'};
+  initUrl: string = (UnifiedPreferences.getSync('school') === 'USTC') ?
+    'https://id.ustc.edu.cn/cas/login?service=https://jw.ustc.edu.cn/ucas-sso/login' : 'https://hub.hust.edu.cn/';
+  timetable: string = '[[[]]]';
+  startTime: number = 0;
   webAutoDarkMode: boolean = UnifiedPreferences.getBoolSync('webAutoDarkMode', true);
   @State loadingProgress: number = 0;
   haveTriedLogin: boolean = false;
@@ -34,21 +114,14 @@ struct Webview {
   dialogController: CustomDialogController = new CustomDialogController({
     builder: PasswordDialog({
       isFromSetting: false,
-      onConfirm: () => { this.webviewController.runJavaScript(fillInformationJS, (error, result) => {}); }
+      onConfirm: () => {
+        this.webviewController.runJavaScript(fillInformationJS, (error, result) => {
+        });
+      }
     }),
     autoCancel: false
   })
 
-  showMessage(message: string | ResourceStr, duration: number) {
-    try {
-      this.getUIContext().getPromptAction().showToast({
-        message: message,
-        duration: duration
-      });
-    } catch (error) {
-      console.error(`ShowToast ERROR: [${error.name}] ${error.message}`);
-    }
-  }
 
   pathStack: NavPathStack = new NavPathStack();
   @State loadError: string = '';
@@ -71,20 +144,6 @@ struct Webview {
           .forceDarkAccess(this.webAutoDarkMode)
           .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
           .backgroundColor(BackgroundImage.blurLevel === undefined ? undefined : '#00d00721')
-          .onLoadIntercept((event) => {
-            if (event) {
-              let url: string = event.data.getRequestUrl();
-              if (url.indexOf('native://webview_error_backward') === 0) {
-                if (this.webviewController.accessBackward()) {
-                  this.webviewController.backward();
-                } else {
-                  this.pathStack.pop();
-                }
-                return true;
-              }
-            }
-            return false;
-          })
           .onErrorReceive((event) => {
             // Only handle loading errors of the main framework to avoid duplicate processing of errors in sub-resources
             this.loadError = event.error.getErrorInfo();
@@ -94,20 +153,12 @@ struct Webview {
           })
           .onPageBegin(() => {
             this.loadError = '';
-            this.isTimeTablePage = this.webviewController.getUrl().startsWith('https://jw.ustc.edu.cn/for-std/course-table');
-            this.isExamInfoPage = this.webviewController.getUrl().startsWith('https://jw.ustc.edu.cn/for-std/exam-arrange');
             if ( /*!this.isTimeTablePage &&*/ this.webviewController.getUrl().startsWith('https://jw.ustc.edu.cn/home')) {
               this.webviewController.loadUrl(this.url);
               console.info(`${this.url}|xxx`);
             }
           })
           .onPageEnd(() => {
-            // this.autoGetFailed = true; 调试用：手动获取
-            // return;
-            if (this.initUrl.startsWith('https://hub.hust.edu.cn/')
-              && !(UnifiedPreferences.hasSync(UID_KEY) && UnifiedPreferences.hasSync(PASSWORD_KEY))
-              && UnifiedPreferences.getBoolSync(REMIND_KEY, true))
-              this.dialogController.open();
             if (!this.haveTriedLogin &&
             this.webviewController.getUrl().startsWith('https://id.ustc.edu.cn/cas/login')) {
               this.haveTriedLogin = true;
@@ -119,45 +170,6 @@ struct Webview {
                   console.info(`自动填写uid：${UnifiedPreferences.getSync(UID_KEY)}`);
                 });
               }
-            }
-            if (this.isTimeTablePage && !this.gotTimeTable) {
-              this.webviewController.runJavaScript(startTimeQueryJS, (error, result) => {
-                if (error) { /* 理论上这里不会出什么错误 */
-                  return;
-                }
-                console.info(`学期开始的UNIX时间戳是${result}mm`);
-                this.obtainedData.startTime = result;
-                console.info(`转换后的时间戳是${this.obtainedData.startTime}`);
-              });
-              pollUntilLoad(() => this.webviewController.runJavaScript(timeTableQueryJS))
-                .then((result) => {
-                  if (result === 'null') {
-                    this.showMessage($r('app.string.auto_get_timetable_fail_msg'), 2000);
-                    this.autoGetFailed = true;
-                    return;
-                  }
-                  this.gotTimeTable = true;
-                  this.showMessage($r('app.string.get_timetable_succ_msg'), 2000);
-                  console.info(`课表是：${result}`);
-                  this.obtainedData.timeTable = result;
-                  this.pathStack.pop(this.obtainedData);
-                });
-            }
-            if (this.isExamInfoPage && !this.gotExamInfo) {
-              this.webviewController.runJavaScript(examInfoQueryJS, (error, result) => {
-                if (error) {
-                  this.showMessage($r('app.string.get_exam_info_err_msg'), 2000);
-                  return;
-                }
-                if (result === 'null') {
-                  this.showMessage($r('app.string.auto_get_exam_info_fail_msg'), 2000);
-                  return;
-                }
-                this.gotExamInfo = true;
-                this.showMessage($r('app.string.get_exam_info_succ_msg'), 2000);
-                this.obtainedData.timeTable = result;
-                this.pathStack.pop(this.obtainedData);
-              })
             }
           })
 
@@ -284,7 +296,7 @@ struct Webview {
                   i--;
                 this.webviewController.backOrForward(i + 1);
               } else {
-                this.showMessage($r('app.string.already_first_page'), 500);
+                this.getUIContext().getPromptAction().showToast({ message: $r('app.string.already_first_page') });
               }
             })
         )
@@ -307,52 +319,103 @@ struct Webview {
       .height(40)
       .width(40)
       .onClick(() => {
-        if (this.autoGetFailed) {
-          if (this.isTimeTablePage && !this.gotTimeTable) {
-            this.webviewController.runJavaScript(startTimeQueryJS, (error, result) => {
-              if (error) { /* 理论上这里不会出什么错误 */
-                return;
-              }
-              this.obtainedData.startTime = result;
-            });
-            this.webviewController.runJavaScript(timeTableQueryJS, (error, result) => {
-              if (error) {
-                this.showMessage($r('app.string.get_timetable_err_msg'), 2000);
-                return;
-              }
-              if (result === 'null') {
-                this.showMessage($r('app.string.auto_get_timetable_fail_msg'), 2000);
-                return;
-              }
-              this.gotTimeTable = true;
-              this.obtainedData.timeTable = result;
-              this.pathStack.pop(this.obtainedData);
-            });
+        this.webviewController.runJavaScript(getSemesterNameJS, (error, result) => {
+          if (error) {
+            this.semesterName = '自定义名称';
+            return;
           }
-          if (this.isExamInfoPage && !this.gotExamInfo) {
-            this.webviewController.runJavaScript(examInfoQueryJS, (error, result) => {
-              if (error) {
-                this.showMessage($r('app.string.get_exam_info_err_msg'), 2000);
-                return;
-              }
-              if (result === 'null') {
-                this.showMessage($r('app.string.auto_get_exam_info_fail_msg'), 2000);
-                return;
-              }
-              this.gotExamInfo = true;
-              this.showMessage($r('app.string.get_exam_info_succ_msg'), 2000);
-              this.obtainedData.timeTable = result;
-              this.pathStack.pop(this.obtainedData);
-            })
-          }
-        } else {
-          this.showMessage($r('app.string.auto_get_info'), 2000);
-        }
+          this.semesterName = result.replace(/^["']|["']$/g, '');
+        });
+        this.webviewController.runJavaScript(timeTableQueryJS, (error, result) => {
+          if (result)
+            this.timetable = result.replace(/^["']|["']$/g, '');
+          this.showSelectTerm = true;
+          console.log('???');
+          console.log('???' + this.timetable);
+        });
+      })
+      .bindSheet($$this.showSelectTerm, this.selectTerm(), {
+        detents: [SheetSize.LARGE],
+        preferType: SheetType.CENTER,
+        backgroundColor: '#00d00721',
+        blurStyle: BlurStyle.Regular,
+        enableOutsideInteractive: false,
+        enableFloatingDragBar: true,
+        title: { title: '获取成功！', subtitle: '请选择一个课表保存' }
       })
     }
     .padding({ left: 12, right: 12 })
     .alignItems(VerticalAlign.Center)
     .height(48)
     .width('100%')
+  }
+
+  @State showSelectTerm: boolean = false;
+  @State semesterName: string = '自定义名称';
+  @State selectIndex: number = 0;
+
+  @Builder
+  selectTerm() {
+    Column() {
+      Scroll() {
+        ColumnSplit() {
+          Row() {
+            Image($r('app.media.add'))
+              .width(30)
+              .height(30)
+            Text('新课表…（' + this.semesterName + '）')
+              .layoutWeight(1)
+          }
+          .height(50)
+          .width('100%')
+          .onClick(() => {
+            ScheduleManager.newSemester(this.timetable, Number(this.startTime), this.semesterName);
+          })
+
+          ForEach(ScheduleManager.addingTimestamp, (singleTerm: number, index: number) => {
+            Row() {
+              Image($r('app.media.selected'))
+                .width(30)
+                .height(30)
+                .visibility(index === this.selectIndex ? Visibility.Visible : Visibility.Hidden);
+              Text(UnifiedPreferences.getSync(`ScheduleNameAt${singleTerm}`))
+                .layoutWeight(1)
+              Text(new Date(UnifiedPreferences.getSync(`ScheduleTimeAt${singleTerm}`)).toLocaleDateString('zh-cn'))
+            }
+            .alignItems(VerticalAlign.Center)
+            .height(50)
+            .width('100%')
+            .onClick(() => {
+              this.selectIndex = index;
+              console.log(UnifiedPreferences.getSync(`ScheduleDataAt${singleTerm}`, '[][][]'));
+            })
+          })
+        }
+        .width('100%')
+        .padding({
+          top: 10,
+          bottom: 10,
+          left: 16,
+          right: 16
+        })
+        .backgroundColor($r('app.color.grid_background'))
+        .borderRadius(20)
+      }
+      .padding({ bottom: 16, left: 16, right: 16 })
+      .layoutWeight(1)
+
+      Row() {
+        Button('追加')
+          .onClick(() => {
+            ScheduleManager.editSemester(ScheduleManager.addingTimestamp[this.selectIndex], this.timetable, Number(this.startTime), false);
+          })
+        Button('覆盖')
+          .onClick(() => {
+            ScheduleManager.editSemester(ScheduleManager.addingTimestamp[this.selectIndex], this.timetable, Number(this.startTime), true);
+          })
+      }
+      .width('100%')
+      .justifyContent(FlexAlign.SpaceEvenly)
+    }
   }
 }

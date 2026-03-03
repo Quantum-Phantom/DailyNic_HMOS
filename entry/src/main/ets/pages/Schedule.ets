@@ -1,12 +1,13 @@
 
 import { PopoverDialog, Popup } from '@kit.ArkUI';
 import * as ScheduleSources from '../constants/ScheduleSources';
-import { classAttribute, obtainedData } from '../constants/ScheduleSources';
-import scheduleManager, { areClassAttributesEqual } from '../utils/TimeTable';
+import { classAttribute, semesterAttribute } from '../constants/ScheduleSources';
+import ScheduleManager, { areClassAttributesEqual } from '../utils/ScheduleManager';
 import * as tools from '../utils/tools';
 import { weekTranslate } from '../utils/tools';
-import UnifiedPreferences from '../utils/UnifyPreference';
+import UnifiedPreferences, { millisecondsPerWeek } from '../utils/UnifyPreference';
 import BackgroundImage from '../utils/BgImageManager';
+import RenameDialog from '../view/RenameDialog';
 
 
 const criticalHeight: number = 32; // 紧凑模式临界值(vp)
@@ -31,10 +32,11 @@ struct Schedule {
   gridMinHeight: number = 0;
   @State maxLinesH: number = 1; // H意为height
 
-  @State weekDisplayed: number = 0;
-  @State termStart: number = 0;
+  private currentWeek: number = 1;
+  @State weekDisplayed: number = 1;
   @State weekStart: number = 0;
-  @State weekEnd: number = 0;
+  private currentWeekStart: number = 0;
+  @State displayTerm: number = 0;
   @State thisWeekSchedule: ScheduleSources.classAttribute[] = [];
   @State conflictSchedule: ScheduleSources.classAttribute[] = [];
 
@@ -115,12 +117,30 @@ struct Schedule {
    * 详情弹窗部分
    */
   @State showSheet: boolean = false;
-  private classInfo: ScheduleSources.classAttribute = { name: '计算机程序设计', teacher: '李卫海', location: '3A212', id: 'CS1003.H2',
-    weekOfTerm: [2, 3, 4, 6, 7, 8, 9, 10, 14, 15, 16], timeSpan: [6, 7], dayOfWeek: 0,
-    color: tools.colorSet[tools.getRandomInt(0, tools.colorSetLen - 1)], priority: 5 };
-  private oriClassInfo: ScheduleSources.classAttribute = { name: '计算机程序设计', teacher: '李卫海', location: '3A212', id: 'CS1003.H2',
-    weekOfTerm: [2, 3, 4, 6, 7, 8, 9, 10, 14, 15, 16], timeSpan: [6, 7], dayOfWeek: 0,
-    color: tools.colorSet[tools.getRandomInt(0, tools.colorSetLen - 1)], priority: 5 };
+  private classInfo: ScheduleSources.classAttribute = {
+    name: '计算机程序设计',
+    teacher: '李卫海',
+    location: '3A212',
+    id: 'CS1003.H2',
+    weekOfTerm: [2, 3, 4, 6, 7, 8, 9, 10, 14, 15, 16],
+    timeSpan: [6, 7],
+    dayOfWeek: 1,
+    color: tools.colorSet[tools.getRandomInt(0, tools.colorSetLen - 1)],
+    priority: 5,
+    credits: 3
+  };
+  private oriClassInfo: ScheduleSources.classAttribute = {
+    name: '计算机程序设计',
+    teacher: '李卫海',
+    location: '3A212',
+    id: 'CS1003.H2',
+    weekOfTerm: [2, 3, 4, 6, 7, 8, 9, 10, 14, 15, 16],
+    timeSpan: [6, 7],
+    dayOfWeek: 1,
+    color: tools.colorSet[tools.getRandomInt(0, tools.colorSetLen - 1)],
+    priority: 5,
+    credits: 3
+  };
 
   private rectifyTimeSpan: number[] = [this.oriClassInfo.timeSpan[0], this.oriClassInfo.timeSpan[this.oriClassInfo.timeSpan.length - 1]];
   private rectifyWeekOfTerm: boolean[] = [true, false, true, true, true, false, true, true, true, true, true,
@@ -146,8 +166,7 @@ struct Schedule {
   @State classColor: string = '#FFC7CD';
   @State showColorPicker: boolean = false;
   @State colorDialogText: string = '#FFC7CD';
-  @Builder
-  colorPicker() {
+  @Builder colorPicker() {
     Column() {
       Text(this.colorDialogText)
         .fontColor('#000000')
@@ -259,17 +278,67 @@ struct Schedule {
     // .height(250)
     .justifyContent(FlexAlign.Center)
   }
-  /*
-   * 详情弹窗部分
+
+
+  /**
+   * 菜单部分
    */
+  @Builder editMenu() {
+    Menu() {
+      MenuItem({ content: $r('app.string.manually_create'), startIcon: $r('app.media.plus_square') })
+        .onClick(() => {
+          this.checkBoxGroup = (this.checkBoxGroup + 1) % 2;
+          this.isChangeSchedule = false;
+          this.oriClassInfo = {
+            name: '计算机程序设计',
+            teacher: '李卫海',
+            location: '3A212',
+            id: 'CS1003.H2',
+            weekOfTerm: tools.getContArray([[2, 4], [6, 10], [14, 16]]) as number[],
+            timeSpan: [6, 7],
+            dayOfWeek: 1,
+            color: tools.colorSet[tools.getRandomInt(0, tools.colorSetLen - 1)],
+            priority: 5,
+            credits: 3
+          };
+          this.classInfo = {
+            name: '计算机程序设计',
+            teacher: '李卫海',
+            location: '3A212',
+            id: 'CS1003.H2',
+            weekOfTerm: tools.getContArray([[2, 4], [6, 10], [14, 16]]) as number[],
+            timeSpan: [6, 7],
+            dayOfWeek: 1,
+            color: tools.colorSet[tools.getRandomInt(0, tools.colorSetLen - 1)],
+            priority: 5,
+            credits: 3
+          };
+          this.classColor = this.oriClassInfo.color;
+          this.rectifyWeekOfTerm = [true, false, true, true, true, false, true, true, true, true, true,
+            false, false, false, true, true, true, false, false, false, false];
+          this.rectifyTimeSpan = [6, 7];
+          this.showSheet = true;
+        });
+      MenuItem({ content: $r('app.string.import_from_school'), startIcon: $r('app.media.cloud_download')})
+        .onClick(() => {
+          this.pathStack.pushPath({ name: "GetSchedule",
+            param: [$r('app.string.online_schedule'), 'https://jw.ustc.edu.cn/for-std/course-table'],
+            onPop: (popInfo: PopInfo) => {
+              this.initSchedule();
+            }
+          });
+        });
+      MenuItem({ content: $r('app.string.search_in_all_courses'), startIcon: $r('app.media.search') })
+        .onClick(() => {});
+    }
+  }
 
 
   /**
    * 叠课弹窗部分
    */
   @State showConflictClass: boolean = false;
-  @Builder
-  ConflictClass() {
+  @Builder ConflictClass() {
     Column() {
       Row() {
         Text($r('app.string.conflict_class_detail_d', this.weekDisplayed))
@@ -369,7 +438,8 @@ struct Schedule {
               location: lesson.location,
               id: lesson.id,
               color: lesson.color,
-              priority: lesson.priority
+              priority: lesson.priority,
+              credits: lesson.credits
             };
             this.classInfo = {
               name: lesson.name,
@@ -380,7 +450,8 @@ struct Schedule {
               location: lesson.location,
               id: lesson.id,
               color: lesson.color,
-              priority: lesson.priority
+              priority: lesson.priority,
+              credits: lesson.credits
             };
             this.classColor = this.oriClassInfo.color;
             this.rectifyWeekOfTerm = [];
@@ -399,45 +470,267 @@ struct Schedule {
       .layoutWeight(1)
       .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: false });
     }
-    .padding({ top: 16, left: 16, right: 16 })
+    .height('98%')
+    .width('100%')
+    .padding(16)
   }
   /*
    * 叠课弹窗部分
    */
 
+  /**
+   * 切换学期弹窗
+   */
+  @State showSemesters: boolean = false;
+  @State semesters: semesterAttribute[] = [];
+  @State defaultSemester: number = ScheduleManager.defaultSemester;
+  @State displayName: string = ScheduleManager.semesters[ScheduleManager.defaultSemester].name;
+  renameController: CustomDialogController | undefined;
+
+  @Builder SemesterDetail() {
+    Column() {
+      Row() {
+        Text($r('app.string.all_semesters'))
+          .fontWeight(FontWeight.Bold)
+          .fontSize(24)
+          .layoutWeight(1)
+          .margin({ left: 8 });
+        Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
+          Image($r('app.media.plus_square'))
+            .height(24)
+            .width(24)
+            .draggable(false)
+        }
+        .width(42)
+        .height(42)
+        .margin({ right: 8 })
+        .onClick(() => {
+          const currentTime: Date = new Date();
+          const currentTimestamp: number = currentTime.getTime();
+          ScheduleManager.newSemester('自定义名称', '手动添加', currentTime.setHours(0, 0, 0, 0) - 86400000 * currentTime.getDay(), currentTimestamp);
+          ScheduleManager.switchTempSemester(ScheduleManager.semesters.length - 1);
+          this.initSchedule();
+        })
+
+        Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
+          Image($r('app.media.close'))
+            .height(24)
+            .width(24)
+            .draggable(false)
+        }
+        .width(42)
+        .height(42)
+        .onClick(() => {
+          this.showSemesters = false;
+        })
+      }
+      .margin({ bottom: 5 })
+
+      List({ space: 14, initialIndex: this.displayTerm }) {
+        ForEach(this.semesters, (semester: semesterAttribute, index: number) => {
+          ListItem() {
+            Column({ space: 4 }) {
+              Row({ space: 5 }) {
+                Text(semester.name)
+                  .fontSize(20)
+                  .fontWeight(FontWeight.Bold)
+                  .margin({ left: 10 })
+                  .layoutWeight(1)
+                  .maxLines(1)
+                  .textOverflow({ overflow: TextOverflow.MARQUEE })
+
+                Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
+                  Image($r('app.media.default_semester'))
+                    .height(22)
+                    .width(22)
+                    .fillColor(this.defaultSemester === index ? $r('app.color.pink') : undefined)
+                }
+                .height(40)
+                .width(40)
+                .onClick(() => {
+                  ScheduleManager.setDefaultSemester(index, true);
+                  this.defaultSemester = index;
+                })
+
+                Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
+                  Image($r('app.media.rename'))
+                    .height(22)
+                    .width(22)
+                }
+                .height(40)
+                .width(40)
+                .onClick(() => {
+                  this.renameController = new CustomDialogController({
+                    builder: RenameDialog({
+                      name: this.semesters[index].name,
+                      onConfirm: (newName: string) => {
+                        if (index === this.displayTerm) {
+                          this.displayName = newName;
+                        }
+                        ScheduleManager.renameSemester(index, newName);
+                        this.semesters = ScheduleManager.semesters;
+                      }
+                    }),
+                    gridCount: 4,
+                    autoCancel: false
+                  });
+                  this.renameController.open();
+                })
+
+                Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
+                  Image($r('app.media.copy'))
+                    .height(22)
+                    .width(22)
+                }
+                .height(40)
+                .width(40)
+                .onClick(() => {
+                  const currentTime: Date = new Date();
+                  const currentTimestamp: number = currentTime.getTime();
+                  if (this.displayTerm === index)
+                    ScheduleManager.newSemester(this.displayName + '_副本', '从「' + this.displayName + '」复制', currentTime.setHours(0, 0, 0, 0) - 86400000 * currentTime.getDay(), currentTimestamp, undefined, this.thisWeekSchedule);
+                  else
+                    ScheduleManager.newSemester(this.semesters[index].name + '_副本', '从「' + this.semesters[index].name + '」复制', currentTime.setHours(0, 0, 0, 0) - 86400000 * currentTime.getDay(), currentTimestamp, undefined, JSON.parse(UnifiedPreferences.getSync('SemesterDataAt' + String(this.semesters[index].createTime))) as classAttribute[]);
+                  ScheduleManager.switchTempSemester(ScheduleManager.semesters.length - 1);
+                  this.initSchedule();
+                })
+
+                Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
+                  Image($r('app.media.trash_red'))
+                    .height(22)
+                    .width(22)
+                }
+                .height(40)
+                .width(40)
+                .enabled(this.displayTerm !== index && this.defaultSemester !== index)
+                .onClick(() => {
+                  this.getUIContext().showAlertDialog({
+                    message: $r('app.string.delete_semester_or_not'),
+                    autoCancel: true,
+                    alignment: DialogAlignment.Center,
+                    gridCount: 4,
+                    primaryButton: {
+                      value: $r('app.string.cancel'),
+                      action: () => {}
+                    },
+                    secondaryButton: {
+                      enabled: true,
+                      defaultFocus: true,
+                      style: DialogButtonStyle.DEFAULT,
+                      fontColor: $r('app.color.red'),
+                      value: $r('app.string.ok'),
+                      action: () => {
+                        ScheduleManager.deleteSemester(index);
+                        this.displayTerm = ScheduleManager.displaySemester;
+                        this.defaultSemester = ScheduleManager.defaultSemester;
+                        this.semesters = ScheduleManager.semesters;
+                      }
+                    },
+                    cancel: () => {
+                      console.info('Closed callbacks');
+                    },
+                    onWillDismiss: (dismissDialogAction: DismissDialogAction) => {
+                      if (dismissDialogAction.reason === DismissReason.PRESS_BACK) {
+                        dismissDialogAction.dismiss();
+                      }
+                      if (dismissDialogAction.reason === DismissReason.TOUCH_OUTSIDE) {
+                        dismissDialogAction.dismiss();
+                      }
+                    }
+                  });
+                })
+              }
+
+              Row() {
+                Text($r('app.string.all_semesters_start_date'))
+                CalendarPicker({ selected: new Date(semester.beginTime) })
+                  .edgeAlign(CalendarAlign.CENTER)
+                  .onChange((value: Date) => {
+                    ScheduleManager.changeSemesterStartTime(index, value.setHours(0, 0, 0, 0) - 86400000 * value.getDay());
+                  })
+              }
+              .margin({ left: 15 })
+
+              Text($r('app.string.all_semesters_total_week', semester.totalWeekNum))
+                .margin({ left: 15 })
+
+              Row() {
+                Text($r('app.string.all_semesters_source'))
+                  .margin({ left: 15 })
+                Text(semester.source)
+                  .layoutWeight(1)
+              }
+
+              Text($r('app.string.all_semesters_create_time', new Date(semester.createTime).toLocaleString('zh-cn')))
+                .margin({ left: 15 })
+                .textAlign(TextAlign.Start)
+            }
+            .width('100%')
+            .alignItems(HorizontalAlign.Start)
+            .padding(this.displayTerm === index ? 7 : 10)
+            .borderRadius(20)
+            .borderColor(this.displayTerm === index ? $r('app.color.shaded_background' + BackgroundImage.themeColor.toString()) : undefined)
+            .borderWidth(this.displayTerm === index ? 3 : undefined)
+            .backgroundColor($r('app.color.grid_background'))
+            .onClick(() => {
+              ScheduleManager.switchTempSemester(index);
+              this.initSchedule();
+            })
+          }
+          .width('100%')
+        });
+      }
+      .contentEndOffset(16)
+      .width('100%')
+      .layoutWeight(1)
+      .borderRadius(20)
+    }
+    .width('100%')
+    .height('100%')
+    .padding({ top: 16, left: 16, right: 16 })
+  }
+
+  refreshGrid() {
+    this.thisWeekSchedule = ScheduleManager.getClassesByWeek(this.weekDisplayed);
+    this.sepConflictClass();
+  }
 
   sepConflictClass() {
-    this.thisWeekSchedule = [];
     this.conflictSchedule = [];
-    for (let i = 0; i < 7; i++) {
-      if (scheduleManager.formattedSchedule[this.weekDisplayed][i] != undefined) {
-        let flag: boolean[] = [];
-        let nonConflict: boolean = true;
-        for (let j = 0; j <= 14; j++)
-          flag.push(false);
-        scheduleManager.formattedSchedule[this.weekDisplayed][i].sort((a, b) => {
-          if (a.priority !== b.priority) {
-            return b.priority - a.priority;
-          }
-          return a.timeSpan[0] - b.timeSpan[0];
-        });
-        for (let j of scheduleManager.formattedSchedule[this.weekDisplayed][i]) {
-          nonConflict = true;
-          haveOccupied:
-            for (let k of j.timeSpan) {
-              if (flag[k]) {
-                nonConflict = false;
-                break haveOccupied;
-              }
-              flag[k] = true;
-            }
-          if (nonConflict)
-            this.thisWeekSchedule.push(j);
-          else
-            this.conflictSchedule.push(j);
-        }
+    this.thisWeekSchedule.sort((a, b) => {
+      if (a.priority !== b.priority) {
+        return b.priority - a.priority;
       }
+      return a.timeSpan[0] - b.timeSpan[0];
+    });
+    const flag: boolean[][] = Array(7).fill(null).map(() => Array(14).fill(false));
+    for (let i = this.thisWeekSchedule.length - 1; i >= 0; i--) {
+      next_class:
+        for (let eachSpan of this.thisWeekSchedule[i].timeSpan) {
+          if (flag[this.thisWeekSchedule[i].dayOfWeek][eachSpan]) {
+            this.conflictSchedule.push(this.thisWeekSchedule[i]);
+            this.thisWeekSchedule.splice(i, 1);
+            break next_class;
+          }
+          flag[this.thisWeekSchedule[i].dayOfWeek][eachSpan] = true;
+        }
     }
+  }
+  
+  initSchedule() {
+    const currentTime = new Date();
+    this.displayTerm = ScheduleManager.displaySemester;
+    this.semesters = ScheduleManager.semesters;
+    const termStartTime: number = this.semesters[this.displayTerm].beginTime;
+    if (currentTime.getTime() < termStartTime || currentTime.getTime() > termStartTime + this.semesters[this.displayTerm].totalWeekNum * millisecondsPerWeek) {
+      this.currentWeek = this.weekDisplayed = 1;
+    } else {
+      this.currentWeek = this.weekDisplayed = Math.ceil((currentTime.getTime() - termStartTime) / millisecondsPerWeek);
+    }
+    this.thisWeekSchedule = ScheduleManager.getClassesByWeek(this.currentWeek);
+    this.currentWeekStart = this.weekStart = new Date(new Date(currentTime).setDate(currentTime.getDate() - currentTime.getDay())).setHours(0, 0, 0, 0);
+    this.displayName = this.semesters[this.displayTerm].name;
+    this.sepConflictClass();
   }
 
   pathStack: NavPathStack = new NavPathStack();
@@ -621,7 +914,8 @@ struct Schedule {
                   location: lesson.location,
                   id: lesson.id,
                   color: lesson.color,
-                  priority: lesson.priority
+                  priority: lesson.priority,
+                  credits: lesson.credits
                 };
                 this.classInfo = {
                   name: lesson.name,
@@ -632,7 +926,8 @@ struct Schedule {
                   location: lesson.location,
                   id: lesson.id,
                   color: lesson.color,
-                  priority: lesson.priority
+                  priority: lesson.priority,
+                  credits: lesson.credits
                 };
                 this.classColor = this.oriClassInfo.color;
                 this.rectifyWeekOfTerm = [];
@@ -647,8 +942,8 @@ struct Schedule {
               })
               .rowStart(lesson.timeSpan[0] - 1)
               .rowEnd(lesson.timeSpan[lesson.timeSpan.length - 1] - 1)
-              .columnStart((lesson.dayOfWeek + 1) % 7 + 1)
-              .columnEnd((lesson.dayOfWeek + 1) % 7 + 1)
+              .columnStart(lesson.dayOfWeek + 1)
+              .columnEnd(lesson.dayOfWeek + 1)
               .padding(2)
               .backgroundColor(lesson.color)
               .border({
@@ -702,25 +997,11 @@ struct Schedule {
     })
     .onReady((context: NavDestinationContext) => {
       this.pathStack = context.pathStack;
-
-      scheduleManager.getFormattedSchedule();
-      this.termStart = scheduleManager.termStart;
-      this.weekDisplayed = scheduleManager.weekDisplayed;
-      this.weekStart = scheduleManager.weekStart;
-      this.weekEnd = scheduleManager.weekEnd;
-      this.sepConflictClass();
-      let tong: boolean[][] = [];
-      for (let i = 0; i < 7; i++) {
-        tong[i] = [];
-        for(let j = 0; j < 14; j++) {
-          tong[i].push(false);
-        }
-      }
+      this.initSchedule();
     });
   }
 
-  @Builder
-  customTitle() {
+  @Builder customTitle() {
     Column() {
       Row({ space: 6 }) { // 上边距3，高度40
         Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
@@ -733,6 +1014,78 @@ struct Schedule {
         .onClick(() => {
           this.pathStack.pop();
         })
+
+        Column() {
+          Text($r('app.string.local_schedule'))
+            .fontSize(20)
+            .fontWeight(FontWeight.Bold)
+            .width('100%')
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+            .bindSheet($$this.showSheet, this.ClassDetailDialog(), {
+              // 如果与 gridItem 绑定，会弹出很多个！
+              detents: [SheetSize.MEDIUM, SheetSize.LARGE],
+              preferType: SheetType.CENTER,
+              showClose: false,
+              scrollSizeMode: ScrollSizeMode.CONTINUOUS,
+              backgroundColor: '#00d00721',
+              blurStyle: BlurStyle.Regular,
+              onAppear: () => {
+                this.showColorHint = UnifiedPreferences.getBoolSync('ShowColorHint', true);
+              },
+              onWillDismiss: ((DismissSheetAction: DismissSheetAction) => {
+                this.classInfo.weekOfTerm = [...this.weekOfTerm];
+                if (this.rectifyTimeSpan[0] > this.rectifyTimeSpan[1]) {
+                  let swapTemp = this.rectifyTimeSpan[0];
+                  this.rectifyTimeSpan[0] = this.rectifyTimeSpan[1];
+                  this.rectifyTimeSpan[1] = swapTemp;
+                }
+                this.classInfo.timeSpan = tools.getContArray([this.rectifyTimeSpan]) as number[];
+                if (!areClassAttributesEqual(this.oriClassInfo, this.classInfo)) {
+                  this.getUIContext().showAlertDialog({
+                    title: $r('app.string.unsaved_change'),
+                    message: $r('app.string.back_to_schedule_or_not'),
+                    autoCancel: true,
+                    alignment: DialogAlignment.Center,
+                    gridCount: 4,
+                    primaryButton: {
+                      value: $r('app.string.cancel'),
+                      action: () => {
+                      }
+                    },
+                    secondaryButton: {
+                      enabled: true,
+                      defaultFocus: true,
+                      style: DialogButtonStyle.HIGHLIGHT,
+                      value: $r('app.string.ok'),
+                      action: () => {
+                        DismissSheetAction.dismiss();
+                      }
+                    },
+                    cancel: () => {
+                    },
+                    onWillDismiss: (dismissDialogAction: DismissDialogAction) => {
+                      if (dismissDialogAction.reason === DismissReason.PRESS_BACK) {
+                        dismissDialogAction.dismiss();
+                      }
+                      if (dismissDialogAction.reason === DismissReason.TOUCH_OUTSIDE) {
+                        dismissDialogAction.dismiss();
+                      }
+                    }
+                  });
+                } else {
+                  DismissSheetAction.dismiss();
+                }
+              })
+            })
+          Text(this.displayName)
+            .fontSize(12)
+            .fontColor($r('app.color.transparent_text'))
+            .width('100%')
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+        }
+        .layoutWeight(1)
 
         Badge({ count: this.conflictSchedule.length, style: { badgeSize: 15, badgeColor: /*'#FA2A2D'*/$r('sys.color.ohos_id_color_badge_red') } }) {
           Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
@@ -760,106 +1113,25 @@ struct Schedule {
         .height(40)
         .width(40)
 
-        Text($r('app.string.local_schedule'))
-          .fontSize(20)
-          .fontWeight(FontWeight.Bold)
-          .layoutWeight(1)
-          .textOverflow({ overflow: TextOverflow.Ellipsis })
-          .bindSheet($$this.showSheet, this.ClassDetailDialog(), {
-            // 如果与 gridItem 绑定，会弹出很多个！
-            detents: [SheetSize.MEDIUM, SheetSize.LARGE],
-            preferType: SheetType.CENTER,
-            showClose: false,
-            scrollSizeMode: ScrollSizeMode.CONTINUOUS,
-            backgroundColor: '#00d00721',
-            blurStyle: BlurStyle.Regular,
-            onAppear: () => {
-              this.showColorHint = UnifiedPreferences.getBoolSync('ShowColorHint', true);
-            },
-            onWillDismiss: ((DismissSheetAction: DismissSheetAction) => {
-              this.classInfo.weekOfTerm = [...this.weekOfTerm];
-              if (this.rectifyTimeSpan[0] > this.rectifyTimeSpan[1]) {
-                let swapTemp = this.rectifyTimeSpan[0];
-                this.rectifyTimeSpan[0] = this.rectifyTimeSpan[1];
-                this.rectifyTimeSpan[1] = swapTemp;
-              }
-              this.classInfo.timeSpan = tools.getContArray([this.rectifyTimeSpan]) as number[];
-              if (!areClassAttributesEqual(this.oriClassInfo, this.classInfo)) {
-                this.getUIContext().showAlertDialog({
-                  title: $r('app.string.unsaved_change'),
-                  message: $r('app.string.back_to_schedule_or_not'),
-                  autoCancel: true,
-                  alignment: DialogAlignment.Center,
-                  gridCount: 4,
-                  primaryButton: {
-                    value: $r('app.string.cancel'),
-                    action: () => {
-                    }
-                  },
-                  secondaryButton: {
-                    enabled: true,
-                    defaultFocus: true,
-                    style: DialogButtonStyle.HIGHLIGHT,
-                    value: $r('app.string.ok'),
-                    action: () => {
-                      DismissSheetAction.dismiss();
-                    }
-                  },
-                  cancel: () => {
-                  },
-                  onWillDismiss: (dismissDialogAction: DismissDialogAction) => {
-                    if (dismissDialogAction.reason === DismissReason.PRESS_BACK) {
-                      dismissDialogAction.dismiss();
-                    }
-                    if (dismissDialogAction.reason === DismissReason.TOUCH_OUTSIDE) {
-                      dismissDialogAction.dismiss();
-                    }
-                  }
-                });
-              } else {
-                DismissSheetAction.dismiss();
-              }
-            })
-          })
-
         Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
-          Image($r('app.media.plus_square'))
+          Image($r('app.media.rotate'))
             .height(22)
             .draggable(false)
         }
         .width(40)
         .height(40)
         .onClick(() => {
-          this.checkBoxGroup = (this.checkBoxGroup + 1) % 2;
-          this.isChangeSchedule = false;
-          this.oriClassInfo = {
-            name: '计算机程序设计',
-            teacher: '李卫海',
-            location: '3A212',
-            id: 'CS1003.H2',
-            weekOfTerm: tools.getContArray([[2, 4], [6, 10], [14, 16]]) as number[],
-            timeSpan: [6, 7],
-            dayOfWeek: 0,
-            color: tools.colorSet[tools.getRandomInt(0, tools.colorSetLen - 1)],
-            priority: 5
-          };
-          this.classInfo = {
-            name: '计算机程序设计',
-            teacher: '李卫海',
-            location: '3A212',
-            id: 'CS1003.H2',
-            weekOfTerm: tools.getContArray([[2, 4], [6, 10], [14, 16]]) as number[],
-            timeSpan: [6, 7],
-            dayOfWeek: 0,
-            color: tools.colorSet[tools.getRandomInt(0, tools.colorSetLen - 1)],
-            priority: 5
-          };
-          this.classColor = this.oriClassInfo.color;
-          this.rectifyWeekOfTerm = [true, false, true, true, true, false, true, true, true, true, true,
-            false, false, false, true, true, true, false, false, false, false];
-          this.rectifyTimeSpan = [6, 7];
-          this.showSheet = true;
-        });
+          this.showSemesters = true;
+        })
+        .bindSheet($$this.showSemesters, this.SemesterDetail(), {
+          // 如果与 gridItem 绑定，会弹出很多个！
+          detents: [SheetSize.LARGE, SheetSize.MEDIUM],
+          preferType: SheetType.CENTER,
+          showClose: false,
+          scrollSizeMode: ScrollSizeMode.FOLLOW_DETENT,
+          backgroundColor: '#00d00721',
+          blurStyle: BlurStyle.Regular
+        })
 
         Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
           Image($r('app.media.get'))
@@ -868,28 +1140,7 @@ struct Schedule {
         }
         .width(40)
         .height(40)
-        .onClick(() => {
-          this.pathStack.pushPath({ name: "GetSchedule",
-            param: [$r('app.string.online_schedule'), 'https://jw.ustc.edu.cn/for-std/course-table'],
-            onPop: (popInfo: PopInfo) => {
-              // console.log(`!!`); 测试表明无返回值时不会执行回调
-              scheduleManager.refreshParsedSchedule(popInfo.result as obtainedData);
-              scheduleManager.getFormattedSchedule();
-              this.termStart = scheduleManager.termStart;
-              this.weekDisplayed = scheduleManager.weekDisplayed;
-              this.weekStart = scheduleManager.weekStart;
-              this.weekEnd = scheduleManager.weekEnd;
-              this.sepConflictClass();
-              let tong: boolean[][] = [];
-              for (let i = 0; i < 7; i++) {
-                tong[i] = [];
-                for(let j = 0; j < 14; j++) {
-                  tong[i].push(false);
-                }
-              }
-            }
-          });
-        });
+        .bindMenu(this.editMenu());
       }
       .padding({ left: 12, right: 12, top: 3 })
       .width('100%')
@@ -898,7 +1149,7 @@ struct Schedule {
        * 周数信息与翻页
        */
       Row() { // 高度30
-        Text(tools.timestampToDateTime(this.weekStart) + ' ~ ' + tools.timestampToDateTime(this.weekEnd))
+        Text(tools.timestampToDateTime(this.weekStart) + ' ~ ' + tools.timestampToDateTime(this.weekStart + 518400000))
           .id('week_of_term_span')
           .fontWeight(FontWeight.Bold)
           .fontSize(14)
@@ -913,9 +1164,8 @@ struct Schedule {
           .onClick(() => {
             if (this.weekDisplayed > 1) {
               this.weekDisplayed--;
-              this.weekStart -= 604800000;
-              this.weekEnd -= 604800000;
-              this.sepConflictClass();
+              this.weekStart -= millisecondsPerWeek;
+              this.refreshGrid();
             }
           })
 
@@ -933,9 +1183,8 @@ struct Schedule {
           .onClick(() => {
             if (this.weekDisplayed < 20) {
               this.weekDisplayed++;
-              this.weekStart += 604800000;
-              this.weekEnd += 604800000;
-              this.sepConflictClass();
+              this.weekStart += millisecondsPerWeek;
+              this.refreshGrid();
             }
           })
       }
@@ -949,7 +1198,7 @@ struct Schedule {
 
       // 星期几
       Row() { // 高度25
-        Text(this.weekDisplayed === scheduleManager.weekDisplayed ? $r('app.string.class_span') : $r('app.string.xiu'))
+        Text(this.weekDisplayed === this.currentWeek ? $r('app.string.class_span') : $r('app.string.xiu'))
           .fontWeight(FontWeight.Bold)
           .fontSize(12)
           .height('100%')
@@ -970,21 +1219,20 @@ struct Schedule {
             }
           })
           .onClick(() => {
-            if (this.weekDisplayed !== scheduleManager.weekDisplayed) {
-              this.weekDisplayed = scheduleManager.weekDisplayed;
-              this.weekStart = scheduleManager.weekStart;
-              this.weekEnd = scheduleManager.weekEnd;
-              this.sepConflictClass();
+            if (this.weekDisplayed !== this.currentWeek) {
+              this.weekDisplayed = this.currentWeek;
+              this.weekStart = this.currentWeekStart;
+              this.refreshGrid();
             }
           })
-        Text(tools.weekTranslate[6])
+        Text(tools.weekTranslate[0])
           .fontWeight(FontWeight.Bold)
           .fontSize(12)
           .textAlign(TextAlign.Center)
           .height('100%')
           .layoutWeight(1)
-        ForEach(tools.getContArray([[3, 8]]), (item: number) => {
-          Text(tools.weekTranslate[(item + 4) % 7])
+        ForEach(tools.getContArray([[1, 6]]), (item: number) => {
+          Text(tools.weekTranslate[item])
             .fontWeight(FontWeight.Bold)
             .fontSize(12)
             .textAlign(TextAlign.Center)
@@ -1009,8 +1257,7 @@ struct Schedule {
   }
 
 
-  @Builder
-  ClassDetailDialog() {
+  @Builder ClassDetailDialog() {
     Column() {
       Row({ space: 8 }) {
         Text(this.isChangeSchedule ? $r('app.string.class_detail') : $r('app.string.class_detail_new'))
@@ -1044,8 +1291,8 @@ struct Schedule {
                 fontColor: $r('app.color.red'),
                 value: $r('app.string.ok'),
                 action: () => {
-                  scheduleManager.deleteSchedule(this.oriClassInfo);
-                  this.sepConflictClass();
+                  ScheduleManager.deleteClassFromSemester(this.displayTerm, this.oriClassInfo);
+                  this.refreshGrid();
                   this.showSheet = false;
                 }
               },
@@ -1079,8 +1326,8 @@ struct Schedule {
               this.rectifyTimeSpan[1] = swapTemp;
             }
             this.classInfo.timeSpan = tools.getContArray([this.rectifyTimeSpan]) as number[];
-            scheduleManager.addSchedule(this.classInfo, this.changeAllColor);
-            this.sepConflictClass();
+            ScheduleManager.addClassToSemester(this.displayTerm, this.classInfo, this.changeAllColor);
+            this.refreshGrid();
             this.showSheet = false;
           })
         }
@@ -1153,18 +1400,18 @@ struct Schedule {
           this.classInfo.timeSpan = tools.getContArray([this.rectifyTimeSpan]) as number[];
           if (this.isChangeSchedule) {
             if (!areClassAttributesEqual(this.oriClassInfo, this.classInfo)) {
-              scheduleManager.deleteSchedule(this.oriClassInfo);
-              scheduleManager.addSchedule(this.classInfo, this.changeAllColor);
-              this.sepConflictClass();
+              ScheduleManager.deleteClassFromSemester(this.displayTerm, this.oriClassInfo);
+              ScheduleManager.addClassToSemester(this.displayTerm, this.classInfo, this.changeAllColor);
+              this.refreshGrid();
             }
           } else {
-            scheduleManager.addSchedule(this.classInfo, this.changeAllColor);
-            this.sepConflictClass();
+            ScheduleManager.addClassToSemester(this.displayTerm, this.classInfo, this.changeAllColor);
+            this.refreshGrid();
           }
           this.showSheet = false;
         });
       }
-      .margin({ bottom: 10 })
+      .margin({ bottom: 7 })
       .bindPopup(this.showScrollHint, {
         builder: this.scrollHintPopup(),
         placement: Placement.Bottom,
@@ -1239,10 +1486,8 @@ struct Schedule {
             Row() {
               Text($r('app.string.class_detail_day_of_week'))
                 .textAlign(TextAlign.Start);
-              Select([{ value: $r('app.string.monday') }, { value: $r('app.string.tuesday') },
-                { value: $r('app.string.wednesday') },
-                { value: $r('app.string.thursday') }, { value: $r('app.string.friday') },
-                { value: $r('app.string.saturday') }, { value: $r('app.string.sunday') }])
+              Select([{ value: $r('app.string.sunday') }, { value: $r('app.string.monday') }, { value: $r('app.string.tuesday') },
+                { value: $r('app.string.wednesday') }, { value: $r('app.string.thursday') }, { value: $r('app.string.friday') }, { value: $r('app.string.saturday') }])
                 .value(tools.weekTranslate[this.classInfo.dayOfWeek])
                 .onSelect((index: number) => {
                   this.classInfo.dayOfWeek = index;
@@ -1250,6 +1495,18 @@ struct Schedule {
             }
             .margin({ bottom: 5 })
           }
+
+          Row() {
+            Text('学分：')
+              .textAlign(TextAlign.Start);
+            TextInput({ text: this.classInfo.credits.toString() })
+              .layoutWeight(1)
+              .type(InputType.NUMBER_DECIMAL)
+              .textOverflow(TextOverflow.Ellipsis)
+              .onChange((input: string) => this.classInfo.credits = Number(input))
+              .selectAll(true);
+          }
+          .margin({ bottom: 5 })
 
           Row() {
             Text($r('app.string.class_detail_color'))
@@ -1335,7 +1592,7 @@ struct Schedule {
               },
             })
           }
-          .margin({ bottom: 5 })
+          // .margin({ bottom: 5 })
 
           Row() {
             Text($r('app.string.class_detail_weeks', tools.shrinkContArrayToString(this.weekOfTerm)))

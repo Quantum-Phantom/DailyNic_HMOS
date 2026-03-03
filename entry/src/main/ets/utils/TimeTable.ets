@@ -3,175 +3,6 @@ import { SCHEDULE_KEY, START_TIME_KEY, millisecondsPerWeek } from './UnifyPrefer
 import UnifiedPreferences from './UnifyPreference';
 import * as tools from './tools';
 
-export const timeTableQueryJS = `
-function getWeekNumber(str) {
-    const parts = str.replace(/[^0-9,-]/g, '').split(',');
-    const result = [];
-    for (const part of parts) {
-        if (part.includes('-')) {
-            const [start, end] = part.split('-').map(Number);
-            for (let i = start; i <= end; i++) {
-                result.push(i);
-            }
-        } else {
-            result.push(Number(part));
-        }
-    }
-    return result;
-}
-
-function getTimeTable() {
-    const timeTable = document.evaluate(
-        "/html/body/div[2]/div[3]/div/div/table",
-        document,
-        null,
-        XPathResult.FIRST_ORDERED_NODE_TYPE,
-        null).singleNodeValue;
-    const rows = timeTable.getElementsByTagName("tr");
-    const getClassesOfDay = dayNumber => {
-        let classesOfDay = [];
-        for (let i = 0; i < rows.length; i++) {
-            if (rows[i].hasAttribute("class")) {
-                const classesOfWeek = rows[i].getElementsByTagName("td");
-                let count = 0;
-                const target = Array.from(classesOfWeek).find(elem => {
-                    if (!elem.hasAttribute("style")) { return ++count > dayNumber; }
-                    return false;
-                })
-                const classList = Array.from(target.querySelectorAll(".c")).map(element => ({
-                    name: element.querySelector(".title").innerText,
-                    teacher: Array.from(element.querySelectorAll(".teacher .name")).map(elem => elem.innerText).join(", "),
-                    weekOfTerm: getWeekNumber(element.querySelector(".time .week").innerText),
-                    timeSpan: getWeekNumber(element.querySelector(".timespan").innerText),
-                    dayOfWeek: dayNumber,
-                    location: element.querySelector(".classroom .name").innerText.trim(),
-                    id: element.querySelector(".number").innerText
-                }));
-                classesOfDay.push(classList);
-            }
-        }
-        return classesOfDay;
-    };
-    return ([0, 1, 2, 3, 4, 5, 6].map(i => getClassesOfDay(i)));
-}
-
-JSON.stringify(getTimeTable());
-`
-export const timeTableQueryJSShort = `JSON.stringify(getTimeTable());`
-
-export const startTimeQueryJS = `
-(() => {
-  const startTime = new Date(document.getElementById('startDate').innerText);
-  return startTime.setHours(0, 0, 0, 0);
-})();
-`
-
-export const examInfoQueryJS = `
-(() => {
-    const examInfoTable = document.querySelector('#table-content');
-    if (examInfoTable == null) {return null;}
-    return Array.from(document.querySelectorAll('#exams tbody tr')).map(
-        tr => {
-            const trCells = tr.cells;
-            return ({
-                id: trCells[0].innerText,
-                type: trCells[1].innerText,
-                name: trCells[2].innerText,
-                date: trCells[3].innerText,
-                classroom: trCells[4].innerText,
-                building: trCells[5].innerText,
-                campus: trCells[6].innerText,
-                info: trCells[7].innerText
-            })
-        }
-    )
-})()
-`
-
-export const fillInformationJS = `
-(() => {
-    const inputUID = infoProvider.getUID();
-    const inputPwd = infoProvider.getPassword();
-    const main = () => {
-        const nodeUID = document.getElementById('nameInput');
-        const nodePassword = document.querySelector('input[type="password"][maxlength="200"]');
-        if (nodeUID && nodePassword) {
-            if (inputPwd) {
-              document.querySelector('div.eyes-icon.ng-star-inserted').style.pointerEvents = 'none';
-            }
-            nodeUID.focus();
-            nodeUID.value = infoProvider.getUID();
-            nodeUID.dispatchEvent(new Event('input', { bubbles: true }));
-            nodePassword.focus();
-            nodePassword.value = infoProvider.getPassword();
-            nodePassword.dispatchEvent(new Event('input', { bubbles: true }));
-            document.getElementById('submitBtn').dispatchEvent(
-                new MouseEvent('click', { bubbles: true, cancelable: true })
-            );
-            return true;
-        } else { return false; }
-    }
-    if (main()) { return; }
-    const observer = new MutationObserver(() => {
-        if (main()) { observer.disconnect(); }
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-})();
-`
-
-// 删除智慧门户中的AI助手
-export const deleteAIHelper: string = `
-function removeTargetElement() {
-    const targetElement = Array.from(document.querySelectorAll('.dh-cl-item-name')).find(
-        el => el.textContent.trim() === "AI助手"
-    );
-    if (targetElement) {
-        const parentItem = targetElement.closest('.dh-cl-item');
-        if (parentItem) {
-            parentItem.remove();
-            return true;
-        }
-    }
-    return false;
-}
-const isRemoved = removeTargetElement();
-if (!isRemoved || true) {
-    const observerConfig = {
-        childList: true,
-        subtree: true
-    };
-    const callback = function(mutationsList) {
-        for(let mutation of mutationsList) {
-            if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-                removeTargetElement();
-            }
-        }
-    };
-    const observer = new MutationObserver(callback);
-    const targetNode = document.querySelector('.hd-zs') || document.body;
-    observer.observe(targetNode, observerConfig);
-    setTimeout(() => {
-        observer.disconnect();
-        console.log('监听超时，已停止');
-    }, 10000);
-}
-`
-
-
-export const delay = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
-
-export async function pollUntilLoad(callback: () => Promise<string>, intervalMs: number = 1000, maxAttempts: number = 30): Promise<string> {
-  let result: string = 'null';
-  while (result === 'null' && maxAttempts > 0) {
-    result = await callback();
-    maxAttempts--;
-    if (result === 'null' && maxAttempts > 0) {
-      await delay(intervalMs);
-    }
-  }
-  return result;
-}
-
 /**
  * 比较两个 classAttribute 对象是否完全相同
  * @param a 第一个对象
@@ -348,8 +179,10 @@ class scheduleManager {
                 if (k.name === toChangeInfo.name)
                   k.color = toChangeInfo.color;
 
+    // 添加当前显示的课程
     this.refreshParsedSchedule({ timeTable: `[${JSON.stringify(this.parsedSchedule)}]`, startTime: this.termStart.toString() });
     this.getFormattedSchedule();
+    // 保存到对应课表中
   }
 
   deleteSchedule(oriClassInfo: classAttribute) {
@@ -376,6 +209,76 @@ class scheduleManager {
                 this.finalWeek = Math.max(k.weekOfTerm[k.weekOfTerm.length - 1], this.finalWeek);
       UnifiedPreferences.putSync('FinalWeek', this.finalWeek);
     }
+  }
+
+
+  defaultSemester: number = UnifiedPreferences.getNumberSync('DefaultSemester', 0);
+  addingTimestamp: number[] = JSON.parse(UnifiedPreferences.getSync('AddingTimestamp', '[]')) as number[];
+
+  switchSemester(targetTimestamp: number) {
+    this.refreshParsedSchedule({ timeTable: `[${UnifiedPreferences.getSync(`ScheduleDataAt${targetTimestamp}`, '[[[]]]')}]`, startTime: UnifiedPreferences.getNumberSync(`ScheduleTimeAt${targetTimestamp}`, 0).toString() });
+    this.defaultSemester = targetTimestamp;
+    UnifiedPreferences.putSync('DefaultSemester', targetTimestamp);
+  }
+
+  editSemester(timestamp: number, timeTable: string, startTime: number, isReplace: boolean) {
+    timeTable = timeTable.replace(/\\"/g, '"');
+    if (!UnifiedPreferences.hasSync(`ScheduleDataAt${timestamp}`) || isReplace) {
+      UnifiedPreferences.putSync(`ScheduleDataAt${timestamp}`, timeTable);
+    } else {
+      console.log('!!!' + timeTable);
+      let parsedTimetable: classAttribute[][][] = JSON.parse(timeTable);
+      let originTimetable: classAttribute[][][] = JSON.parse(UnifiedPreferences.getSync(`ScheduleDataAt${timestamp}`, '[[[]]]'));
+
+      let flag: boolean[][][] = [];
+      for (let i = 0; i <= 20; i++) { // 初始化三个维度
+        flag[i] = [];
+        for (let j = 0; j <= 6; j++)
+          flag[i][j] = new Array(14).fill(false);
+      }
+
+      originTimetable.forEach(layer1 => {
+        layer1?.forEach(layer2 => {
+          layer2?.forEach(i => {
+            i.weekOfTerm.forEach(week => {
+              i.timeSpan.forEach(section => {
+                flag[week][i.dayOfWeek][section] = true;
+              });
+            });
+          });
+        });
+      });
+
+      parsedTimetable.forEach(layer1 => {
+        layer1?.forEach(layer2 => {
+          layer2?.forEach(i => {
+            let noConflict = true;
+            toBreak: for (let week of i.weekOfTerm) {
+              for (let section of i.timeSpan) {
+                if (flag[week][i.dayOfWeek][section]) { // 如果已经被占用了
+                  noConflict = false;
+                  break toBreak;
+                }
+              }
+            }
+            if (noConflict)
+              originTimetable[i.dayOfWeek][i.timeSpan[0]].push(i);
+          });
+        });
+      });
+
+      UnifiedPreferences.putSync(`ScheduleDataAt${timestamp}`, JSON.stringify(originTimetable));
+    }
+  }
+
+  newSemester(timeTable: string, startTime: number, name: string) {
+    this.currentTime = new Date();
+    const timestamp = this.currentTime.getTime();
+    UnifiedPreferences.putSync(`ScheduleDataAt${timestamp}`, timeTable);
+    UnifiedPreferences.putSync(`ScheduleTimeAt${timestamp}`, startTime);
+    UnifiedPreferences.putSync(`ScheduleNameAt${timestamp}`, name);
+    this.addingTimestamp.push(timestamp);
+    UnifiedPreferences.putSync('AddingTimestamp', JSON.stringify(this.addingTimestamp));
   }
 }
 

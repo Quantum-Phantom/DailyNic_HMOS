@@ -6,7 +6,7 @@ import { common } from '@kit.AbilityKit'
 import UnifiedPreferences, { PASSWORD_KEY, REMIND_KEY, UID_KEY} from '../utils/UnifyPreference'
 import { call } from '@kit.TelephonyKit';
 import { picker, fileUri } from  '@kit.CoreFileKit';
-import { fillInformationJS, deleteAIHelper } from '../utils/TimeTable';
+import { fillInformationJS, deleteAIHelper } from '../utils/tools';
 import accountInfoProvider from '../utils/Encryption';
 import PasswordDialog from '../view/PasswordDialog';
 import BackgroundImage from '../utils/BgImageManager';
