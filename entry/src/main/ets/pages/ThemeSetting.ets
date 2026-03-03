@@ -100,6 +100,12 @@ struct ThemeSetting {
       value: $r('app.string.ok_and_restart'),
       icon: $r('app.media.checkmark'),
       action: () => {
+        if (this.selectResult !== undefined) {
+          const newImgPath: string = BackgroundImage.basicDir + '/backgroundImage';
+          fileIo.copyFile(this.oriImgPath, newImgPath)
+            .catch((error: BusinessError) => console.error('Copy image failed:', JSON.stringify(error)));
+          UnifiedPreferences.putSync('ImagePath', newImgPath);
+        }
         if (this.isShown !== BackgroundImage.showImage)
           UnifiedPreferences.putSync('ShowImage', this.isShown);
         if (this.showBlurSlider !== BackgroundImage.backgroundBlur)
@@ -326,7 +332,7 @@ struct ThemeSetting {
                 // })
               })
 
-              Image($r('app.media.selected'))
+              Image($r('app.media.checkmark_green'))
                 .width(diameter * 0.6)
                 .height(diameter * 0.6)
                 .offset({
@@ -355,8 +361,8 @@ struct ThemeSetting {
           }
           .margin({ left: 9, right: 9 })
           .backgroundBlurStyle(BackgroundImage.blurLevel)
-          .borderRadius(23)
-          .clip(BackgroundImage.blurLevel !== undefined)
+          .borderRadius(BackgroundImage.blurLevel === undefined ? undefined : 23)
+          .clip(true)
 
           Column() {
             Row({ space: 5 }) {
@@ -367,39 +373,83 @@ struct ThemeSetting {
                 .fontWeight(FontWeight.Bold);
               Divider()
                 .layoutWeight(1);
-              Text('立即生效');
+              Text('立即生效')
+                .margin({ right: 7 });
             }
             .width('100%')
             .padding(8)
 
-            Row() {
-              Button('浅色')
-                .onClick(() => {
-                  if (this.colorMode !== ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT) {
-                    this.colorMode = ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT;
-                    this.getUIContext().getHostContext()?.getApplicationContext().setColorMode(this.colorMode);
-                    UnifiedPreferences.putSync('ColorMode', this.colorMode);
-                  }
-                })
-              Button('深色')
-                .onClick(() => {
-                  if (this.colorMode !== ConfigurationConstant.ColorMode.COLOR_MODE_DARK) {
-                    this.colorMode = ConfigurationConstant.ColorMode.COLOR_MODE_DARK;
-                    this.getUIContext().getHostContext()?.getApplicationContext().setColorMode(this.colorMode);
-                    UnifiedPreferences.putSync('ColorMode', this.colorMode);
-                  }
-                })
-              Button('跟随系统')
-                .onClick(() => {
-                  if (this.colorMode !== ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET) {
-                    this.colorMode = ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET;
-                    this.getUIContext().getHostContext()?.getApplicationContext().setColorMode(this.colorMode);
-                    UnifiedPreferences.putSync('ColorMode', this.colorMode);
-                  }
-                })
+            Column() {
+              Row() {
+                Image($r('app.media.light'))
+                  .height(30)
+                  .width(30)
+                  .margin({ right: 5 })
+                Text('浅色')
+                  .layoutWeight(1)
+                Image($r('app.media.checkmark'))
+                  .visibility(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT ? Visibility.Visible : Visibility.Hidden)
+                  .height(27)
+                  .width(27)
+              }
+              .width('100%')
+              .height(40)
+              .onClick(() => {
+                if (this.colorMode !== ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT) {
+                  this.colorMode = ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT;
+                  this.getUIContext().getHostContext()?.getApplicationContext().setColorMode(this.colorMode);
+                  UnifiedPreferences.putSync('ColorMode', this.colorMode);
+                }
+              })
+              Divider();
+              Row() {
+                Image($r('app.media.dark'))
+                  .height(24)
+                  .width(24)
+                  .margin({ right: 8, left: 3 })
+                Text('深色')
+                  .layoutWeight(1)
+                Image($r('app.media.checkmark'))
+                  .visibility(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? Visibility.Visible : Visibility.Hidden)
+                  .height(27)
+                  .width(27)
+              }
+              .width('100%')
+              .height(40)
+              .justifyContent(FlexAlign.SpaceBetween)
+              .onClick(() => {
+                if (this.colorMode !== ConfigurationConstant.ColorMode.COLOR_MODE_DARK) {
+                  this.colorMode = ConfigurationConstant.ColorMode.COLOR_MODE_DARK;
+                  this.getUIContext().getHostContext()?.getApplicationContext().setColorMode(this.colorMode);
+                  UnifiedPreferences.putSync('ColorMode', this.colorMode);
+                }
+              })
+              Divider();
+              Row() {
+                Image($r('app.media.follow_system'))
+                  .height(24)
+                  .width(24)
+                  .margin({ right: 8, left: 3 })
+                Text('跟随系统')
+                  .layoutWeight(1)
+                Image($r('app.media.checkmark'))
+                  .visibility(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET ? Visibility.Visible : Visibility.Hidden)
+                  .height(27)
+                  .width(27)
+              }
+              .width('100%')
+              .height(40)
+              .justifyContent(FlexAlign.SpaceBetween)
+              .onClick(() => {
+                if (this.colorMode !== ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET) {
+                  this.colorMode = ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET;
+                  this.getUIContext().getHostContext()?.getApplicationContext().setColorMode(this.colorMode);
+                  UnifiedPreferences.putSync('ColorMode', this.colorMode);
+                }
+              })
             }
             .justifyContent(FlexAlign.SpaceEvenly)
-            .width('100%')
+            .width('95%')
             .margin({ bottom: 10 })
           }
           .margin({ left: 9, right: 9, bottom: 9 })

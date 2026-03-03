@@ -97,8 +97,8 @@ export function stringToRgba(color: string): number[] {
   return [a, r, g, b];
 }
 
-export const weekTranslate: ResourceStr[] = [$r('app.string.monday'), $r('app.string.tuesday'), $r('app.string.wednesday'),
-  $r('app.string.thursday'), $r('app.string.friday'), $r('app.string.saturday'), $r('app.string.sunday'), ];
+export const weekTranslate: ResourceStr[] = [$r('app.string.sunday'), $r('app.string.monday'), $r('app.string.tuesday'), $r('app.string.wednesday'),
+  $r('app.string.thursday'), $r('app.string.friday'), $r('app.string.saturday')];
 
 export function getRandomInt(min: number, max: number): number {
   min = Math.ceil(min);
@@ -266,3 +266,73 @@ export function formatBytes(bytes: number, decimals: number = 2, useBinary: bool
 
   return `${(bytes / Math.pow(k, i)).toFixed(dm)} ${sizes[i]}`;
 }
+
+
+export const fillInformationJS = `
+(() => {
+    const inputUID = infoProvider.getUID();
+    const inputPwd = infoProvider.getPassword();
+    const main = () => {
+        const nodeUID = document.getElementById('nameInput');
+        const nodePassword = document.querySelector('input[type="password"][maxlength="200"]');
+        if (nodeUID && nodePassword) {
+            if (inputPwd) {
+              document.querySelector('div.eyes-icon.ng-star-inserted').style.pointerEvents = 'none';
+            }
+            nodeUID.focus();
+            nodeUID.value = infoProvider.getUID();
+            nodeUID.dispatchEvent(new Event('input', { bubbles: true }));
+            nodePassword.focus();
+            nodePassword.value = infoProvider.getPassword();
+            nodePassword.dispatchEvent(new Event('input', { bubbles: true }));
+            document.getElementById('submitBtn').dispatchEvent(
+                new MouseEvent('click', { bubbles: true, cancelable: true })
+            );
+            return true;
+        } else { return false; }
+    }
+    if (main()) { return; }
+    const observer = new MutationObserver(() => {
+        if (main()) { observer.disconnect(); }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+})();
+`
+
+// 删除智慧门户中的AI助手
+export const deleteAIHelper: string = `
+function removeTargetElement() {
+    const targetElement = Array.from(document.querySelectorAll('.dh-cl-item-name')).find(
+        el => el.textContent.trim() === "AI助手"
+    );
+    if (targetElement) {
+        const parentItem = targetElement.closest('.dh-cl-item');
+        if (parentItem) {
+            parentItem.remove();
+            return true;
+        }
+    }
+    return false;
+}
+const isRemoved = removeTargetElement();
+if (!isRemoved || true) {
+    const observerConfig = {
+        childList: true,
+        subtree: true
+    };
+    const callback = function(mutationsList) {
+        for(let mutation of mutationsList) {
+            if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                removeTargetElement();
+            }
+        }
+    };
+    const observer = new MutationObserver(callback);
+    const targetNode = document.querySelector('.hd-zs') || document.body;
+    observer.observe(targetNode, observerConfig);
+    setTimeout(() => {
+        observer.disconnect();
+        console.log('监听超时，已停止');
+    }, 10000);
+}
+`

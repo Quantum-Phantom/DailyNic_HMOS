@@ -46,7 +46,7 @@ struct Index {
     }),
     autoCancel: false,
     gridCount: 4
-  })
+  });
 
   /**
    * 函数: 构建 Tab 按钮

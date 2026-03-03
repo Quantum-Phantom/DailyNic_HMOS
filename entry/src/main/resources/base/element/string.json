@@ -53,6 +53,46 @@
       "value": "本地课表"
     },
     {
+      "name": "all_semesters",
+      "value": "所有学期"
+    },
+    {
+      "name": "all_semesters_start_date",
+      "value": "开始日期："
+    },
+    {
+      "name": "all_semesters_total_week",
+      "value": "\u3000总周数：%d (上限 20)"
+    },
+    {
+      "name": "all_semesters_source",
+      "value": "\u3000\u3000来源："
+    },
+    {
+      "name": "all_semesters_create_time",
+      "value": "创建时间：%s"
+    },
+    {
+      "name": "manually_create",
+      "value": "新课程…"
+    },
+    {
+      "name": "import_from_school",
+      "value": "从教务系统导入"
+    },
+    {
+      "name": "search_in_all_courses",
+      "value": "在全校开设课程中搜索"
+    },
+    {
+      "name": "rename",
+      "value": "重命名"
+    },
+    {
+      "name": "delete_semester_or_not",
+      "value": "你真的要删掉这个学期吗？"
+    },
+    {
       "name": "online_schedule",
       "value": "同步在线课表…"
     },
@@ -270,7 +310,7 @@
     },
     {
       "name": "conflict_class_detail_d",
-      "value": "第%d周叠课情况"
+      "value": "第%d周重叠课程"
     },
     {
       "name": "unsaved_change",
@@ -654,7 +694,7 @@
     },
     {
       "name": "version",
-      "value": "版本 2.0.0"
+      "value": "版本 3.0.0"
     },
     {
       "name": "EntryFormAbility_label",
