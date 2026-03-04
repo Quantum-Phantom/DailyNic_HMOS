@@ -1,7 +1,6 @@
 
 import { CounterComponent, CounterType, LengthUnit } from '@kit.ArkUI'
 import * as tools from '../utils/tools'
-import { obtainedData } from '../constants/ScheduleSources'
 import examManager, { examAttribute, areExamAttributesEqual } from '../utils/ExamManager';
 import BackgroundImage from '../utils/BgImageManager';
 
@@ -413,9 +412,9 @@ struct ExamDetail {
           name: "GetSchedule",
           param: [$r('app.string.online_exam_info'), 'https://jw.ustc.edu.cn/for-std/exam-arrange'],
           onPop: (popInfo: PopInfo) => {
-            const routerParams = popInfo.result as obtainedData;
-            if (routerParams != undefined && routerParams.timeTable != '') {
-              examManager.storeExam(JSON.parse(routerParams.timeTable));
+            const routerParams = popInfo.result as string;
+            if (routerParams != undefined && routerParams != '') {
+              examManager.storeExam(JSON.parse(routerParams));
             }
             examManager.readStoredExam();
             this.currentTime = new Date();

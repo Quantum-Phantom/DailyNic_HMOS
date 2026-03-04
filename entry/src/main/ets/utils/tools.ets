@@ -287,6 +287,20 @@ export function extractCredits(inputStr: string): string[] {
 }
 
 
+/**
+ * 截断字符串：长度超过最大长度则取最大长度加省略号，否则返回原字符串
+ * @param str 待处理的字符串（支持空值，会转为空字符串处理）
+ * @param maxLen 最大长度
+ * @returns 处理后的字符串
+ */
+export function truncateString(str: string = '', maxLen: number): string {
+  if (str.length > maxLen) {
+    return str.substring(0, maxLen) + '...';
+  }
+  return str;
+}
+
+
 export const fillInformationJS = `
 (() => {
     const inputUID = infoProvider.getUID();

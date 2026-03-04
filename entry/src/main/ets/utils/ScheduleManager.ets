@@ -2,6 +2,7 @@
 
 import UnifyPreferences from './UnifyPreference';
 import { classAttribute, semesterAttribute } from '../constants/ScheduleSources';
+import { colorSet, colorSetLen, extractCredits, getRandomInt } from './tools';
 
 function areNumberArraysEqual(a: number[], b: number[]): boolean {
   if (a.length !== b.length) return false;
@@ -17,16 +18,18 @@ function areNumberArraysEqual(a: number[], b: number[]): boolean {
  * @param b 第二个对象
  * @returns 是否完全相同
  */
-export function areClassAttributesEqual(a: classAttribute, b: classAttribute): boolean {
+export function areClassAttributesEqual(a: classAttribute, b: classAttribute, checkMinor: boolean = true): boolean {
   // 基本类型直接比较
   if (a.name !== b.name) return false;
   if (a.teacher !== b.teacher) return false;
   if (a.dayOfWeek !== b.dayOfWeek) return false;
   if (a.location !== b.location) return false;
   if (a.id !== b.id) return false;
-  if (a.color !== b.color) return false;
-  if (a.priority !== b.priority) return false;
   if (a.credits !== b.credits) return false;
+  if (checkMinor) {
+    if (a.color !== b.color) return false;
+    if (a.priority !== b.priority) return false;
+  }
 
   // 数组类型通过辅助函数比较
   if (!areNumberArraysEqual(a.weekOfTerm, b.weekOfTerm)) return false;
@@ -113,6 +116,7 @@ class ScheduleManager {
     return result;
   }
 
+
   /**
    * 获取指定周和天的课程
    * @param week 周数
@@ -122,6 +126,7 @@ class ScheduleManager {
   getClassByDay(week: number, day: number): classAttribute[] {
     return this.weekDayIndex.get(week)?.get(day) || [];
   }
+
 
   /**
    * 创建新学期
@@ -154,6 +159,7 @@ class ScheduleManager {
     }
   }
 
+
   /**
    * 覆盖或合并指定学期的课程数据
    * @param id 学期索引
@@ -165,13 +171,21 @@ class ScheduleManager {
     try {
       if (insert) {
         const originSchedule: classAttribute[] = JSON.parse(UnifyPreferences.getSync('SemesterDataAt' + String(this.semesters[id].createTime), '[]'));
+        const newLength: number = newSchedule.length;
         for (const originClass of originSchedule) {
           // 检查是否已存在相同的课程
-          const exists: boolean = originSchedule.some(newClass => areClassAttributesEqual(originClass, newClass));
+          let exists: boolean = false;
+          for (let i = 0; i < newLength; i++)
+            if (areClassAttributesEqual(originClass, newSchedule[i], false)) {
+              exists = true;
+              break;
+            }
           if (!exists) {
-            originSchedule.push(originClass);
+            newSchedule.push(originClass);
           }
         }
+        console.log('!!!' + JSON.stringify(newSchedule));
+        UnifyPreferences.putSync('SemesterDataAt' + String(this.semesters[id].createTime), JSON.stringify(newSchedule));
         let latestWeek: number = this.getLatestWeek(newSchedule);
         if (latestWeek !== this.semesters[id].totalWeekNum) {
           this.semesters[id].totalWeekNum = latestWeek;
@@ -195,6 +209,7 @@ class ScheduleManager {
     }
   }
 
+
   /**
    * 临时切换课表，用于在功能页查看
    * @param target 目标学期索引
@@ -209,6 +224,7 @@ class ScheduleManager {
       return JSON.stringify(err);
     }
   }
+
 
   /**
    * 初始化或切换默认课表，将会用于首页、添加日程以及桌面卡片
@@ -241,6 +257,7 @@ class ScheduleManager {
     }
   }
 
+
   /**
    * 获取课程列表中的最大周数
    * @param timetable 课程列表
@@ -257,6 +274,7 @@ class ScheduleManager {
       return 0;
     }
   }
+
 
   /**
    * 向指定学期添加一门课程
@@ -279,6 +297,7 @@ class ScheduleManager {
       return JSON.stringify(err);
     }
   }
+
 
   /**
    * 向指定学期删除一门课程
@@ -304,6 +323,13 @@ class ScheduleManager {
     return 'NotFound';
   }
 
+
+  /**
+   * 修改指定学期的开始时间
+   * @param id 要修改的学期编号
+   * @param newStartTime 新的学期开始时间（毫秒级时间戳）
+   * @returns 无异常时返回undefined，发生异常时返回异常信息的JSON字符串
+   */
   changeSemesterStartTime(id: number, newStartTime: number): string | undefined {
     try {
       this.semesters[id].beginTime = newStartTime;
@@ -314,6 +340,12 @@ class ScheduleManager {
     }
   }
 
+
+  /**
+   * 删除指定编号的学期
+   * @param id 要删除的学期编号
+   * @returns 若删除的是当前显示/默认学期返回'Occupied'；无异常返回undefined；异常返回异常信息的JSON字符串
+   */
   deleteSemester(id: number): string | undefined {
     try {
       if (id === this.displaySemester || id === this.defaultSemester)
@@ -321,8 +353,10 @@ class ScheduleManager {
       UnifyPreferences.deleteSync('SemesterDataAt' + String(this.semesters[id].createTime));
       if (this.displaySemester > id)
         this.displaySemester--;
-      if (this.defaultSemester > id)
+      if (this.defaultSemester > id) {
         this.defaultSemester--;
+        UnifyPreferences.putSync('DefaultSemester', this.defaultSemester);
+      }
       this.semesters.splice(id, 1);
       UnifyPreferences.putSync('SemestersData', JSON.stringify(this.semesters));
       return;
@@ -331,6 +365,13 @@ class ScheduleManager {
     }
   }
 
+
+  /**
+   * 重命名指定编号的学期
+   * @param id 要重命名的学期编号
+   * @param newName 学期的新名称
+   * @returns 无异常时返回undefined，发生异常时返回异常信息的JSON字符串
+   */
   renameSemester(id: number, newName: string): string | undefined {
     try {
       this.semesters[id].name = newName;
@@ -339,6 +380,34 @@ class ScheduleManager {
     } catch(err) {
       return JSON.stringify(err);
     }
+  }
+
+
+  /**
+   * 解析在线课程表数据，将多层嵌套的课程数据扁平化并补充课程属性
+   * @param originData 原始的三层嵌套课程数据结构 [][][]
+   * @returns 扁平化后的课程属性数组，已处理在线课表缺失或待处理的课程ID、学分、优先级、颜色等信息
+   */
+  parseOnlineSchedule(originData: classAttribute[][][]): classAttribute[] {
+    const parsedData: classAttribute[] = [];
+    let randomColor: number = getRandomInt(0, colorSetLen - 1);
+    originData.forEach(layer1 => {
+      layer1?.forEach(layer2 => {
+        layer2?.forEach(layer3 => {
+          if (layer3) {
+            let sep: string[] = extractCredits(layer3.id);
+            layer3.dayOfWeek = (layer3.dayOfWeek + 1) % 7;
+            layer3.id = sep[0];
+            layer3.credits = Number(sep[1]);
+            layer3.priority = 5;
+            layer3.color = colorSet[randomColor];
+            randomColor = (randomColor + 1) % colorSetLen;
+            parsedData.push(layer3);
+          }
+        });
+      });
+    });
+    return parsedData;
   }
 }
 

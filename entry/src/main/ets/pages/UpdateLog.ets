@@ -94,7 +94,7 @@ struct UpdateLog {
                 });
               });
             });
-            ScheduleManager.newSemester('App 旧版本保存的课表', '从 Ver ' + UnifiedPreferences.getSync('AppVersion', '2.0.0') + ' 自动转换', Number(UnifiedPreferences.getSync('termStartTime', '20250721')), new Date().getTime(), undefined, convertSchedule);
+            ScheduleManager.newSemester('App 旧版本保存的课表', '从 Ver ' + UnifiedPreferences.getSync('AppVersion', '2.0.0') + ' 自动转换', Number(UnifiedPreferences.getSync('termStartTime', '20250721')), Date.now(), undefined, convertSchedule);
             UnifiedPreferences.deleteSync('termStartTime');
             UnifiedPreferences.deleteSync('scheduleInfo');
 

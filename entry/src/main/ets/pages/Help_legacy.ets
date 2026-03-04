@@ -26,7 +26,6 @@ struct Index {
           .fontSize(18)
           .height(48)
           .fontColor($r('app.color.normal_text'))
-          .textOverflow({ overflow: TextOverflow.Ellipsis })
 
         Image($r('app.media.message_on_message'))
           .height(22)

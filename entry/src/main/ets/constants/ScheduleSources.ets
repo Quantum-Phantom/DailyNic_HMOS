@@ -14,11 +14,6 @@ export interface classAttribute {
   credits: number
 }
 
-export interface obtainedData {
-  timeTable: string;
-  startTime: string;
-}
-
 export interface semesterAttribute {
   name: string, // 名称
   createTime: number, // 课表创建时间戳，用于读取不同课表

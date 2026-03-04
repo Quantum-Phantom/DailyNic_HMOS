@@ -44,7 +44,7 @@ class FormDataClass {
       this.title = $r("app.string.exam_detail");
       examManager.readStoredExam();
       this.examInfo = examManager.allExamInfo;
-      let currentTime: number = new Date().getTime(); // 删除已结束考试
+      let currentTime: number = Date.now(); // 删除已结束考试
       for (let i = this.examInfo.length - 1; i >= 0; i--)
         if (currentTime > this.examInfo[i].endTimeStamp)
           this.examInfo.splice(i, 1);

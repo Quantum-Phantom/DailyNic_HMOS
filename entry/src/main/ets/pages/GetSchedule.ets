@@ -4,8 +4,10 @@ import ScheduleManager from '../utils/ScheduleManager';
 import PasswordDialog from '../view/PasswordDialog';
 import accountInfoProvider from '../utils/Encryption';
 import BackgroundImage from '../utils/BgImageManager';
-import { fillInformationJS } from '../utils/tools';
+import { fillInformationJS, getRandomInt, truncateString } from '../utils/tools';
 import UnifiedPreferences, { PASSWORD_KEY, REMIND_KEY, UID_KEY}  from '../utils/UnifyPreference';
+import { classAttribute, semesterAttribute } from '../constants/ScheduleSources';
+import { ExceptionPrompt, MarginType } from '@kit.ArkUI';
 
 @Builder
 export function GetBuilder(name: string, param?: string[]) {
@@ -13,6 +15,19 @@ export function GetBuilder(name: string, param?: string[]) {
     Webview({ title: param[0], url: param[1] });
   else
     Webview();
+}
+
+const delay = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
+async function pollUntilLoad(callback: () => Promise<string>, intervalMs: number = 1000, maxAttempts: number = 30): Promise<string> {
+  let result: string = 'null';
+  while (result === 'null' && maxAttempts > 0) {
+    result = await callback();
+    maxAttempts--;
+    if (result === 'null' && maxAttempts > 0) {
+      await delay(intervalMs);
+    }
+  }
+  return result;
 }
 
 const timeTableQueryJS = `
@@ -69,7 +84,6 @@ function getTimeTable() {
 
 JSON.stringify(getTimeTable());
 `
-const timeTableQueryJSShort = `JSON.stringify(getTimeTable());`
 
 const startTimeQueryJS = `
 (() => {
@@ -96,6 +110,27 @@ function getSemesterText() {
 getSemesterText();
 `
 
+const examInfoQueryJS = `
+(() => {
+    const examInfoTable = document.querySelector('#table-content');
+    if (examInfoTable == null) {return null;}
+    return Array.from(document.querySelectorAll('#exams tbody tr')).map(
+        tr => {
+            const trCells = tr.cells;
+            return ({
+                id: trCells[0].innerText,
+                type: trCells[1].innerText,
+                name: trCells[2].innerText,
+                date: trCells[3].innerText,
+                classroom: trCells[4].innerText,
+                building: trCells[5].innerText,
+                campus: trCells[6].innerText,
+                info: trCells[7].innerText
+            })
+        }
+    )
+})()
+`
 
 @Entry
 @Component
@@ -103,8 +138,11 @@ struct Webview {
   webviewController: webview.WebviewController = new webview.WebviewController();
   title: string = '';
   url: string = '';
-  initUrl: string = (UnifiedPreferences.getSync('school') === 'USTC') ?
-    'https://id.ustc.edu.cn/cas/login?service=https://jw.ustc.edu.cn/ucas-sso/login' : 'https://hub.hust.edu.cn/';
+  initUrl: string = (UnifiedPreferences.getSync('school') === 'USTC') ? 'https://id.ustc.edu.cn/cas/login?service=https://jw.ustc.edu.cn/ucas-sso/login' : 'https://hub.hust.edu.cn/';
+  webBackPress: boolean = UnifiedPreferences.getBoolSync('webBackPress', true);
+  isTimetablePage: boolean = false;
+  isExamInfoPage: boolean = false;
+  allowGet: boolean = false;
   timetable: string = '[[[]]]';
   startTime: number = 0;
   webAutoDarkMode: boolean = UnifiedPreferences.getBoolSync('webAutoDarkMode', true);
@@ -115,8 +153,8 @@ struct Webview {
     builder: PasswordDialog({
       isFromSetting: false,
       onConfirm: () => {
-        this.webviewController.runJavaScript(fillInformationJS, (error, result) => {
-        });
+        this.haveTriedLogin = true;
+        this.webviewController.runJavaScript(fillInformationJS);
       }
     }),
     autoCancel: false
@@ -125,6 +163,7 @@ struct Webview {
 
   pathStack: NavPathStack = new NavPathStack();
   @State loadError: string = '';
+  @State showGetHint: boolean = true;
   build() {
     NavDestination() {
       Stack({ alignContent: Alignment.TopStart }) {
@@ -153,23 +192,54 @@ struct Webview {
           })
           .onPageBegin(() => {
             this.loadError = '';
-            if ( /*!this.isTimeTablePage &&*/ this.webviewController.getUrl().startsWith('https://jw.ustc.edu.cn/home')) {
+            this.isTimetablePage = this.webviewController.getUrl().startsWith('https://jw.ustc.edu.cn/for-std/course-table');
+            this.isExamInfoPage = this.webviewController.getUrl().startsWith('https://jw.ustc.edu.cn/for-std/exam-arrange');
+            if ( /*!this.isTimetablePage &&*/ this.webviewController.getUrl().startsWith('https://jw.ustc.edu.cn/home')) {
               this.webviewController.loadUrl(this.url);
               console.info(`${this.url}|xxx`);
             }
           })
           .onPageEnd(() => {
-            if (!this.haveTriedLogin &&
-            this.webviewController.getUrl().startsWith('https://id.ustc.edu.cn/cas/login')) {
-              this.haveTriedLogin = true;
+            if (this.initUrl.startsWith('https://hub.hust.edu.cn/') && !(UnifiedPreferences.hasSync(UID_KEY) && UnifiedPreferences.hasSync(PASSWORD_KEY)) && UnifiedPreferences.getBoolSync(REMIND_KEY, true))
+              this.dialogController.open();
+            if (!this.haveTriedLogin && this.webviewController.getUrl().startsWith('https://id.ustc.edu.cn/cas/login')) {
               if (!(UnifiedPreferences.hasSync(UID_KEY) && UnifiedPreferences.hasSync(PASSWORD_KEY))) {
                 if (UnifiedPreferences.getBoolSync(REMIND_KEY, true))
                   this.dialogController.open();
               } else {
+                this.haveTriedLogin = true;
                 this.webviewController.runJavaScript(fillInformationJS, (error, result) => {
                   console.info(`自动填写uid：${UnifiedPreferences.getSync(UID_KEY)}`);
                 });
               }
+            }
+
+            if (this.isTimetablePage) {
+              pollUntilLoad(() => this.webviewController.runJavaScript(timeTableQueryJS))
+                .then((result: string) => {
+                  if (result !== 'null') {
+                    this.allowGet = true;
+                    this.timetable = result;
+                    return;
+                  }
+                });
+            }
+
+            if (this.isExamInfoPage) {
+              this.webviewController.runJavaScript(examInfoQueryJS, (error, result) => {
+                if (error) {
+                  this.allowGet = true;
+                  this.getUIContext().getPromptAction().showToast({ message: $r('app.string.get_exam_info_err_msg'), duration: 2000 });
+                  return;
+                }
+                if (result === 'null') {
+                  this.allowGet = true;
+                  this.getUIContext().getPromptAction().showToast({ message: $r('app.string.auto_get_exam_info_fail_msg'), duration: 2000 });
+                  return;
+                }
+                this.getUIContext().getPromptAction().showToast({ message: $r('app.string.get_exam_info_succ_msg'), duration: 2000 });
+                this.pathStack.pop(result);
+              })
             }
           })
 
@@ -217,6 +287,19 @@ struct Webview {
           .alignItems(HorizontalAlign.Center)
         }
 
+        if (this.url.startsWith('https://jw.ustc.edu.cn/for-std/course-table')) {
+          ExceptionPrompt({
+            options: {
+              tip: $r('app.string.get_schedule_hint'),
+              marginType: MarginType.DEFAULT_MARGIN,
+              marginTop: 7,
+              isShown: this.showGetHint,
+              icon: $r('app.media.lightbulb')
+            },
+            onTipClick: () => this.showGetHint = false
+          })
+        }
+
         Line()
           .visibility(this.loadingProgress == 100 ? Visibility.None : Visibility.Visible)
           .width(`${this.loadingProgress}%`)
@@ -236,7 +319,7 @@ struct Webview {
       }
       .height('100%')
       .width('100%')
-      .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+      .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
     }
     .title(this.customTitle(), {
       backgroundColor: (BackgroundImage.blurLevel === undefined ? $r(`app.color.shaded_background${BackgroundImage.themeColor}`) : '#00d00721')
@@ -247,10 +330,17 @@ struct Webview {
     .onReady((context: NavDestinationContext) => {
       this.pathStack = context.pathStack;
     })
+    .onBackPressed(() => {
+      this.webviewController.terminateRenderProcess();
+      if (this.isTimetablePage) {
+        this.pathStack.pop(this.selectIndex);
+        return true;
+      } else
+        return false;
+    })
   }
 
-  @Builder
-  customTitle() {
+  @Builder customTitle() {
     Row({ space: 6 }) {
       Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
         Image($r('app.media.close'))
@@ -261,46 +351,15 @@ struct Webview {
       .width(40)
       .onClick(() => {
         this.webviewController.terminateRenderProcess();
-        this.pathStack.pop();
+        this.pathStack.pop(this.selectIndex);
       })
 
       Text(this.title)
         .fontSize(20)
         .fontWeight(FontWeight.Bold)
         .layoutWeight(1)
+        .maxLines(1)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
-
-      Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
-        Image($r('app.media.back'))
-          .height(20)
-          .draggable(false)
-      }
-      .height(40)
-      .width(40)
-      .parallelGesture(
-        GestureGroup(
-          GestureMode.Exclusive,
-          TapGesture({ count: 1 })
-            .onAction(() => {
-              if (this.webviewController.accessBackward()) {
-                this.webviewController.backward();
-              } else {
-                this.pathStack.pop();
-              }
-            }),
-          LongPressGesture()
-            .onAction(() => {
-              if (this.webviewController.accessBackward()) {
-                let i: number = -1;
-                while (this.webviewController.accessStep(i))
-                  i--;
-                this.webviewController.backOrForward(i + 1);
-              } else {
-                this.getUIContext().getPromptAction().showToast({ message: $r('app.string.already_first_page') });
-              }
-            })
-        )
-      )
 
       Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
         Image($r('app.media.refresh'))
@@ -319,20 +378,45 @@ struct Webview {
       .height(40)
       .width(40)
       .onClick(() => {
-        this.webviewController.runJavaScript(getSemesterNameJS, (error, result) => {
-          if (error) {
-            this.semesterName = '自定义名称';
-            return;
-          }
-          this.semesterName = result.replace(/^["']|["']$/g, '');
-        });
-        this.webviewController.runJavaScript(timeTableQueryJS, (error, result) => {
-          if (result)
-            this.timetable = result.replace(/^["']|["']$/g, '');
+        if (!this.allowGet) {
+          this.getUIContext().getPromptAction().showToast({ message: $r('app.string.do_not_worry'), duration: 1500 });
+        } else if (this.isTimetablePage) {
+          this.webviewController.runJavaScript(startTimeQueryJS, (error, result) => { // 此处返回值没有双引号
+            if (error) { /* 理论上这里不会出什么错误 */
+              return;
+            }
+            this.startTime = Number(result);
+          });
+          this.webviewController.runJavaScript(getSemesterNameJS, (error, result) => {
+            if (error) {
+              this.semesterName = '自定义名称';
+              return;
+            }
+            this.semesterName = result.replace(/^["']|["']$/g, '').replace(/\\/g, '');
+          });
+          this.webviewController.runJavaScript(timeTableQueryJS, (error, result) => {
+            if (!error && result)
+              this.timetable = result.replace(/^["']|["']$/g, '').replace(/\\/g, '');
+            else
+              this.timetable = '[[[]]]';
+          });
           this.showSelectTerm = true;
-          console.log('???');
-          console.log('???' + this.timetable);
-        });
+        } else if (this.isExamInfoPage) {
+          this.webviewController.runJavaScript(examInfoQueryJS, (error, result) => {
+            if (error) {
+              this.getUIContext().getPromptAction().showToast({ message: $r('app.string.get_exam_info_err_msg'), duration: 2000 });
+              return;
+            }
+            if (result === 'null') {
+              this.getUIContext().getPromptAction().showToast({ message: $r('app.string.auto_get_exam_info_fail_msg'), duration: 2000 });
+              return;
+            }
+            this.getUIContext().getPromptAction().showToast({ message: $r('app.string.get_exam_info_succ_msg'), duration: 2000 });
+            this.pathStack.pop(result);
+          });
+        } else {
+          this.getUIContext().getPromptAction().showToast({ message: $r('app.string.do_not_worry'), duration: 1500 });
+        }
       })
       .bindSheet($$this.showSelectTerm, this.selectTerm(), {
         detents: [SheetSize.LARGE],
@@ -341,7 +425,7 @@ struct Webview {
         blurStyle: BlurStyle.Regular,
         enableOutsideInteractive: false,
         enableFloatingDragBar: true,
-        title: { title: '获取成功！', subtitle: '请选择一个课表保存' }
+        title: { title: '嘿咻——拿到啦！', subtitle: '新建或选择已有学期以保存课表' }
       })
     }
     .padding({ left: 12, right: 12 })
@@ -353,69 +437,93 @@ struct Webview {
   @State showSelectTerm: boolean = false;
   @State semesterName: string = '自定义名称';
   @State selectIndex: number = 0;
+  @State semesters: semesterAttribute[] = ScheduleManager.semesters;
 
-  @Builder
-  selectTerm() {
+  @Builder selectTerm() {
     Column() {
+      Row() {
+        Text('名称')
+          .margin({ left: 40 })
+          .fontSize(17)
+          .fontWeight(FontWeight.Bold)
+        Text('学期开始日期')
+          .fontSize(17)
+          .fontWeight(FontWeight.Bold)
+      }
+      .justifyContent(FlexAlign.SpaceBetween)
+      .margin({ bottom: 6 })
+      .width('100%')
+
       Scroll() {
-        ColumnSplit() {
-          Row() {
+        Column() {
+          Row({ space: 5 }) {
             Image($r('app.media.add'))
-              .width(30)
-              .height(30)
-            Text('新课表…（' + this.semesterName + '）')
+              .width(25)
+              .height(25)
+            Text($r('app.string.new_semester', this.semesterName))
               .layoutWeight(1)
+            Text(new Date(this.startTime).toLocaleString('zh-cn', { year: 'numeric', month: '2-digit', day: '2-digit'}))
           }
           .height(50)
           .width('100%')
           .onClick(() => {
-            ScheduleManager.newSemester(this.timetable, Number(this.startTime), this.semesterName);
+            ScheduleManager.newSemester(this.semesterName, '从教务系统导入', this.startTime, Date.now(), undefined, ScheduleManager.parseOnlineSchedule(JSON.parse(this.timetable) as classAttribute[][][]));
+            this.semesters = ScheduleManager.semesters;
+            this.selectIndex = this.semesters.length - 1;
+            this.getUIContext().getPromptAction().showToast({ message: $r('app.string.have_saved', truncateString(this.semesterName, 10)) })
           })
 
-          ForEach(ScheduleManager.addingTimestamp, (singleTerm: number, index: number) => {
-            Row() {
+          ForEach(this.semesters, (singleTerm: semesterAttribute, index: number) => {
+            Divider();
+
+            Row({ space: 5 }) {
               Image($r('app.media.selected'))
-                .width(30)
-                .height(30)
+                .width(25)
+                .height(25)
                 .visibility(index === this.selectIndex ? Visibility.Visible : Visibility.Hidden);
-              Text(UnifiedPreferences.getSync(`ScheduleNameAt${singleTerm}`))
+              Text(singleTerm.name)
                 .layoutWeight(1)
-              Text(new Date(UnifiedPreferences.getSync(`ScheduleTimeAt${singleTerm}`)).toLocaleDateString('zh-cn'))
+                .maxLines(2)
+                .textOverflow({ overflow: TextOverflow.Ellipsis })
+              Text(new Date(singleTerm.beginTime).toLocaleString('zh-cn', { year: 'numeric', month: '2-digit', day: '2-digit'}))
             }
             .alignItems(VerticalAlign.Center)
             .height(50)
             .width('100%')
             .onClick(() => {
               this.selectIndex = index;
-              console.log(UnifiedPreferences.getSync(`ScheduleDataAt${singleTerm}`, '[][][]'));
             })
           })
         }
         .width('100%')
-        .padding({
-          top: 10,
-          bottom: 10,
-          left: 16,
-          right: 16
-        })
-        .backgroundColor($r('app.color.grid_background'))
-        .borderRadius(20)
+        .padding({ left: 10, right: 10 })
       }
-      .padding({ bottom: 16, left: 16, right: 16 })
+      .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: false })
+      .width('100%')
+      .align(Alignment.Top)
       .layoutWeight(1)
 
       Row() {
-        Button('追加')
+        Button($r('app.string.cover'))
+          .buttonStyle(ButtonStyleMode.TEXTUAL)
+          .width('50%')
           .onClick(() => {
-            ScheduleManager.editSemester(ScheduleManager.addingTimestamp[this.selectIndex], this.timetable, Number(this.startTime), false);
+            ScheduleManager.coverExistSemester(this.selectIndex, ScheduleManager.parseOnlineSchedule(JSON.parse(this.timetable) as classAttribute[][][]), false);
+            this.getUIContext().getPromptAction().showToast({ message: $r('app.string.have_covered', truncateString(this.semesters[this.selectIndex].name, 10)) });
           })
-        Button('覆盖')
+        Button($r('app.string.append'))
+          .buttonStyle(ButtonStyleMode.NORMAL)
+          .width('50%')
           .onClick(() => {
-            ScheduleManager.editSemester(ScheduleManager.addingTimestamp[this.selectIndex], this.timetable, Number(this.startTime), true);
+            ScheduleManager.coverExistSemester(this.selectIndex, ScheduleManager.parseOnlineSchedule(JSON.parse(this.timetable) as classAttribute[][][]), true);
+            this.getUIContext().getPromptAction().showToast({ message: $r('app.string.have_appended', truncateString(this.semesters[this.selectIndex].name, 10)) });
           })
       }
+      .margin({ top: 10 })
       .width('100%')
-      .justifyContent(FlexAlign.SpaceEvenly)
     }
+    .width('100%')
+    .height('100%')
+    .padding({ left: 16, right: 16, bottom: 16 })
   }
 }

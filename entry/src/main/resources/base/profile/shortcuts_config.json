@@ -2,7 +2,7 @@
   "shortcuts": [
     {
       "shortcutId": "menu_schedule",
-      "label": "$string:your_schedule",
+      "label": "$string:local_schedule",
       "icon": "$media:shortcut_schedule",
       "wants": [
         {

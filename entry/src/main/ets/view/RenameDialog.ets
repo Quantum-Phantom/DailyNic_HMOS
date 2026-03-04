@@ -44,7 +44,7 @@ export default struct RenameDialog {
             this.controller.close();
           })
       }
-      .margin({ top: 5 })
+      .margin({ top: 16 })
     }
     .padding(16)
     .width('100%')

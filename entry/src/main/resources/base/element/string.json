@@ -89,6 +89,34 @@
       "value": "同步在线课表…"
     },
     {
+      "name": "append",
+      "value": "追加"
+    },
+    {
+      "name": "cover",
+      "value": "覆盖"
+    },
+    {
+      "name": "have_appended",
+      "value": "已追加到「%s」"
+    },
+    {
+      "name": "have_covered",
+      "value": "已覆盖「%s」"
+    },
+    {
+      "name": "have_saved",
+      "value": "已保存到「%s」"
+    },
+    {
+      "name": "new_semester",
+      "value": "新学期…（%s）"
+    },
+    {
+      "name": "get_schedule_hint",
+      "value": "(点此隐藏)点右上角按钮获取课表，或切换网站上的学期获取非当前学期课表"
+    },
+    {
       "name": "online_exam_info",
       "value": "同步考试信息…"
     },
@@ -629,8 +657,8 @@
       "value": "考试信息获取成功！"
     },
     {
-      "name": "auto_get_info",
-      "value": "(๑>◡<๑)别着急，等加载好了我会帮你"
+      "name": "do_not_worry",
+      "value": "(๑>◡<๑)别着急，内容还没有完全加载呢"
     },
     {
       "name": "day",

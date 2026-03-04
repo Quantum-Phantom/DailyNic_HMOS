@@ -42,8 +42,7 @@ struct Schedule {
 
 
   @State showXiuHint: boolean = false;
-  @Builder
-  xiuHintPopup() {
+  @Builder xiuHintPopup() {
     Row() {
       Popup({
         icon: { image: $r('app.media.lightbulb') },
@@ -59,8 +58,7 @@ struct Schedule {
       })}
   }
   @State showPinchHint: boolean = false;
-  @Builder
-  pinchHintPopup() {
+  @Builder pinchHintPopup() {
     Row() {
       Popup({
         icon: { image: $r('app.media.lightbulb') },
@@ -76,8 +74,7 @@ struct Schedule {
       })}
   }
   @State showColorHint: boolean = false;
-  @Builder
-  colorHintPopup() {
+  @Builder colorHintPopup() {
     Row() {
       Popup({
         icon: { image: $r('app.media.lightbulb') },
@@ -94,8 +91,7 @@ struct Schedule {
     }
   }
   @State showScrollHint: boolean = false;
-  @Builder
-  scrollHintPopup() {
+  @Builder scrollHintPopup() {
     Row() {
       Popup({
         icon: { image: $r('app.media.lightbulb') },
@@ -324,7 +320,10 @@ struct Schedule {
           this.pathStack.pushPath({ name: "GetSchedule",
             param: [$r('app.string.online_schedule'), 'https://jw.ustc.edu.cn/for-std/course-table'],
             onPop: (popInfo: PopInfo) => {
-              this.initSchedule();
+              if (typeof popInfo.result === 'number' && popInfo.result < ScheduleManager.semesters.length) {
+                ScheduleManager.switchTempSemester(popInfo.result);
+                this.initSchedule();
+              }
             }
           });
         });
@@ -474,9 +473,7 @@ struct Schedule {
     .width('100%')
     .padding(16)
   }
-  /*
-   * 叠课弹窗部分
-   */
+
 
   /**
    * 切换学期弹窗
@@ -1152,7 +1149,7 @@ struct Schedule {
        * 周数信息与翻页
        */
       Row() { // 高度30
-        Text(tools.timestampToDateTime(this.weekStart) + ' ~ ' + tools.timestampToDateTime(this.weekStart + 518400000))
+        Text(new Date(this.weekStart).toLocaleString('fr-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }) + ' ~ ' + new Date(this.weekStart + 518400000).toLocaleString('fr-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }))
           .id('week_of_term_span')
           .fontWeight(FontWeight.Bold)
           .fontSize(14)
@@ -1163,7 +1160,7 @@ struct Schedule {
           .height(18)
           .padding({ left: 20, right: 20 })
           .draggable(false)
-          .opacity(this.weekDisplayed === 1 ? 0.4 : 1)
+          .opacity(this.weekDisplayed > 1 ? 1 : 0.4)
           .onClick(() => {
             if (this.weekDisplayed > 1) {
               this.weekDisplayed--;
@@ -1182,9 +1179,9 @@ struct Schedule {
           .padding({ left: 20, right: 20 })
           .objectFit(ImageFit.Contain)
           .draggable(false)
-          .opacity(this.weekDisplayed >= (this.semesters[this.displayTerm]?.totalWeekNum ?? 0) ? 0.4 : 1)
+          .opacity(this.weekDisplayed < 20 ? 1 : 0.4)
           .onClick(() => {
-            if (this.weekDisplayed < this.semesters[this.displayTerm].totalWeekNum) {
+            if (this.weekDisplayed < 20) {
               this.weekDisplayed++;
               this.weekStart += millisecondsPerWeek;
               this.refreshGrid();

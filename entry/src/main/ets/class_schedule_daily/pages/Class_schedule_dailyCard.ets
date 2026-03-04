@@ -36,12 +36,12 @@ struct Class_schedule_dailyCard {
           Image($r('app.media.no_course_today'))
             .height(50)
             .interpolation(ImageInterpolation.Medium)
-          Text(scheduleManager.isTermEnd ? $r('app.string.no_class_term_end') : $r('app.string.no_class_today'))
+          Text(true ? $r('app.string.no_class_term_end') : $r('app.string.no_class_today'))
         }
         .justifyContent(FlexAlign.Center)
       }
       .width('100%')
-      .height(scheduleManager.isTermEnd ? '100%' : undefined)
+      .height(true ? '100%' : undefined)
       .padding({ top: 12, bottom: 12 })
     } else {
       ForEach(this.todayCourse, (course: ScheduleSources.classAttribute, index: number) => {
