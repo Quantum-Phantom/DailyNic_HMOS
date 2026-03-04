@@ -45,10 +45,6 @@
       "value": "连续签到天数：%d"
     },
     {
-      "name": "your_schedule",
-      "value": "你的课表"
-    },
-    {
       "name": "local_schedule",
       "value": "本地课表"
     },
@@ -73,20 +69,16 @@
       "value": "创建时间：%s"
     },
     {
-      "name": "manually_create",
-      "value": "新课程…"
-    },
-    {
-      "name": "import_from_school",
-      "value": "从教务系统导入"
-    },
-    {
       "name": "search_in_all_courses",
       "value": "在全校开设课程中搜索"
     },
     {
       "name": "rename",
-      "value": "重命名"
+      "value": "撰其新名"
+    },
+    {
+      "name": "rename_semester",
+      "value": "能为学期「%s」重撰名字。重撰名字后，你可以再次更改。"
     },
     {
       "name": "delete_semester_or_not",

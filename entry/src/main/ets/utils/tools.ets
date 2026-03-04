@@ -151,7 +151,7 @@ export function getClassTimestamp(termBeginDate: number, week: number, day: numb
     + surplus;                  // 第几节课结束
 }
 
-export function timestampToDateTime(timestamp: number, format: string = 'yyyy-MM-DD'): string {
+function timestampToDateTime(timestamp: number, format: string = 'yyyy-MM-DD'): string {
   const date = new Date(timestamp);
 
   const year = date.getFullYear().toString();
@@ -265,6 +265,25 @@ export function formatBytes(bytes: number, decimals: number = 2, useBinary: bool
   const i = Math.floor(Math.log(bytes) / Math.log(k));
 
   return `${(bytes / Math.pow(k, i)).toFixed(dm)} ${sizes[i]}`;
+}
+
+/**
+ * 从课表页面分离课程编号和学分
+ * @param inputStr 输入字符串，格式如 "CS1000.H1 [3]"
+ * @returns 受限于要求，返回一个大小为2的字符串数组，下标0为编号，1为学分；提取失败时，[0]为原字符串，[1]为'0'
+ */
+export function extractCredits(inputStr: string): string[] {
+  const regex = /(.*?)\s*\[(\d+\.?\d*)\]/;
+  const matchResult = inputStr.match(regex);
+
+  if (matchResult && matchResult.length >= 3) {
+    const numValue = Number(matchResult[2]);
+    // 额外验证：确保转换后的数字是有效的（避免空字符串/非数字）
+    if (!isNaN(numValue)) {
+      return [matchResult[1], matchResult[2]];
+    }
+  }
+	return [inputStr, '0'];
 }
 
 

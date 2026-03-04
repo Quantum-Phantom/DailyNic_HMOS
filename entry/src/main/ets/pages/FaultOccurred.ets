@@ -1,5 +1,5 @@
 
-import UnifiedPreferences, { SCHEDULE_KEY, START_TIME_KEY } from '../utils/UnifyPreference';
+import UnifiedPreferences from '../utils/UnifyPreference';
 import { BusinessError, pasteboard } from '@kit.BasicServicesKit';
 import { common, Want } from '@kit.AbilityKit';
 import { examAttribute } from '../utils/ExamManager';
@@ -42,8 +42,8 @@ struct FaultOccurred {
             .onClick(() => {
               this.button1ClickTimes++;
               if (this.button1ClickTimes == 2) {
-                UnifiedPreferences.deleteSync(SCHEDULE_KEY);
-                UnifiedPreferences.deleteSync(START_TIME_KEY);
+                UnifiedPreferences.deleteSync('scheduleInfo');
+                UnifiedPreferences.deleteSync('termStartTime');
                 UnifiedPreferences.deleteSync('FinalWeek');
                 this.button1Text = $r('app.string.clear_success');
               } else if (this.button1ClickTimes == 1) {

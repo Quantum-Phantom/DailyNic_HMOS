@@ -1,7 +1,9 @@
 import { webview } from '@kit.ArkWeb';
+import { extractCredits } from '../utils/tools';
 import UpdateInfo from '../view/UpdateInfo';
-import scheduleManager from '../utils/TimeTable';
+import ScheduleManager from '../utils/ScheduleManager';
 import UnifiedPreferences from '../utils/UnifyPreference';
+import { classAttribute } from '../constants/ScheduleSources';
 
 @Entry
 @Component
@@ -78,8 +80,25 @@ struct UpdateLog {
           .buttonStyle(ButtonStyleMode.TEXTUAL)
           .enabled(this.agreePolitic)
           .onClick(() => {
-            scheduleManager.updateChange('2.0.0');
-            UnifiedPreferences.putSync('AppVersion', '2.0.0');
+            const legacySchedule: classAttribute[][][] = JSON.parse(UnifiedPreferences.getSync('scheduleInfo', '[[[]]]'));
+            const convertSchedule: classAttribute[] = [];
+            legacySchedule.forEach(layer1 => {
+              layer1?.forEach(layer2 => {
+                layer2?.forEach(layer3 => {
+                  if (layer3) {
+                    const result: string[] = extractCredits(layer3.id);
+                    layer3.id = result[0];
+                    layer3.credits = Number(result[1]);
+                    convertSchedule.push(layer3);
+                  }
+                });
+              });
+            });
+            ScheduleManager.newSemester('App 旧版本保存的课表', '从 Ver ' + UnifiedPreferences.getSync('AppVersion', '2.0.0') + ' 自动转换', Number(UnifiedPreferences.getSync('termStartTime', '20250721')), new Date().getTime(), undefined, convertSchedule);
+            UnifiedPreferences.deleteSync('termStartTime');
+            UnifiedPreferences.deleteSync('scheduleInfo');
+
+            UnifiedPreferences.putSync('AppVersion', '3.0.0');
             this.getUIContext().getRouter().back();
           })
       }

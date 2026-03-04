@@ -8,9 +8,6 @@ export const TOTAL_DAYS_KEY = 'totalDays';
 export const CONSECUTIVE_DAYS_KEY = 'consecutiveDays';
 export const CONTENT_KEY = 'content';
 
-export const SCHEDULE_KEY = 'scheduleInfo';
-export const START_TIME_KEY = 'termStartTime';
-
 export const millisecondsPerWeek = 604800000;
 
 export const UID_KEY = 'studentUID';

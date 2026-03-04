@@ -32,7 +32,7 @@ struct Schedule {
   gridMinHeight: number = 0;
   @State maxLinesH: number = 1; // H意为height
 
-  private currentWeek: number = 1;
+  @State currentWeek: number = 1;
   @State weekDisplayed: number = 1;
   @State weekStart: number = 0;
   private currentWeekStart: number = 0;
@@ -285,7 +285,7 @@ struct Schedule {
    */
   @Builder editMenu() {
     Menu() {
-      MenuItem({ content: $r('app.string.manually_create'), startIcon: $r('app.media.plus_square') })
+      MenuItem({ content: $r('app.string.class_detail_new'), startIcon: $r('app.media.plus_square') })
         .onClick(() => {
           this.checkBoxGroup = (this.checkBoxGroup + 1) % 2;
           this.isChangeSchedule = false;
@@ -319,7 +319,7 @@ struct Schedule {
           this.rectifyTimeSpan = [6, 7];
           this.showSheet = true;
         });
-      MenuItem({ content: $r('app.string.import_from_school'), startIcon: $r('app.media.cloud_download')})
+      MenuItem({ content: $r('app.string.online_schedule'), startIcon: $r('app.media.cloud_download')})
         .onClick(() => {
           this.pathStack.pushPath({ name: "GetSchedule",
             param: [$r('app.string.online_schedule'), 'https://jw.ustc.edu.cn/for-std/course-table'],
@@ -647,6 +647,8 @@ struct Schedule {
                   .edgeAlign(CalendarAlign.CENTER)
                   .onChange((value: Date) => {
                     ScheduleManager.changeSemesterStartTime(index, value.setHours(0, 0, 0, 0) - 86400000 * value.getDay());
+                    if (this.displayTerm === index)
+                      this.initSchedule();
                   })
               }
               .margin({ left: 15 })
@@ -724,11 +726,12 @@ struct Schedule {
     const termStartTime: number = this.semesters[this.displayTerm].beginTime;
     if (currentTime.getTime() < termStartTime || currentTime.getTime() > termStartTime + this.semesters[this.displayTerm].totalWeekNum * millisecondsPerWeek) {
       this.currentWeek = this.weekDisplayed = 1;
+      this.currentWeekStart = this.weekStart = termStartTime;
     } else {
       this.currentWeek = this.weekDisplayed = Math.ceil((currentTime.getTime() - termStartTime) / millisecondsPerWeek);
+      this.currentWeekStart = this.weekStart = new Date(new Date(currentTime).setDate(currentTime.getDate() - currentTime.getDay())).setHours(0, 0, 0, 0);
     }
     this.thisWeekSchedule = ScheduleManager.getClassesByWeek(this.currentWeek);
-    this.currentWeekStart = this.weekStart = new Date(new Date(currentTime).setDate(currentTime.getDate() - currentTime.getDay())).setHours(0, 0, 0, 0);
     this.displayName = this.semesters[this.displayTerm].name;
     this.sepConflictClass();
   }
@@ -1179,9 +1182,9 @@ struct Schedule {
           .padding({ left: 20, right: 20 })
           .objectFit(ImageFit.Contain)
           .draggable(false)
-          .opacity(this.weekDisplayed === 20 ? 0.4 : 1)
+          .opacity(this.weekDisplayed >= (this.semesters[this.displayTerm]?.totalWeekNum ?? 0) ? 0.4 : 1)
           .onClick(() => {
-            if (this.weekDisplayed < 20) {
+            if (this.weekDisplayed < this.semesters[this.displayTerm].totalWeekNum) {
               this.weekDisplayed++;
               this.weekStart += millisecondsPerWeek;
               this.refreshGrid();

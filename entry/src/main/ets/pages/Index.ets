@@ -11,9 +11,9 @@ import SettingsData from '../constants/SettingsSources'
 import { CheckInTools } from '../utils/CheckIn'
 import examManager, { examAttribute } from '../utils/ExamManager'
 import * as FunctionOrder from '../utils/FunctionOrder'
-import scheduleManager from '../utils/TimeTable'
+import ScheduleManager from '../utils/ScheduleManager'
 import * as tools from '../utils/tools'
-import UnifiedPreferences from '../utils/UnifyPreference'
+import UnifiedPreferences, { millisecondsPerWeek } from '../utils/UnifyPreference'
 import WriteCalendar from '../utils/WriteCalendar'
 
 import BackgroundImage from '../utils/BgImageManager'
@@ -312,27 +312,33 @@ struct Index {
   /*
    * 常用功能
    */
-  @State isTermBegin: boolean = scheduleManager.isTermBegin;
-  @State isTermEnd: boolean = scheduleManager.isTermEnd;
+  @State termState: number = 0; // 0：未开始，1：进行中，2：已结束
+  private currentWeek: number = 1;
+  private todayBeginTime: number = 0;
   refreshInfo() {
-    scheduleManager.getFormattedSchedule(); // 初始化首页课表
-    this.isTermBegin = scheduleManager.isTermBegin;
-    this.isTermEnd = scheduleManager.isTermEnd;
-    if (scheduleManager.isTermEnd || !scheduleManager.isTermBegin) {
-      this.todayCourse = [];
-      this.tomorrowCourse = [];
+    this.currentTime = new Date();
+    const termStartTime: number = ScheduleManager.semesters[ScheduleManager.defaultSemester].beginTime;
+    if (this.currentTime.getTime() < termStartTime) {
+      this.termState = 0;
+      this.currentWeek = 1;
+    } else if (this.currentTime.getTime() > termStartTime + ScheduleManager.semesters[ScheduleManager.defaultSemester].totalWeekNum * millisecondsPerWeek) {
+      this.termState = 2;
+      this.currentWeek = 1;
     } else {
-      this.todayCourse = scheduleManager.formattedSchedule[scheduleManager.weekDisplayed][scheduleManager.today];
-      this.tomorrowCourse = scheduleManager.formattedSchedule[scheduleManager.weekDisplayed + (scheduleManager.today === 5 ? 1 : 0)][(scheduleManager.today + 1) % 7];
+      this.termState = 1;
+      this.currentWeek = Math.ceil((this.currentTime.getTime() - termStartTime) / millisecondsPerWeek);
     }
+    this.todayCourse = ScheduleManager.getClassByDay(this.currentWeek, this.currentTime.getDay());
+    this.tomorrowCourse = ScheduleManager.getClassByDay(this.currentWeek + (this.currentTime.getDay() === 6 ? 1 : 0), (this.currentTime.getDay() + 1) % 7);
+
+    this.todayBeginTime = new Date(this.currentTime).setHours(0, 0, 0, 0);
     this.isTodayCourseEnd = true;
     for (let todaySingleCourse of this.todayCourse)
-      if (this.currentTime.getTime() < scheduleManager.weekStart + (scheduleManager.today + 1) % 7 * 86400000
-        + ScheduleSources.commonClassStamp[todaySingleCourse.timeSpan[todaySingleCourse.timeSpan.length - 1]][1]) {
+      if (this.currentTime.getTime() < this.todayBeginTime + ScheduleSources.commonClassStamp[todaySingleCourse.timeSpan[todaySingleCourse.timeSpan.length - 1]][1]) {
         this.isTodayCourseEnd = false;
         break;
       }
-    this.currentTime = new Date();
+
     examManager.readStoredExam();
     this.exams = examManager.allExamInfo;
     for (let i = this.exams.length - 1; i >= 0; i--)
@@ -446,7 +452,7 @@ struct Index {
 
             Blank()
 
-            Text($r('app.string.your_schedule'))
+            Text($r('app.string.local_schedule'))
               .fontSize(18)
               .fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.normal_text'))
@@ -476,36 +482,33 @@ struct Index {
             Divider();
             if (this.todayCourse.length === 0) {
               Column() {
-                if (this.isTermBegin) {
-                  if (this.isTermEnd) {
-                    Image($r('app.media.no_course_term_end'))
-                      .height(75)
-                      .interpolation(ImageInterpolation.Medium)
-                      .draggable(false);
-                    Text($r('app.string.no_class_term_end'))
-                      .textAlign(TextAlign.Center);
-                  } else {
-                    Image($r('app.media.no_course_today'))
-                      .height(75)
-                      .interpolation(ImageInterpolation.Medium)
-                      .draggable(false);
-                    Text($r('app.string.no_class_today'))
-                      .textAlign(TextAlign.Center);
-                  }
-                } else {
+                if (this.termState === 0) {
                   Image($r('app.media.no_course_term_not_start'))
                     .height(75)
                     .interpolation(ImageInterpolation.Medium)
                     .draggable(false);
                   Text($r('app.string.no_class_term_not_start'))
                     .textAlign(TextAlign.Center);
+                } else if (this.termState === 1) {
+                  Image($r('app.media.no_course_today'))
+                    .height(75)
+                    .interpolation(ImageInterpolation.Medium)
+                    .draggable(false);
+                  Text($r('app.string.no_class_today'))
+                    .textAlign(TextAlign.Center);
+                } else {
+                  Image($r('app.media.no_course_term_end'))
+                    .height(75)
+                    .interpolation(ImageInterpolation.Medium)
+                    .draggable(false);
+                  Text($r('app.string.no_class_term_end'))
+                    .textAlign(TextAlign.Center);
                 }
               }
               .margin({ top: 12, bottom: 12 });
             } else {
               ForEach(this.todayCourse, (course: ScheduleSources.classAttribute, index: number) => {
-                if (this.currentTime.getTime() < scheduleManager.weekStart + (scheduleManager.today + 1) % 7 * 86400000
-                  + ScheduleSources.commonClassStamp[course.timeSpan[course.timeSpan.length - 1]][1] + 1800000) {
+                if (this.currentTime.getTime() < this.todayBeginTime + ScheduleSources.commonClassStamp[course.timeSpan[course.timeSpan.length - 1]][1] + 1800000) {
                   Row() {
                     Column() {
                       Line()
@@ -529,22 +532,17 @@ struct Index {
                         .maxLines(2)
                         .textOverflow({ overflow: TextOverflow.Ellipsis });
 
-                      if (this.currentTime.getTime() < scheduleManager.weekStart + (scheduleManager.today + 1) % 7 * 86400000
-                        + ScheduleSources.commonClassStamp[course.timeSpan[0]][0] &&
-                        this.currentTime.getTime() > scheduleManager.weekStart + (scheduleManager.today + 1) % 7 * 86400000
-                          + ScheduleSources.commonClassStamp[course.timeSpan[0]][0] - 1800000) {
+                      if (this.currentTime.getTime() < this.todayBeginTime + ScheduleSources.commonClassStamp[course.timeSpan[0]][0] &&
+                        this.currentTime.getTime() > this.todayBeginTime + ScheduleSources.commonClassStamp[course.timeSpan[0]][0] - 1800000) {
                         Text($r('app.string.class_soon'))
                           .fontColor($r('app.color.green'));
                       } else if (this.currentTime.getTime() >
-                        scheduleManager.weekStart + (scheduleManager.today + 1) % 7 * 86400000
-                          + ScheduleSources.commonClassStamp[course.timeSpan[0]][0] &&
-                        this.currentTime.getTime() < scheduleManager.weekStart + (scheduleManager.today + 1) % 7 * 86400000
-                          + ScheduleSources.commonClassStamp[course.timeSpan[course.timeSpan.length - 1]][1]) {
+                        this.todayBeginTime + ScheduleSources.commonClassStamp[course.timeSpan[0]][0] &&
+                        this.currentTime.getTime() < this.todayBeginTime + ScheduleSources.commonClassStamp[course.timeSpan[course.timeSpan.length - 1]][1]) {
                         Text($r('app.string.class_in_session'))
                           .fontColor($r('app.color.bright_blue'));
                       } else if (this.currentTime.getTime() >
-                        scheduleManager.weekStart + (scheduleManager.today + 1) % 7 * 86400000
-                          + ScheduleSources.commonClassStamp[course.timeSpan[course.timeSpan.length - 1]][1]) {
+                        this.todayBeginTime + ScheduleSources.commonClassStamp[course.timeSpan[course.timeSpan.length - 1]][1]) {
                         Text($r('app.string.class_end'))
                           .fontColor($r('app.color.red'));
                       } else {

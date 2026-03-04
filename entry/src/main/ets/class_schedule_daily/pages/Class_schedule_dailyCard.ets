@@ -1,4 +1,3 @@
-import scheduleManager from '../../utils/TimeTable';
 import { CardListComponent } from '../view/CardListComponent';
 import { CardListParameter } from '../viewmodel/CardListParameter';
 import * as ScheduleSources from '../../constants/ScheduleSources'

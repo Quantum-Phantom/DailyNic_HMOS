@@ -5,8 +5,9 @@ import { abilityAccessCtrl, bundleManager, PermissionRequestResult } from "@kit.
 
 import * as tools from './tools';
 import examManager from "./ExamManager";
-import scheduleManager from '../utils/TimeTable';
+import ScheduleManager from '../utils/ScheduleManager';
 import * as ScheduleSources from '../constants/ScheduleSources';
+import UnifyPreference from './UnifyPreference';
 
 
 class WriteCalendar {
@@ -255,52 +256,44 @@ class WriteCalendar {
                     } else {
                       this.showMessage(`已更改为 在${value.value}提醒`);
                     }
-                    let eventId: number | undefined = undefined;
-                    for (let layer1 = 0; layer1 <= 6; layer1++) // 星期几 -1{
-                      if (scheduleManager.parsedSchedule[layer1] != undefined) // 防止不存在元素
-                        for (let layer2 of scheduleManager.parsedSchedule[layer1]) // 星期几的每一节课
-                          if (layer2 != undefined)
-                            for (let layer3 of layer2) { // 叠课判断
-                              // 确保数组有序
-                              layer3.weekOfTerm.sort((a, b) => a - b);
-                              layer3.timeSpan.sort((a, b) => a - b);
-                              // 非上课周排除
-                              let excludeDates: number[] = [];
-                              for (let i = 1; i < layer3.weekOfTerm.length; i++) {
-                                for (let j = layer3.weekOfTerm[i - 1] + 1; j < layer3.weekOfTerm[i]; j++) {
-                                  excludeDates.push(tools.getClassTimestamp(scheduleManager.termStart, j,
-                                    (layer3.dayOfWeek + 1) % 7, ScheduleSources.commonClassStamp[layer3.timeSpan[0]][0]));
-                                }
-                              }
-                              // 设置日程
-                              const event: calendarManager.Event = {
-                                title: layer3.name, // 日程标题
-                                location: { location: layer3.location },
-                                type: calendarManager.EventType.NORMAL, // 日程类型
-                                startTime: tools.getClassTimestamp(scheduleManager.termStart,
-                                  layer3.weekOfTerm[0],
-                                  (layer3.dayOfWeek + 1) % 7,
-                                  ScheduleSources.commonClassStamp[layer3.timeSpan[0]][0]), // 日程开始时间
-                                endTime: tools.getClassTimestamp(scheduleManager.termStart,
-                                  layer3.weekOfTerm[0],
-                                  (layer3.dayOfWeek + 1) % 7,
-                                  ScheduleSources.commonClassStamp[layer3.timeSpan[1]][1]), // 日程结束时间
-                                reminderTime: ScheduleSources.remindBefore, // 距开始时间提前remindBefore分钟提醒
-                                recurrenceRule: {
-                                  // 日程重复规则
-                                  recurrenceFrequency: calendarManager.RecurrenceFrequency.WEEKLY, // 日程重复规则类型
-                                  count: layer3.weekOfTerm.length + excludeDates.length, // 日程重复次数，该字段和expire属性只需要填写一个，如果两个都填写按照count属性计算。
-                                  interval: 1, // 重复日程间隔时间，以recurrenceFrequency为单位
-                                  // expire: date.getTime() + 60 * 60 * 1000 * 3, 日程过期时间，该字段和count属性只需要填写一个，如果两个都填写按照count属性计算。
-                                  excludedDates: excludeDates // 日程排除日期，将该日期从重复日程中排除掉
-                                }
-                              };
-                              if (calendar != undefined) {
-                                calendar.addEvent(event).then((data: number) => {
-                                  eventId = data;
-                                });
-                              }
-                            }
+                    // let eventId: number | undefined = undefined;
+                    const allClasses: ScheduleSources.classAttribute[] = JSON.parse(UnifyPreference.getSync('SemesterDataAt' + ScheduleManager.semesters[ScheduleManager.defaultSemester].createTime, '[]')) as ScheduleSources.classAttribute[];
+                    const termStart: number = ScheduleManager.semesters[ScheduleManager.defaultSemester].beginTime;
+                      for (let singleClass of allClasses) { // 叠课判断
+                        // 确保数组有序
+                        singleClass.weekOfTerm.sort((a, b) => a - b);
+                        singleClass.timeSpan.sort((a, b) => a - b);
+                        // 非上课周排除
+                        let excludeDates: number[] = [];
+                        for (let i = 1; i < singleClass.weekOfTerm.length; i++) {
+                          for (let j = singleClass.weekOfTerm[i - 1] + 1; j < singleClass.weekOfTerm[i]; j++) {
+                            excludeDates.push(tools.getClassTimestamp(termStart, j, singleClass.dayOfWeek, ScheduleSources.commonClassStamp[singleClass.timeSpan[0]][0]));
+                          }
+                        }
+                        // 设置日程
+                        const event: calendarManager.Event = {
+                          title: singleClass.name, // 日程标题
+                          location: { location: singleClass.location },
+                          type: calendarManager.EventType.NORMAL, // 日程类型
+                          startTime: tools.getClassTimestamp(termStart, singleClass.weekOfTerm[0], singleClass.dayOfWeek, ScheduleSources.commonClassStamp[singleClass.timeSpan[0]][0]), // 日程开始时间
+                          endTime: tools.getClassTimestamp(termStart, singleClass.weekOfTerm[0], singleClass.dayOfWeek, ScheduleSources.commonClassStamp[singleClass.timeSpan[1]][1]), // 日程结束时间
+                          reminderTime: ScheduleSources.remindBefore, // 距开始时间提前remindBefore分钟提醒
+                          recurrenceRule: {
+                            // 日程重复规则
+                            recurrenceFrequency: calendarManager.RecurrenceFrequency.WEEKLY, // 日程重复规则类型
+                            count: singleClass.weekOfTerm.length + excludeDates.length, // 日程重复次数，该字段和expire属性只需要填写一个，如果两个都填写按照count属性计算。
+                            interval: 1, // 重复日程间隔时间，以recurrenceFrequency为单位
+                            // expire: date.getTime() + 60 * 60 * 1000 * 3, 日程过期时间，该字段和count属性只需要填写一个，如果两个都填写按照count属性计算。
+                            excludedDates: excludeDates // 日程排除日期，将该日期从重复日程中排除掉
+                          }
+                        };
+                        if (calendar != undefined) {
+                          calendar.addEvent(event)
+                            // .then((data: number) => {
+                            // eventId = data;
+                            // });
+                        }
+                      }
                   }).catch((err: BusinessError) => {
                     this.showMessage($r('app.string.denied_calendar_permission'));
                   });

@@ -1,6 +1,6 @@
 
 import { webview } from '@kit.ArkWeb';
-import ScheduleManager, { example } from '../utils/TimeTable';
+import ScheduleManager from '../utils/ScheduleManager';
 import PasswordDialog from '../view/PasswordDialog';
 import accountInfoProvider from '../utils/Encryption';
 import BackgroundImage from '../utils/BgImageManager';

@@ -133,8 +133,11 @@ class ScheduleManager {
    * @param timetable 课程表
    * @returns undefined，但如果发生错误则返回错误信息的字符串
    */
-  newSemester(name: string, source: string, beginTime: number, createTime: number, totWeekNum: number = 0, timetable?: classAttribute[]): string | undefined {
+  newSemester(name: string, source: string, beginTime: number, createTime: number, totWeekNum: number = 0, timetable: classAttribute[] = []): string | undefined {
     try {
+      if (timetable) {
+        totWeekNum = this.getLatestWeek(timetable);
+      }
       const semesterConfig: semesterAttribute = {
         name: name,
         source: source,
@@ -144,7 +147,7 @@ class ScheduleManager {
       };
       this.semesters.push(semesterConfig);
       UnifyPreferences.putSync('SemestersData', JSON.stringify(this.semesters));
-      UnifyPreferences.putSync('SemesterDataAt' + String(createTime), timetable ? JSON.stringify(timetable) : '[]');
+      UnifyPreferences.putSync('SemesterDataAt' + String(createTime), JSON.stringify(timetable));
       return;
     } catch(err) {
       return JSON.stringify(err);
@@ -169,10 +172,20 @@ class ScheduleManager {
             originSchedule.push(originClass);
           }
         }
+        let latestWeek: number = this.getLatestWeek(newSchedule);
+        if (latestWeek !== this.semesters[id].totalWeekNum) {
+          this.semesters[id].totalWeekNum = latestWeek;
+          UnifyPreferences.putSync('SemestersData', JSON.stringify(this.semesters));
+        }
         if (id === this.displaySemester)
           return this.rebuildIndex(newSchedule);
       } else { // 直接覆盖
         UnifyPreferences.putSync('SemesterDataAt' + String(this.semesters[id].createTime), JSON.stringify(newSchedule));
+        let latestWeek: number = this.getLatestWeek(newSchedule);
+        if (latestWeek !== this.semesters[id].totalWeekNum) {
+          this.semesters[id].totalWeekNum = latestWeek;
+          UnifyPreferences.putSync('SemestersData', JSON.stringify(this.semesters));
+        }
         if (id === this.displaySemester)
           return this.rebuildIndex(newSchedule);
       }
@@ -231,7 +244,7 @@ class ScheduleManager {
   /**
    * 获取课程列表中的最大周数
    * @param timetable 课程列表
-   * @returns 最大周数（数字），如果发生错误则返回-1
+   * @returns 最大周数（数字），如果发生错误则返回0
    */
   getLatestWeek(timetable: classAttribute[]): number {
     try {
@@ -241,7 +254,7 @@ class ScheduleManager {
       })
       return latestWeek;
     } catch(err) {
-      return -1;
+      return 0;
     }
   }
 

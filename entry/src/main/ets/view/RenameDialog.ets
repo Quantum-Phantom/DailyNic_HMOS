@@ -18,7 +18,14 @@ export default struct RenameDialog {
           .layoutWeight(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis });
       }
+      .margin({ bottom: 5 })
+
+      Text($r('app.string.rename_semester', this.name))
+        .margin({ bottom: 5 })
+        .width('90%')
+
       TextInput({ text: this.name })
+        .selectAll(true)
         .onChange((value: string) => {
           this.name = value;
         })

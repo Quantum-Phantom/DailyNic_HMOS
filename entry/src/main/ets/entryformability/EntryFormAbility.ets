@@ -1,11 +1,11 @@
 
-import { formBindingData, FormExtensionAbility, formInfo, formProvider } from '@kit.FormKit';
 import { Want } from '@kit.AbilityKit';
-import * as ScheduleSources from '../constants/ScheduleSources';
-import scheduleManager from '../utils/TimeTable';
-import examManager, { examAttribute } from '../utils/ExamManager';
 import { hilog } from '@kit.PerformanceAnalysisKit';
-import UnifiedPreferences, { SCHEDULE_KEY, UID_KEY } from '../utils/UnifyPreference'
+import { formBindingData, FormExtensionAbility, formInfo, formProvider } from '@kit.FormKit';
+import ScheduleManager from '../utils/ScheduleManager';
+import * as ScheduleSources from '../constants/ScheduleSources';
+import examManager, { examAttribute } from '../utils/ExamManager';
+import UnifiedPreferences, { millisecondsPerWeek } from '../utils/UnifyPreference';
 import { CardListParameter } from '../class_schedule_daily/viewmodel/CardListParameter';
 
 const TAG: string = 'EntryFormAbility';
@@ -17,20 +17,27 @@ class FormDataClass {
   title: ResourceStr = '';
   count: number = 0;
   examInfo: examAttribute[] = [];
-  currentTime: number = 0;
   lastRefresh: string = '';
   constructor(refreshType: number) {
+    const currentTime = new Date();
     if (refreshType === 0) { // 0 → 刷新课表
       this.title = $r("app.string.schedule_card_title");
-      scheduleManager.getFormattedSchedule();
-      if (!scheduleManager.isTermEnd && scheduleManager.isTermBegin) {
-        this.todayCourse = scheduleManager.formattedSchedule[scheduleManager.weekDisplayed][scheduleManager.today];
-        this.tomorrowCourse = scheduleManager.formattedSchedule[scheduleManager.weekDisplayed +
-          (scheduleManager.today == 5 ? 1 : 0)][(scheduleManager.today + 1) % 7];
+      const termStartTime: number = ScheduleManager.semesters[ScheduleManager.defaultSemester].beginTime;
+      let currentWeek: number = 0;
+      let termState: number = 1;
+      if (currentTime.getTime() < termStartTime) {
+        termState = 0;
+        currentWeek = 1;
+      } else if (currentTime.getTime() > termStartTime + ScheduleManager.semesters[ScheduleManager.defaultSemester].totalWeekNum * millisecondsPerWeek) {
+        termState = 2;
+        currentWeek = 1;
       } else {
-        this.todayCourse = [];
-        this.tomorrowCourse = [];
+        termState = 1;
+        currentWeek = Math.ceil((currentTime.getTime() - termStartTime) / millisecondsPerWeek);
       }
+      this.todayCourse = ScheduleManager.getClassByDay(currentWeek, currentTime.getDay());
+      this.tomorrowCourse = ScheduleManager.getClassByDay(currentWeek + (currentTime.getDay() === 6 ? 1 : 0), (currentTime.getDay() + 1) % 7);
+
       //this.cardListParameter.itemCount = this.todayCourse.length;
       this.count = this.todayCourse.length;
     } else if (refreshType === 1) { // 1 → 刷新考试
@@ -43,9 +50,7 @@ class FormDataClass {
           this.examInfo.splice(i, 1);
       this.count = this.examInfo.length;
     }
-    const now = scheduleManager.currentTime;
-    this.lastRefresh = `上次刷新: ${now.getMonth() + 1}月${now.getDate()}日${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
-    this.currentTime = now.getTime();
+    this.lastRefresh = '上次刷新: ' + currentTime.toLocaleString('zh-cn', { month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric' });
   }
 }
 
