@@ -115,29 +115,8 @@ struct Webview {
           }
         })
 
-      MenuItemGroup({ header: $r('app.string.switch_ua') }) {
-        MenuItem({ content: $r('app.string.visit_desktop_ua'), startIcon: $r('app.media.desktop'),
-          endIcon: (this.uaMode == DESKTOP_MODE ? $r('app.media.checkmark') : undefined) })
-          .onClick(() => {
-            this.webviewController.setCustomUserAgent(DESKTOP_UA);
-            this.webviewController.refresh();
-            this.uaMode = DESKTOP_MODE;
-          })
-        MenuItem({ content: $r('app.string.visit_mobile_ua'), startIcon: $r('app.media.mobile'),
-          endIcon: (this.uaMode == MOBILE_MODE ? $r('app.media.checkmark') : undefined) })
-          .onClick(() => {
-            this.webviewController.setCustomUserAgent(MOBILE_UA);
-            this.webviewController.refresh();
-            this.uaMode = MOBILE_MODE;
-          })
-        MenuItem({ content: $r('app.string.visit_tablet_ua'), startIcon: $r('app.media.tablet'),
-          endIcon: (this.uaMode == TABLET_MODE ? $r('app.media.checkmark') : undefined) })
-          .onClick(() => {
-            this.webviewController.setCustomUserAgent(TABLET_UA);
-            this.webviewController.refresh();
-            this.uaMode = TABLET_MODE;
-          })
-      }
+      MenuItem({ content: $r('app.string.switch_ua'), builder: this.changeUAMenu(),
+        startIcon: this.uaMode === MOBILE_MODE ? $r('app.media.mobile') : (this.uaMode === TABLET_MODE ? $r('app.media.tablet') : $r('app.media.desktop')) })
 
       MenuItem({ content: $r('app.string.open_in_full_screen'), startIcon: $r('app.media.arrow_right_up_and_square') })
         .enabled(this.isSplit === NavigationMode.Split)
@@ -166,6 +145,33 @@ struct Webview {
         .onClick(() => {
           this.getUIContext().getRouter().pushUrl({ url: 'pages/Help_legacy' })
             .catch((err: Error) => { console.error(`Router ERROR: [${err.name}] ${err.message}`) });
+        })
+    }
+    .subMenuExpandingMode(SubMenuExpandingMode.STACK_EXPAND)
+  }
+
+  @Builder changeUAMenu() {
+    Menu() {
+      MenuItem({ content: $r('app.string.visit_desktop_ua'), startIcon: $r('app.media.desktop'),
+        endIcon: (this.uaMode == DESKTOP_MODE ? $r('app.media.checkmark') : undefined) })
+        .onClick(() => {
+          this.webviewController.setCustomUserAgent(DESKTOP_UA);
+          this.webviewController.refresh();
+          this.uaMode = DESKTOP_MODE;
+        })
+      MenuItem({ content: $r('app.string.visit_mobile_ua'), startIcon: $r('app.media.mobile'),
+        endIcon: (this.uaMode == MOBILE_MODE ? $r('app.media.checkmark') : undefined) })
+        .onClick(() => {
+          this.webviewController.setCustomUserAgent(MOBILE_UA);
+          this.webviewController.refresh();
+          this.uaMode = MOBILE_MODE;
+        })
+      MenuItem({ content: $r('app.string.visit_tablet_ua'), startIcon: $r('app.media.tablet'),
+        endIcon: (this.uaMode == TABLET_MODE ? $r('app.media.checkmark') : undefined) })
+        .onClick(() => {
+          this.webviewController.setCustomUserAgent(TABLET_UA);
+          this.webviewController.refresh();
+          this.uaMode = TABLET_MODE;
         })
     }
   }
@@ -489,15 +495,10 @@ struct Webview {
         this.haveJumped = false;
     })
     .onBackPressed(() => {
-      if (this.webBackPress) {
-        this.webviewController.terminateRenderProcess();
-        return false;
-      }
-      if (this.webviewController.accessStep(-1)) {
+      if (this.webviewController.accessStep(-1) && !this.webBackPress) {
         this.webviewController.backward();
         return true;
       } else {
-        this.webviewController.terminateRenderProcess();
         return false;
       }
     })

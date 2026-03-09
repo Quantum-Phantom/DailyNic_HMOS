@@ -4,6 +4,7 @@ import accountInfoProvider from '../utils/Encryption';
 import { userAuth } from '@kit.UserAuthenticationKit';
 import { cryptoFramework } from '@kit.CryptoArchitectureKit';
 import { BusinessError } from '@kit.BasicServicesKit';
+import BackgroundImage, { presetColor } from '../utils/BgImageManager';
 
 /**
  * authResult 认证结果
@@ -191,12 +192,14 @@ export default struct PasswordDialog {
             .layoutWeight(1)
         }
         Button($r('app.string.cancel'))
+          .fontColor(presetColor[BackgroundImage.themeColor][2])
           .buttonStyle(ButtonStyleMode.TEXTUAL)
           .onClick(() => {
             this.controller.close();
           })
           .layoutWeight(1)
         Button($r('app.string.ok'))
+          .backgroundColor(presetColor[BackgroundImage.themeColor][2])
           .onClick(() => {
             if (this.inputUID === '')
               UnifiedPreferences.deleteSync(UID_KEY);

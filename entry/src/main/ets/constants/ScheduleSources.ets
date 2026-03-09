@@ -11,7 +11,7 @@ export interface classAttribute {
   id: string,
   color: string,
   priority: number,
-  credits: number
+  credits: string // 防止小数精度丢失
 }
 
 export interface semesterAttribute {

@@ -6,7 +6,7 @@ import ScheduleManager, { areClassAttributesEqual } from '../utils/ScheduleManag
 import * as tools from '../utils/tools';
 import { weekTranslate } from '../utils/tools';
 import UnifiedPreferences, { millisecondsPerWeek } from '../utils/UnifyPreference';
-import BackgroundImage from '../utils/BgImageManager';
+import BackgroundImage, { presetColor } from '../utils/BgImageManager';
 import RenameDialog from '../view/RenameDialog';
 
 
@@ -123,7 +123,7 @@ struct Schedule {
     dayOfWeek: 1,
     color: tools.colorSet[tools.getRandomInt(0, tools.colorSetLen - 1)],
     priority: 5,
-    credits: 3
+    credits: '3'
   };
   private oriClassInfo: ScheduleSources.classAttribute = {
     name: '计算机程序设计',
@@ -135,7 +135,7 @@ struct Schedule {
     dayOfWeek: 1,
     color: tools.colorSet[tools.getRandomInt(0, tools.colorSetLen - 1)],
     priority: 5,
-    credits: 3
+    credits: '3'
   };
 
   private rectifyTimeSpan: number[] = [this.oriClassInfo.timeSpan[0], this.oriClassInfo.timeSpan[this.oriClassInfo.timeSpan.length - 1]];
@@ -295,7 +295,7 @@ struct Schedule {
             dayOfWeek: 1,
             color: tools.colorSet[tools.getRandomInt(0, tools.colorSetLen - 1)],
             priority: 5,
-            credits: 3
+            credits: '3'
           };
           this.classInfo = {
             name: '计算机程序设计',
@@ -307,7 +307,7 @@ struct Schedule {
             dayOfWeek: 1,
             color: tools.colorSet[tools.getRandomInt(0, tools.colorSetLen - 1)],
             priority: 5,
-            credits: 3
+            credits: '3'
           };
           this.classColor = this.oriClassInfo.color;
           this.rectifyWeekOfTerm = [true, false, true, true, true, false, true, true, true, true, true,
@@ -329,9 +329,41 @@ struct Schedule {
         });
       MenuItem({ content: $r('app.string.search_in_all_courses'), startIcon: $r('app.media.search') })
         .onClick(() => {});
+      MenuItem({ startIcon: $r('app.media.archive'), content: "导入和导出", builder: this.archiveMenu() })
+    }
+    .subMenuExpandingMode(SubMenuExpandingMode.STACK_EXPAND)
+  }
+  @Builder archiveMenu() {
+    Menu() {
+      MenuItem({ content: $r('app.string.import_schedule'), startIcon: $r('app.media.import') })
+        .onClick(() => {});
+      MenuItem({ content: $r('app.string.export_schedule'), startIcon: $r('app.media.export') })
+        .onClick(() => {
+          const saveTime: number = Math.trunc(Date.now() / 1000);
+          interface exportSemester {
+            attribute: semesterAttribute,
+            courses: classAttribute[]
+          };
+          interface exportedData {
+            exportTime: number,
+            scheduleVersion: string,
+            semesters: exportSemester[]
+          };
+          let userContent: exportedData = {
+            exportTime: saveTime,
+            scheduleVersion: '3.0.0',
+            semesters: Array.from(ScheduleManager.semesters, (semester) => {
+              return {
+                attribute: semester,
+                courses: JSON.parse(UnifiedPreferences.getSync('SemesterDataAt' + String(semester.createTime), '[]'))
+              } as exportSemester;
+            })
+          };
+
+          tools.saveToFile(this.getUIContext(), "DailyNicSchedule_" + String(saveTime) + ".json", '数据交换格式|.json', JSON.stringify(userContent));
+        });
     }
   }
-
 
   /**
    * 叠课弹窗部分
@@ -492,6 +524,18 @@ struct Schedule {
           .fontSize(24)
           .layoutWeight(1)
           .margin({ left: 8 });
+
+        Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
+          Image($r('app.media.top'))
+            .height(24)
+            .width(24)
+            .draggable(false)
+        }
+        .width(42)
+        .height(42)
+        .margin({ right: 8 })
+        .onClick(() => {})
+
         Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
           Image($r('app.media.plus_square'))
             .height(24)
@@ -540,12 +584,12 @@ struct Schedule {
                   Image($r('app.media.default_semester'))
                     .height(22)
                     .width(22)
-                    .fillColor(this.defaultSemester === index ? $r('app.color.pink') : undefined)
+                    .fillColor(this.defaultSemester === index ? presetColor[BackgroundImage.themeColor][2] : undefined)
                 }
                 .height(40)
                 .width(40)
                 .onClick(() => {
-                  ScheduleManager.setDefaultSemester(index, true);
+                  ScheduleManager.setDefaultSemester(index);
                   this.defaultSemester = index;
                 })
 
@@ -668,7 +712,7 @@ struct Schedule {
             .alignItems(HorizontalAlign.Start)
             .padding(this.displayTerm === index ? 7 : 10)
             .borderRadius(20)
-            .borderColor(this.displayTerm === index ? $r('app.color.shaded_background' + BackgroundImage.themeColor.toString()) : undefined)
+            .borderColor(this.displayTerm === index ? presetColor[BackgroundImage.themeColor][2] : undefined)
             .borderWidth(this.displayTerm === index ? 3 : undefined)
             .backgroundColor($r('app.color.grid_background'))
             .onClick(() => {
@@ -690,7 +734,7 @@ struct Schedule {
   }
 
   refreshGrid() {
-    this.thisWeekSchedule = ScheduleManager.getClassesByWeek(this.weekDisplayed);
+    this.thisWeekSchedule = ScheduleManager.getDisplayClassesByWeek(this.weekDisplayed);
     this.sepConflictClass();
   }
 
@@ -698,9 +742,9 @@ struct Schedule {
     this.conflictSchedule = [];
     this.thisWeekSchedule.sort((a, b) => {
       if (a.priority !== b.priority) {
-        return b.priority - a.priority;
+        return a.priority - b.priority;
       }
-      return a.timeSpan[0] - b.timeSpan[0];
+      return b.timeSpan[0] - a.timeSpan[0];
     });
     const flag: boolean[][] = Array(7).fill(null).map(() => Array(14).fill(false));
     for (let i = this.thisWeekSchedule.length - 1; i >= 0; i--) {
@@ -728,7 +772,7 @@ struct Schedule {
       this.currentWeek = this.weekDisplayed = Math.ceil((currentTime.getTime() - termStartTime) / millisecondsPerWeek);
       this.currentWeekStart = this.weekStart = new Date(new Date(currentTime).setDate(currentTime.getDate() - currentTime.getDay())).setHours(0, 0, 0, 0);
     }
-    this.thisWeekSchedule = ScheduleManager.getClassesByWeek(this.currentWeek);
+    this.thisWeekSchedule = ScheduleManager.getDisplayClassesByWeek(this.currentWeek);
     this.displayName = this.semesters[this.displayTerm].name;
     this.sepConflictClass();
   }
@@ -858,15 +902,13 @@ struct Schedule {
             GridItem({ style: GridItemStyle.NONE }) {
               Column() {
                 Image($r('app.media.no_course_this_week'))
-                  .height(100)
-                  .width(100)
-                  .interpolation(ImageInterpolation.Medium)
+                  .height(128)
+                  .width(128)
                   .draggable(false)
                 Text($r('app.string.no_class_this_week')).fontSize(18).textAlign(TextAlign.Center)
               }
               .backgroundBlurStyle(BackgroundImage.blurLevel)
-              .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.normal_background') :
-                undefined)
+              .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.normal_background') : undefined)
               .padding({
                 top: 5,
                 left: 10,
@@ -1114,7 +1156,7 @@ struct Schedule {
         .width(40)
 
         Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
-          Image($r('app.media.rotate'))
+          Image($r('app.media.calendar'))
             .height(22)
             .draggable(false)
         }
@@ -1499,11 +1541,11 @@ struct Schedule {
           Row() {
             Text('学分：')
               .textAlign(TextAlign.Start);
-            TextInput({ text: this.classInfo.credits.toString() })
+            TextInput({ text: this.classInfo.credits })
               .layoutWeight(1)
               .type(InputType.NUMBER_DECIMAL)
               .textOverflow(TextOverflow.Ellipsis)
-              .onChange((input: string) => this.classInfo.credits = Number(input))
+              .onChange((input: string) => this.classInfo.credits = input)
               .selectAll(true);
           }
           .margin({ bottom: 5 })
@@ -1515,7 +1557,7 @@ struct Schedule {
               TextInput({ text: this.classColor })
                 .textOverflow(TextOverflow.Ellipsis)
                 .onChange((input: string) => {
-                  // console.log('abcdefg'); 此处证明了this.classColor = input;不会导致死循环
+                  // console.log('test'); 此处证明了this.classColor = input;不会导致死循环
                   if (/^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{4}|[A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})$/.test(input)) {
                     this.isColorLegal = true;
                     this.classInfo.color = input;
@@ -1602,6 +1644,7 @@ struct Schedule {
               .textOverflow({ overflow: TextOverflow.Ellipsis });
             CheckboxGroup({ group: `checkboxGroup${this.checkBoxGroup}` })
               .checkboxShape(CheckBoxShape.ROUNDED_SQUARE)
+              .selectedColor(presetColor[BackgroundImage.themeColor][2])
               .onChange((itemName: CheckboxGroupResult) => {
                 let selectAny: boolean = false;
                 this.weekOfTerm = [];
@@ -1623,6 +1666,7 @@ struct Schedule {
                 Checkbox({ name: checkboxId.toString(), group: `checkboxGroup${this.checkBoxGroup}` })
                   .shape(CheckBoxShape.ROUNDED_SQUARE)
                   .select(this.rectifyWeekOfTerm[checkboxId])
+                  .selectedColor(presetColor[BackgroundImage.themeColor][2])
                   .onChange((value: boolean) => {
                     this.rectifyWeekOfTerm[checkboxId] = value;
                   });
@@ -1635,6 +1679,7 @@ struct Schedule {
             Text($r('app.string.class_detail_priority'))
             Slider({ min: 0, max: 10, value: this.oriClassInfo.priority, step: 1, style: SliderStyle.InSet })
               .showSteps(true)
+              .selectedColor(presetColor[BackgroundImage.themeColor][2])
               .layoutWeight(1)
               .onChange((value: number) => {
                 this.classInfo.priority = value;

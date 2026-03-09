@@ -89,6 +89,10 @@
       "value": "同步在线课表…"
     },
     {
+      "name": "retain_color_priority",
+      "value": "无论追加还是覆盖，同名课程的颜色和优先级都会为你保留的喵；但是新学期会赋随机预设值喵"
+    },
+    {
       "name": "append",
       "value": "追加"
     },
@@ -114,7 +118,7 @@
     },
     {
       "name": "get_schedule_hint",
-      "value": "(点此隐藏)点右上角按钮获取课表，或切换网站上的学期获取非当前学期课表"
+      "value": "(点此隐藏)点右上角按钮获取课表，或切换网站上的学期再获取其他学期课表"
     },
     {
       "name": "online_exam_info",
@@ -258,7 +262,7 @@
     },
     {
       "name": "custom_theme_color_into",
-      "value": "启用「自定义背景图片」并选择「组件模糊」时，主题色不可用；你仍然可以更改此处的设置"
+      "value": "启用「自定义背景图片」并选择「组件模糊」时，标题栏主题色不可用；你仍然可以更改其他区域的主题色"
     },
     {
       "name": "ok_and_restart",
@@ -742,11 +746,11 @@
     },
     {
       "name": "import_schedule",
-      "value": "从剪贴板导入课表"
+      "value": "从文件导入课表"
     },
     {
       "name": "export_schedule",
-      "value": "导出课表到剪贴板"
+      "value": "导出课表到文件"
     },
     {
       "name": "import_exam",
@@ -907,6 +911,14 @@
     {
       "name": "save_image_fail",
       "value": "图片保存失败。解决方案：切后台再回到此处重新保存。"
+    },
+    {
+      "name": "save_file_success",
+      "value": "已保存到 根目录/%s"
+    },
+    {
+      "name": "save_file_fail",
+      "value": "已保存到%s"
     },
     {
       "name": "downloading_d",

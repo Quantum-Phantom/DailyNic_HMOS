@@ -1,3 +1,5 @@
+import { common } from "@kit.AbilityKit";
+import { fileIo, picker } from "@kit.CoreFileKit";
 
 /**
  * 提取文件路径的扩展名（不含分隔符`.`）
@@ -300,6 +302,31 @@ export function truncateString(str: string = '', maxLen: number): string {
   return str;
 }
 
+export function saveToFile(context: UIContext, fileName: string, suffixChoices: string, saveData: string) {
+  try {
+    const documentSaveOptions = new picker.DocumentSaveOptions();
+    documentSaveOptions.newFileNames = [fileName];
+    documentSaveOptions.defaultFilePathUri = "file://docs/storage/Users/currentUser/";
+    documentSaveOptions.fileSuffixChoices = [suffixChoices];
+    let uris: string[] = [];
+    const documentViewPicker = new picker.DocumentViewPicker(context.getHostContext() as common.UIAbilityContext);
+    documentViewPicker.save(documentSaveOptions).then((documentSaveResult: string[]) => {
+      uris = documentSaveResult;
+      if (uris.length > 0) {
+        let uri: string = uris[0];
+        let file = fileIo.openSync(uri, fileIo.OpenMode.READ_WRITE);
+        /*let writeLen: number = */
+        fileIo.writeSync(file.fd, saveData);
+        fileIo.closeSync(file);
+        context.getPromptAction().showToast({ message: $r('app.string.save_file_success', decodeURI(uri.slice(38))), duration: 5000 });
+      } else {
+        context.getPromptAction().showToast({ message: $r('app.string.save_file_fail') });
+      }
+    });
+  } catch(err) {
+    context.getPromptAction().showToast({ message: $r('app.string.save_file_fail') });
+  }
+}
 
 export const fillInformationJS = `
 (() => {

@@ -16,6 +16,7 @@ function areNumberArraysEqual(a: number[], b: number[]): boolean {
  * 比较两个 classAttribute 对象是否完全相同
  * @param a 第一个对象
  * @param b 第二个对象
+ * @param checkMinor 是否检查非教务系统存在的属性：颜色和优先级。默认检查
  * @returns 是否完全相同
  */
 export function areClassAttributesEqual(a: classAttribute, b: classAttribute, checkMinor: boolean = true): boolean {
@@ -42,10 +43,10 @@ export function areClassAttributesEqual(a: classAttribute, b: classAttribute, ch
 class ScheduleManager {
   // 所有学期
   semesters: semesterAttribute[];
-  // 课表页展示的默认课程（number是当前周数），通过getClassesByWeek获取整周的课程
-  weekDayIndex: Map<number, Map<number, classAttribute[]>>;
-  // UI展示的默认课程（number是当前周数），通过getClassesByWeek获取整周的课程
-  defaultIndex: Map<number, Map<number, classAttribute[]>> = new Map<number, Map<number, classAttribute[]>>();
+  // 课表页展示的默认课程（number是当前周数），通过getDisplayClassesByWeek获取整周的课程
+  displayIndex: Map<number, classAttribute[]>;
+  // 首页及卡片展示的默认课程（number是当前周数），通过getDefaultClassesByDay获取整周的课程
+  defaultIndex: Map<number, Map<number, classAttribute[]>>;
   // 当前展示学期的编号
   displaySemester: number;
 
@@ -56,41 +57,37 @@ class ScheduleManager {
 
   constructor() {
     // 读取所有学期的信息
+    this.displayIndex = new Map<number, classAttribute[]>();
+    this.defaultIndex = new Map<number, Map<number, classAttribute[]>>();
     this.semesters = JSON.parse(UnifyPreferences.getSync('SemestersData', '[]')) as semesterAttribute[];
     this.setDefaultSemester(this.displaySemester = UnifyPreferences.getNumberSync('DefaultSemester', 0)); // 默认第一个是课表
     if (this.semesters.length === 0) { // 如果是第一次使用
       const currentTime = new Date();
       this.newSemester('默认', '初始自动生成', new Date(new Date(currentTime).setDate(currentTime.getDate() - currentTime.getDay())).setHours(0, 0, 0, 0), currentTime.getTime());
     }
-    this.weekDayIndex = new Map<number, Map<number, classAttribute[]>>();
-    this.rebuildIndex(JSON.parse(UnifyPreferences.getSync('SemesterDataAt' + String(this.semesters[this.displaySemester].createTime), '[]')) as classAttribute[]);
+    this.rebuildDisplayIndex(JSON.parse(UnifyPreferences.getSync('SemesterDataAt' + String(this.semesters[this.displaySemester].createTime), '[]')) as classAttribute[]);
   }
 
 
   /**
-   * 根据课程列表重建周索引
+   * 根据课程列表重建课表页面展示的周索引
    * @param classes 课程列表
    * @returns undefined，但如果发生错误则返回错误信息的字符串
    */
-  private rebuildIndex(classes: classAttribute[]): string | undefined {
+  private rebuildDisplayIndex(classes: classAttribute[]): string | undefined {
     try {
-      this.weekDayIndex.clear();
+      this.displayIndex.clear();
       for (const classItem of classes) {
         if (!classItem) {
           continue; // 跳过无效的课程项
         }
         for (const week of classItem.weekOfTerm) {
-          let dayMap = this.weekDayIndex.get(week);
-          if (!dayMap) {
-            dayMap = new Map();
-            this.weekDayIndex.set(week, dayMap);
+          let items = this.displayIndex.get(week);
+          if (!items) {
+            items = [];
+            this.displayIndex.set(week, items);
           }
-          let classList = dayMap.get(classItem.dayOfWeek);
-          if (!classList) {
-            classList = [];
-            dayMap.set(classItem.dayOfWeek, classList);
-          }
-          classList.push(classItem);
+          items.push(classItem);
         }
       }
       return;
@@ -101,30 +98,55 @@ class ScheduleManager {
 
 
   /**
-   * 获取指定周的所有课程
+   * 根据课程列表重建默认页面展示的周索引
+   * @param classes 课程列表
+   * @returns undefined，但如果发生错误则返回错误信息的字符串
+   */
+  private rebuildDefaultIndex(classes: classAttribute[]): string | undefined {
+    try {
+      this.defaultIndex.clear();
+      for (const classItem of classes) {
+        for (const week of classItem.weekOfTerm) {
+          if (!this.defaultIndex.has(week)) {
+            this.defaultIndex.set(week, new Map());
+          }
+          const dayMap = this.defaultIndex.get(week)!;
+
+          if (!dayMap.has(classItem.dayOfWeek)) {
+            dayMap.set(classItem.dayOfWeek, []);
+          }
+          dayMap.get(classItem.dayOfWeek)!.push(classItem);
+        }
+      }
+      return;
+    } catch(err) {
+      return JSON.stringify(err);
+    }
+  }
+
+  /**
+   * 获取课表页面指定周的所有课程
    * @param week 周数
    * @returns 课程列表
    */
-  getClassesByWeek(week: number): classAttribute[] {
-    const dayMap = this.weekDayIndex.get(week);
-    if (!dayMap)
-      return [];
-    const result: classAttribute[] = [];
-    for (const classesOfDay of dayMap.values()) {
-      result.push(...classesOfDay);
-    }
-    return result;
+  getDisplayClassesByWeek(week: number): classAttribute[] {
+    return this.displayIndex.get(week) || [];
   }
 
 
   /**
-   * 获取指定周和天的课程
+   * 获取默认展示的指定周和天的课程
    * @param week 周数
    * @param day 星期几
+   * @param needSort 是否需要按照上课开始时间排序（默认不需要）
    * @returns 课程列表
    */
-  getClassByDay(week: number, day: number): classAttribute[] {
-    return this.weekDayIndex.get(week)?.get(day) || [];
+  getDefaultClassByDay(week: number, day: number, needSort: boolean = false): classAttribute[] {
+    if (!needSort)
+      return this.defaultIndex.get(week)?.get(day) || [];
+    const unsorted: classAttribute[] = this.defaultIndex.get(week)?.get(day) || [];
+    unsorted.sort((a, b) => a.timeSpan[0] - b.timeSpan[0]);
+    return unsorted;
   }
 
 
@@ -161,16 +183,43 @@ class ScheduleManager {
 
 
   /**
-   * 覆盖或合并指定学期的课程数据
+   * 覆盖或合并指定学期的课程数据。会保留原有的颜色和优先级
    * @param id 学期索引
    * @param newSchedule 新课程列表
    * @param insert 是否为合并模式（true为合并，false为覆盖，默认false）
    * @returns undefined，但如果发生错误则返回错误信息的字符串
    */
-  coverExistSemester(id: number, newSchedule: classAttribute[], insert: boolean = false): string | undefined {
+  coverExistSemester(id: number, newSchedule: classAttribute[], insert: boolean = false, fillAll: boolean = false): string | undefined {
     try {
+      const originSchedule: classAttribute[] = JSON.parse(UnifyPreferences.getSync('SemesterDataAt' + String(this.semesters[id].createTime), '[]'));
+
+      if (fillAll) {
+        const nameToColor: Map<string, string> = new Map<string, string>();
+        const nameToPriority: Map<string, number> = new Map<string, number>();
+        let randomColor: number = getRandomInt(0, colorSetLen - 1);
+        for (const originClass of originSchedule) {
+          if (!nameToColor.has(originClass.name)) {
+            nameToColor.set(originClass.name, originClass.color);
+            nameToPriority.set(originClass.name, originClass.priority);
+          }
+        }
+        for (const newClass of newSchedule) {
+          if (nameToPriority.has(newClass.name)) {
+            newClass.priority = nameToPriority.get(newClass.name)!;
+          } else {
+            newClass.priority = 5;
+          }
+          if (nameToColor.has(newClass.name)) {
+            newClass.color = nameToColor.get(newClass.name)!;
+          } else {
+            newClass.color = colorSet[randomColor];
+            nameToColor.set(newClass.name, colorSet[randomColor]);
+            randomColor = (randomColor + 1) % colorSetLen;
+          }
+        }
+      }
+
       if (insert) {
-        const originSchedule: classAttribute[] = JSON.parse(UnifyPreferences.getSync('SemesterDataAt' + String(this.semesters[id].createTime), '[]'));
         const newLength: number = newSchedule.length;
         for (const originClass of originSchedule) {
           // 检查是否已存在相同的课程
@@ -184,15 +233,18 @@ class ScheduleManager {
             newSchedule.push(originClass);
           }
         }
-        console.log('!!!' + JSON.stringify(newSchedule));
         UnifyPreferences.putSync('SemesterDataAt' + String(this.semesters[id].createTime), JSON.stringify(newSchedule));
         let latestWeek: number = this.getLatestWeek(newSchedule);
         if (latestWeek !== this.semesters[id].totalWeekNum) {
           this.semesters[id].totalWeekNum = latestWeek;
           UnifyPreferences.putSync('SemestersData', JSON.stringify(this.semesters));
         }
+        let err: string | undefined;
         if (id === this.displaySemester)
-          return this.rebuildIndex(newSchedule);
+          err = this.rebuildDisplayIndex(newSchedule);
+        if (id === this.defaultSemester)
+          err = this.rebuildDefaultIndex(newSchedule) || err;
+        return err;
       } else { // 直接覆盖
         UnifyPreferences.putSync('SemesterDataAt' + String(this.semesters[id].createTime), JSON.stringify(newSchedule));
         let latestWeek: number = this.getLatestWeek(newSchedule);
@@ -200,8 +252,11 @@ class ScheduleManager {
           this.semesters[id].totalWeekNum = latestWeek;
           UnifyPreferences.putSync('SemestersData', JSON.stringify(this.semesters));
         }
+        let err: string | undefined;
         if (id === this.displaySemester)
-          return this.rebuildIndex(newSchedule);
+          err = this.rebuildDisplayIndex(newSchedule);
+        if (id === this.defaultSemester)
+          err = this.rebuildDefaultIndex(newSchedule) || err;
       }
       return;
     } catch(err) {
@@ -218,7 +273,7 @@ class ScheduleManager {
   switchTempSemester(target: number): string | undefined {
     try {
       this.displaySemester = target;
-      this.rebuildIndex(JSON.parse(UnifyPreferences.getSync('SemesterDataAt' + String(this.semesters[target].createTime), '[]')) as classAttribute[]);
+      this.rebuildDisplayIndex(JSON.parse(UnifyPreferences.getSync('SemesterDataAt' + String(this.semesters[target].createTime), '[]')) as classAttribute[]);
       return;
     } catch(err) {
       return JSON.stringify(err);
@@ -231,27 +286,11 @@ class ScheduleManager {
    * @param target 目标学期索引
    * @returns undefined，但如果发生错误则返回错误信息的字符串
    */
-  setDefaultSemester(target: number, changeDefault: boolean = false): string | undefined {
+  setDefaultSemester(target: number): string | undefined {
     try {
-      if (changeDefault)
-        UnifyPreferences.putSync('DefaultSemester', target);
+      UnifyPreferences.putSync('DefaultSemester', target);
       this.defaultSemester = target;
-      this.defaultIndex.clear();
-      const classes: classAttribute[] = JSON.parse(UnifyPreferences.getSync('SemesterDataAt' + String(this.semesters[target].createTime), '[]'));
-      for (const classItem of classes) {
-        for (const week of classItem.weekOfTerm) {
-          if (!this.defaultIndex.has(week)) {
-            this.defaultIndex.set(week, new Map());
-          }
-          const dayMap = this.defaultIndex.get(week)!;
-
-          if (!dayMap.has(classItem.dayOfWeek)) {
-            dayMap.set(classItem.dayOfWeek, []);
-          }
-          dayMap.get(classItem.dayOfWeek)!.push(classItem);
-        }
-      }
-      return;
+      return this.rebuildDefaultIndex(JSON.parse(UnifyPreferences.getSync('SemesterDataAt' + String(this.semesters[target].createTime), '[]')));
     } catch(err) {
       return JSON.stringify(err);
     }
@@ -268,7 +307,7 @@ class ScheduleManager {
       let latestWeek: number = 0;
       timetable.forEach(singleClass => {
         latestWeek = Math.max(latestWeek, singleClass.weekOfTerm[singleClass.weekOfTerm.length - 1]);
-      })
+      });
       return latestWeek;
     } catch(err) {
       return 0;
@@ -384,29 +423,52 @@ class ScheduleManager {
 
 
   /**
-   * 解析在线课程表数据，将多层嵌套的课程数据扁平化并补充课程属性
+   * 解析在线课程表数据，将多层嵌套的课程数据扁平化
    * @param originData 原始的三层嵌套课程数据结构 [][][]
+   * @param fillAll 是否补充颜色和优先级属性
    * @returns 扁平化后的课程属性数组，已处理在线课表缺失或待处理的课程ID、学分、优先级、颜色等信息
    */
-  parseOnlineSchedule(originData: classAttribute[][][]): classAttribute[] {
+  parseOnlineSchedule(originData: classAttribute[][][], fillAll: boolean = false): classAttribute[] {
     const parsedData: classAttribute[] = [];
-    let randomColor: number = getRandomInt(0, colorSetLen - 1);
-    originData.forEach(layer1 => {
-      layer1?.forEach(layer2 => {
-        layer2?.forEach(layer3 => {
-          if (layer3) {
-            let sep: string[] = extractCredits(layer3.id);
-            layer3.dayOfWeek = (layer3.dayOfWeek + 1) % 7;
-            layer3.id = sep[0];
-            layer3.credits = Number(sep[1]);
-            layer3.priority = 5;
-            layer3.color = colorSet[randomColor];
-            randomColor = (randomColor + 1) % colorSetLen;
-            parsedData.push(layer3);
-          }
+    if (fillAll) {
+      const nameToColor: Map<string, number> = new Map<string, number>();
+      let randomColor: number = getRandomInt(0, colorSetLen - 1);
+      originData.forEach(layer1 => {
+        layer1?.forEach(layer2 => {
+          layer2?.forEach(layer3 => {
+            if (layer3) {
+              let sep: string[] = extractCredits(layer3.id);
+              layer3.dayOfWeek = (layer3.dayOfWeek + 1) % 7;
+              layer3.id = sep[0];
+              layer3.credits = sep[1];
+              layer3.priority = 5;
+              if (nameToColor.has(layer3.name))
+                layer3.color = colorSet[nameToColor.get(layer3.name)!];
+              else {
+                layer3.color = colorSet[randomColor];
+                nameToColor.set(layer3.name, randomColor);
+                randomColor = (randomColor + 1) % colorSetLen;
+              }
+              parsedData.push(layer3);
+            }
+          });
         });
       });
-    });
+    } else {
+      originData.forEach(layer1 => {
+        layer1?.forEach(layer2 => {
+          layer2?.forEach(layer3 => {
+            if (layer3) {
+              let sep: string[] = extractCredits(layer3.id);
+              layer3.dayOfWeek = (layer3.dayOfWeek + 1) % 7;
+              layer3.id = sep[0];
+              layer3.credits = sep[1];
+              parsedData.push(layer3);
+            }
+          });
+        });
+      });
+    }
     return parsedData;
   }
 }

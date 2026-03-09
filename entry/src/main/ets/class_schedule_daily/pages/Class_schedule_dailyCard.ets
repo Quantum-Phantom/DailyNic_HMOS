@@ -11,6 +11,7 @@ struct Class_schedule_dailyCard {
   @LocalStorageProp('tomorrowCourse') tomorrowCourse: ScheduleSources.classAttribute[] = [];
   @LocalStorageProp('title') title: ResourceStr = '';
   @LocalStorageProp('count') count: number = 0;
+  @LocalStorageProp('termState') termState: number = 1;
 
   @LocalStorageProp('cardListParameter') cardListParameter: CardListParameter = new CardListParameter(
     /* backgroundColor          */ $r('sys.color.ohos_id_color_background'),
@@ -35,7 +36,6 @@ struct Class_schedule_dailyCard {
         Column() {
           Image($r('app.media.no_course_today'))
             .height(50)
-            .interpolation(ImageInterpolation.Medium)
           Text(true ? $r('app.string.no_class_term_end') : $r('app.string.no_class_today'))
         }
         .justifyContent(FlexAlign.Center)

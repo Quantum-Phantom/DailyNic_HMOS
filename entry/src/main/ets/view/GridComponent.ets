@@ -9,7 +9,6 @@ import CustomClickDialog from './CustomClickDialog';
 @Component
 export default struct GridComponent {
   @Prop gridData: GridData = new GridData('', []);
-  @State isLastItem: boolean = false;
   @State gridIndex: number = 0;
   CustomClickCnt: CustomDialogController | undefined;
   @Link copyMostUsedFunc: GridData
@@ -20,7 +19,7 @@ export default struct GridComponent {
       Row() {
         if (this.gridIndex === -1)
           Text() {
-            Span(this.gridData.groupName) // 功能界面各组的标题
+            Span(this.gridData.groupName)
               .fontSize('20fp')
               .height('30vp')
               .fontWeight(FontWeight.Bold)
@@ -31,11 +30,7 @@ export default struct GridComponent {
               .margin({ left: 6 })
           }
           .height(30)
-          .padding({ left: 8, right: 8 })
-          .margin({ top: '16vp' })
-          .borderRadius(12)
-          .backgroundBlurStyle(BackgroundImage.blurLevel)
-          .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.normal_background') : undefined)
+          .margin({ top: '10vp', left: '15vp' })
           .onClick(() => {
             FunctionOrder.resetFunc();
             FunctionOrder.refreshFunc(); // 刷新点击次数显示
@@ -46,13 +41,8 @@ export default struct GridComponent {
             .fontSize('20fp')
             .height('30vp')
             .fontWeight(FontWeight.Bold)
-            .margin({ top: '16vp' })
-            .padding({ left: 8, right: 8})
-            .borderRadius(12)
-            .backgroundBlurStyle(BackgroundImage.blurLevel)
-            .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.normal_background') : undefined)
+            .margin({ top: '10vp', left: '15vp' })
       }
-      .padding({ left: '16vp' })
       .width('100%')
       .justifyContent(FlexAlign.Start)
 
@@ -157,19 +147,14 @@ export default struct GridComponent {
           })
         },(item:string,index:number)=>index+JSON.stringify(item))
       }
-      .margin({ left: '12vp', right: '12vp', top: '8vp' })
-      .borderRadius('12vp')
       .padding('12vp')
       .rowsGap('8vp')
       .scrollBar(BarState.Off)
-      .columnsTemplate('repeat(auto-fit, 70)')
-      .backgroundBlurStyle(BackgroundImage.blurLevel)
-      .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.grid_background') : undefined);
-
-      if (this.isLastItem) {
-        Blank()
-          .height('100%')
-      }
+      .columnsTemplate('repeat(auto-fit, 70)');
     }
+    .margin({ bottom: '16vp' })
+    .borderRadius(20)
+    .backgroundBlurStyle(BackgroundImage.blurLevel)
+    .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.grid_background') : undefined)
   }
 }

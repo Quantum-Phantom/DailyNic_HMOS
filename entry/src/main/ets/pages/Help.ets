@@ -97,7 +97,7 @@ struct Help {
             .margin({ top: 10 })
             .borderRadius(20);
           };
-        }, (item: string) => item.toString());
+        });
 
         ListItem()
           .visibility(Visibility.Hidden)

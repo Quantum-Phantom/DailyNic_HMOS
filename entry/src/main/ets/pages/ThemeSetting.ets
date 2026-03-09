@@ -87,6 +87,7 @@ struct ThemeSetting {
   @State showWarning: boolean = false;
 
   @State colorMode: number = UnifiedPreferences.getNumberSync('ColorMode', ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET);
+  @State adaptSplit: number = UnifiedPreferences.getNumberSync('AdaptSplit', NavigationMode.Auto);
 
   @State selectedColor: number = BackgroundImage.themeColor;
   readonly singleRotate: number = 360 / colorNum;
@@ -116,6 +117,7 @@ struct ThemeSetting {
           UnifiedPreferences.putSync('OpacityLevel', this.opacityNum);
         if (this.selectedColor !== BackgroundImage.themeColor)
           UnifiedPreferences.putSync('ThemeColor', this.selectedColor);
+        UnifiedPreferences.putSync('AdaptSplit', this.adaptSplit);
         UnifiedPreferences.putSync('FaultOccurred', false);
 
         // 重启
@@ -157,6 +159,7 @@ struct ThemeSetting {
               Divider()
                 .layoutWeight(1);
               Toggle({ isOn: $$this.isShown, type: ToggleType.Switch })
+                .selectedColor(presetColor[BackgroundImage.themeColor][2])
                 .onChange((value: boolean) => {
                   if (BackgroundImage.imgPath == '' && this.selectResult == undefined && value) {
                     this.isShown = false;
@@ -209,7 +212,8 @@ struct ThemeSetting {
                 .textAlign(TextAlign.Center)
                 .fontWeight(this.showBlurSlider ? FontWeight.Normal : FontWeight.Bold)
               Toggle({ isOn: $$this.showBlurSlider, type: ToggleType.Switch })
-                .switchStyle({ unselectedColor: $r('sys.color.ohos_id_color_component_activated') })
+                .switchStyle({ unselectedColor: presetColor[BackgroundImage.themeColor][2] })
+                .selectedColor(presetColor[BackgroundImage.themeColor][2])
               Text($r('app.string.background_blur'))
                 .layoutWeight(1)
                 .textAlign(TextAlign.Center)
@@ -228,6 +232,7 @@ struct ThemeSetting {
                 })
                   .showSteps(true)
                   .layoutWeight(1)
+                  .selectedColor(presetColor[BackgroundImage.themeColor][2])
                   .onChange((value: number) => {
                     this.sliderNum = value;
                     switch (value) {
@@ -262,6 +267,7 @@ struct ThemeSetting {
                 })
                   .showTips(true, `${this.opacityNum}%`)
                   .layoutWeight(1)
+                  .selectedColor(presetColor[BackgroundImage.themeColor][2])
                   .onChange((value: number) => {
                     this.opacityNum = value;
                   });
@@ -295,7 +301,7 @@ struct ThemeSetting {
                 .fontWeight(FontWeight.Bold)
                 .layoutWeight(1)
                 .fontColor('#000');
-              Text(presetColor[this.selectedColor][2])
+              Text(presetColor[this.selectedColor][3])
                 .fontSize(16)
                 .margin({ right: 7 })
                 .fontColor('#fff');
@@ -339,6 +345,8 @@ struct ThemeSetting {
                   x: distance * Math.sin(360 * this.selectedColor / colorNum * (Math.PI / 180)),
                   y: -distance * Math.cos(360 * this.selectedColor / colorNum * (Math.PI / 180))
                 })
+
+              // Toggle({ type: ToggleType.Switch, isOn: true }).selectedColor(presetColor[this.selectedColor][2])
             }
             .height(halfSize * 2)
             .width(halfSize * 2)
@@ -382,8 +390,8 @@ struct ThemeSetting {
             Column() {
               Row() {
                 Image($r('app.media.light'))
-                  .height(30)
-                  .width(30)
+                  .height(28)
+                  .width(28)
                   .margin({ right: 5 })
                 Text('浅色')
                   .layoutWeight(1)
@@ -401,12 +409,13 @@ struct ThemeSetting {
                   UnifiedPreferences.putSync('ColorMode', this.colorMode);
                 }
               })
+
               Divider();
               Row() {
                 Image($r('app.media.dark'))
                   .height(24)
                   .width(24)
-                  .margin({ right: 8, left: 3 })
+                  .margin({ right: 7, left: 2 })
                 Text('深色')
                   .layoutWeight(1)
                 Image($r('app.media.checkmark'))
@@ -424,12 +433,13 @@ struct ThemeSetting {
                   UnifiedPreferences.putSync('ColorMode', this.colorMode);
                 }
               })
+
               Divider();
               Row() {
                 Image($r('app.media.follow_system'))
                   .height(24)
                   .width(24)
-                  .margin({ right: 8, left: 3 })
+                  .margin({ right: 7, left: 2 })
                 Text('跟随系统')
                   .layoutWeight(1)
                 Image($r('app.media.checkmark'))
@@ -446,6 +456,64 @@ struct ThemeSetting {
                   this.getUIContext().getHostContext()?.getApplicationContext().setColorMode(this.colorMode);
                   UnifiedPreferences.putSync('ColorMode', this.colorMode);
                 }
+              })
+            }
+            .justifyContent(FlexAlign.SpaceEvenly)
+            .width('95%')
+            .margin({ bottom: 10 })
+          }
+          .margin({ left: 9, right: 9 })
+          .backgroundBlurStyle(BackgroundImage.blurLevel)
+          .borderRadius(23)
+
+          Column() {
+            Row({ space: 5 }) {
+              Image($r('app.media.rotate'))
+                .height(30);
+              Text('更改分栏模式')
+                .fontSize(20)
+                .fontWeight(FontWeight.Bold);
+            }
+            .width('100%')
+            .padding(8)
+
+            Column() {
+              Row() {
+                Image($r('app.media.resize'))
+                  .height(24)
+                  .width(24)
+                  .margin({ right: 7, left: 2 })
+                Text('自适应窗口宽度')
+                  .layoutWeight(1)
+                Image($r('app.media.checkmark'))
+                  .visibility(this.adaptSplit === NavigationMode.Auto ? Visibility.Visible : Visibility.Hidden)
+                  .height(27)
+                  .width(27)
+              }
+              .width('100%')
+              .height(40)
+              .onClick(() => {
+                this.adaptSplit = NavigationMode.Auto;
+              })
+
+              Divider();
+              Row() {
+                Image($r('app.media.full_screen'))
+                  .height(24)
+                  .width(24)
+                  .margin({ right: 7, left: 2 })
+                Text('强制单栏显示')
+                  .layoutWeight(1)
+                Image($r('app.media.checkmark'))
+                  .visibility(this.adaptSplit === NavigationMode.Stack ? Visibility.Visible : Visibility.Hidden)
+                  .height(27)
+                  .width(27)
+              }
+              .width('100%')
+              .height(40)
+              .justifyContent(FlexAlign.SpaceBetween)
+              .onClick(() => {
+                this.adaptSplit = NavigationMode.Stack;
               })
             }
             .justifyContent(FlexAlign.SpaceEvenly)

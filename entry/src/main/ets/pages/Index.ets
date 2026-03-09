@@ -16,7 +16,7 @@ import * as tools from '../utils/tools'
 import UnifiedPreferences, { millisecondsPerWeek } from '../utils/UnifyPreference'
 import WriteCalendar from '../utils/WriteCalendar'
 
-import BackgroundImage from '../utils/BgImageManager'
+import BackgroundImage, { presetColor } from '../utils/BgImageManager'
 import GridComponent from '../view/GridComponent'
 import PasswordDialog from '../view/PasswordDialog'
 import ItemData from '../view/SettingsComponent'
@@ -55,8 +55,7 @@ struct Index {
    * @param selectedImg 按钮图片 (选中时)
    * @param normalImg 按钮图片 (未选中时)
    */
-  @Builder
-  tabBuilder(title: string | Resource, index: number, selectedImg: Resource, normalImg: Resource) {
+  @Builder tabBuilder(title: string | Resource, index: number, selectedImg: Resource, normalImg: Resource) {
     Column() {
       // 按钮图片
       Image(this.currentIndex === index ? selectedImg : normalImg)
@@ -76,10 +75,6 @@ struct Index {
     .onClick(() => {
       this.currentIndex = index
       this.tabsController.changeIndex(this.currentIndex);
-      if (this.currentIndex === 1) {
-        FunctionOrder.refreshFunc(); // 刷新点击次数显示
-        this.copyMostUsedFunc = FunctionOrder.mostUsedFunc;
-      }
     })
   }
 
@@ -103,7 +98,6 @@ struct Index {
 
   private context: Context = this.getUIContext().getHostContext() as common.UIAbilityContext;
   @State currentTime: Date = new Date();
-  @State isTodayCourseEnd: boolean = true;
 
   aboutToAppear(): void {
     // 快捷方式跳转
@@ -149,8 +143,7 @@ struct Index {
   private scrollerForList: Scroller = new Scroller();
   private scrollerForTitle: Scroller = new Scroller();
 
-  @Builder
-  listBuilder() {
+  @Builder listBuilder() {
     Row() {
       List({ space: 16, scroller: this.scrollerForTitle }) {
         ForEach(ListDataConstants.TITLE_LIST, (item: string, index) => {
@@ -160,15 +153,14 @@ struct Index {
                 .fontColor(this.currentListIndex === index ? $r('app.color.active_text') : $r('app.color.normal_text'))
                 .fontSize('16fp')
                 .fontWeight(this.currentListIndex === index ? FontWeight.Bold : FontWeight.Normal)
-                .margin({ top: '16vp' })
+                .margin({ top: '15vp' })
 
-              if (this.currentListIndex === index) {
-                Divider()
-                  .color($r('app.color.active_text'))
-                  .strokeWidth(2)
-                  .width('84vp')
-                  .margin({ top: '7vp' })
-              }
+              Divider()
+                .color($r('app.color.active_text'))
+                .strokeWidth(2)
+                .width(this.getUIContext().getMeasureUtils().measureText({ textContent: item, fontSize: '16fp' }).toString() + 'px')
+                .margin({ top: '4vp' })
+                .visibility(this.currentListIndex === index ? Visibility.Visible : Visibility.Hidden)
             }
             .justifyContent(FlexAlign.Center)
             .onClick(() => {
@@ -181,15 +173,18 @@ struct Index {
         }, (item: string, index: number) => index + JSON.stringify(item))
       }
       .width('100%')
-      .height('56vp')
+      .height('51vp')
       .listDirection(Axis.Horizontal)
       .scrollBar(BarState.Off)
+      .fadingEdge(true)
+      .contentStartOffset(6)
+      .contentEndOffset(6)
     }
-    .margin({ top: '16vp', left: '12vp', right: '12vp' })
-    .padding({ left: '16vp', right: '16vp' })
+    .margin({ bottom: '8vp' })
+    .padding({ left: '10vp', right: '10vp' })
     .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.normal_background') : undefined)
     .backgroundBlurStyle(BackgroundImage.blurLevel)
-    .borderRadius(12)
+    .borderRadius(20)
   }
 
   @State copyMostUsedFunc: GridData = FunctionOrder.mostUsedFunc;
@@ -251,8 +246,7 @@ struct Index {
     }
   }
 
-  @Builder
-  settingCell(item: ItemData) {
+  @Builder settingCell(item: ItemData) {
     Row() {
       Row() {
         Image(item.img)
@@ -276,26 +270,31 @@ struct Index {
           .draggable(false)
       } else if (item.id === 2) {
         Toggle({ type: ToggleType.Switch, isOn: $$this.showCheckIn })
+          .selectedColor(presetColor[BackgroundImage.themeColor][2])
           .onChange((value: boolean) => {
             UnifiedPreferences.putSync('showCheckIn', value);
           });
       } else if (item.id === 3) {
         Toggle({ type: ToggleType.Switch, isOn: $$this.showRecentCourse })
+          .selectedColor(presetColor[BackgroundImage.themeColor][2])
           .onChange((value: boolean) => {
             UnifiedPreferences.putSync('showRecentCourse', value);
           });
       } else if (item.id === 4){
         Toggle({ type: ToggleType.Switch, isOn: $$this.showExamDetail })
+          .selectedColor(presetColor[BackgroundImage.themeColor][2])
           .onChange((value: boolean) => {
             UnifiedPreferences.putSync('showExamDetail', value);
           });
       } else if (item.id === 7) {
         Toggle({ type: ToggleType.Switch, isOn: $$this.webAutoDarkMode })
+          .selectedColor(presetColor[BackgroundImage.themeColor][2])
           .onChange((value: boolean) => {
             UnifiedPreferences.putSync('webAutoDarkMode', value);
           });
       } else { // item.id === 8
         Toggle({ type: ToggleType.Switch, isOn: $$this.webBackPress })
+          .selectedColor(presetColor[BackgroundImage.themeColor][2])
           .onChange((value: boolean) => {
             UnifiedPreferences.putSync('webBackPress', value);
           });
@@ -312,32 +311,34 @@ struct Index {
   /*
    * 常用功能
    */
-  @State termState: number = 0; // 0：未开始，1：进行中，2：已结束
+  @State termState: number = 0; // 0：未开始，1：进行中，2: 进行中但今天无课程，3: 进行中但今天的课都上完了，4：已结束
   private currentWeek: number = 1;
   private todayBeginTime: number = 0;
   refreshInfo() {
     this.currentTime = new Date();
     const termStartTime: number = ScheduleManager.semesters[ScheduleManager.defaultSemester].beginTime;
+    this.todayBeginTime = new Date(this.currentTime).setHours(0, 0, 0, 0);
     if (this.currentTime.getTime() < termStartTime) {
       this.termState = 0;
       this.currentWeek = 1;
+      this.todayCourse = [];
+      this.tomorrowCourse = [];
     } else if (this.currentTime.getTime() > termStartTime + ScheduleManager.semesters[ScheduleManager.defaultSemester].totalWeekNum * millisecondsPerWeek) {
-      this.termState = 2;
+      this.termState = 4;
       this.currentWeek = 1;
+      this.todayCourse = [];
+      this.tomorrowCourse = [];
     } else {
-      this.termState = 1;
       this.currentWeek = Math.ceil((this.currentTime.getTime() - termStartTime) / millisecondsPerWeek);
+      this.todayCourse = ScheduleManager.getDefaultClassByDay(this.currentWeek, this.currentTime.getDay(), true);
+      this.tomorrowCourse = ScheduleManager.getDefaultClassByDay(this.currentWeek + (this.currentTime.getDay() === 6 ? 1 : 0), (this.currentTime.getDay() + 1) % 7, true);
+      if (this.todayCourse.length === 0)
+        this.termState = 2;
+      else if (this.currentTime.getTime() > this.todayBeginTime + ScheduleSources.commonClassStamp[this.todayCourse[this.todayCourse.length - 1].timeSpan[this.todayCourse[this.todayCourse.length - 1].timeSpan.length - 1]][1])
+        this.termState = 3;
+      else
+        this.termState = 1;
     }
-    this.todayCourse = ScheduleManager.getClassByDay(this.currentWeek, this.currentTime.getDay());
-    this.tomorrowCourse = ScheduleManager.getClassByDay(this.currentWeek + (this.currentTime.getDay() === 6 ? 1 : 0), (this.currentTime.getDay() + 1) % 7);
-
-    this.todayBeginTime = new Date(this.currentTime).setHours(0, 0, 0, 0);
-    this.isTodayCourseEnd = true;
-    for (let todaySingleCourse of this.todayCourse)
-      if (this.currentTime.getTime() < this.todayBeginTime + ScheduleSources.commonClassStamp[todaySingleCourse.timeSpan[todaySingleCourse.timeSpan.length - 1]][1]) {
-        this.isTodayCourseEnd = false;
-        break;
-      }
 
     examManager.readStoredExam();
     this.exams = examManager.allExamInfo;
@@ -364,8 +365,7 @@ struct Index {
   /**
    * 页面: 首页
    */
-  @Builder
-  pageStart() {
+  @Builder pageStart() {
     List({ space: 10 }) {
       // 每日签到
       if (this.showCheckIn) {
@@ -480,39 +480,45 @@ struct Index {
 
           if (this.showRecentCourse) {
             Divider();
-            if (this.todayCourse.length === 0) {
+
+            if (this.termState === 0) {
               Column() {
-                if (this.termState === 0) {
-                  Image($r('app.media.no_course_term_not_start'))
-                    .height(75)
-                    .interpolation(ImageInterpolation.Medium)
-                    .draggable(false);
-                  Text($r('app.string.no_class_term_not_start'))
-                    .textAlign(TextAlign.Center);
-                } else if (this.termState === 1) {
-                  Image($r('app.media.no_course_today'))
-                    .height(75)
-                    .interpolation(ImageInterpolation.Medium)
-                    .draggable(false);
-                  Text($r('app.string.no_class_today'))
-                    .textAlign(TextAlign.Center);
-                } else {
-                  Image($r('app.media.no_course_term_end'))
-                    .height(75)
-                    .interpolation(ImageInterpolation.Medium)
-                    .draggable(false);
-                  Text($r('app.string.no_class_term_end'))
-                    .textAlign(TextAlign.Center);
-                }
+                Image($r('app.media.no_course_term_not_start'))
+                  .height(75)
+                  .interpolation(ImageInterpolation.Medium)
+                  .draggable(false);
+                Text($r('app.string.no_class_term_not_start'))
+                  .textAlign(TextAlign.Center);
+              }
+              .margin({ top: 12, bottom: 12 });
+            } else if (this.termState === 2) {
+              Column() {
+                Image($r('app.media.no_course_today'))
+                  .height(75)
+                  .draggable(false);
+                Text($r('app.string.no_class_today'))
+                  .textAlign(TextAlign.Center);
+              }
+              .margin({ top: 12, bottom: 12 });
+            } else if (this.termState === 4) {
+              Column() {
+                Image($r('app.media.no_course_term_end'))
+                  .height(75)
+                  .interpolation(ImageInterpolation.Medium)
+                  .draggable(false);
+                Text($r('app.string.no_class_term_end'))
+                  .textAlign(TextAlign.Center);
               }
               .margin({ top: 12, bottom: 12 });
             } else {
               ForEach(this.todayCourse, (course: ScheduleSources.classAttribute, index: number) => {
-                if (this.currentTime.getTime() < this.todayBeginTime + ScheduleSources.commonClassStamp[course.timeSpan[course.timeSpan.length - 1]][1] + 1800000) {
+                if (this.currentTime.getTime() < this.todayBeginTime +
+                ScheduleSources.commonClassStamp[course.timeSpan[course.timeSpan.length - 1]][1] + 1800000) {
                   Row() {
                     Column() {
                       Line()
-                        .stroke((course.color.length === 9) ? `#${course.color.slice(3)}` : ((course.color.length === 5) ? `#${course.color.slice(2)}` : course.color))
+                        .stroke((course.color.length === 9) ? `#${course.color.slice(3)}` :
+                          ((course.color.length === 5) ? `#${course.color.slice(2)}` : course.color))
                         .width(6)
                         .height(20)
                         .strokeLineCap(LineCapStyle.Round)
@@ -532,13 +538,16 @@ struct Index {
                         .maxLines(2)
                         .textOverflow({ overflow: TextOverflow.Ellipsis });
 
-                      if (this.currentTime.getTime() < this.todayBeginTime + ScheduleSources.commonClassStamp[course.timeSpan[0]][0] &&
-                        this.currentTime.getTime() > this.todayBeginTime + ScheduleSources.commonClassStamp[course.timeSpan[0]][0] - 1800000) {
+                      if (this.currentTime.getTime() <
+                        this.todayBeginTime + ScheduleSources.commonClassStamp[course.timeSpan[0]][0] &&
+                        this.currentTime.getTime() >
+                          this.todayBeginTime + ScheduleSources.commonClassStamp[course.timeSpan[0]][0] - 1800000) {
                         Text($r('app.string.class_soon'))
                           .fontColor($r('app.color.green'));
                       } else if (this.currentTime.getTime() >
                         this.todayBeginTime + ScheduleSources.commonClassStamp[course.timeSpan[0]][0] &&
-                        this.currentTime.getTime() < this.todayBeginTime + ScheduleSources.commonClassStamp[course.timeSpan[course.timeSpan.length - 1]][1]) {
+                        this.currentTime.getTime() < this.todayBeginTime +
+                        ScheduleSources.commonClassStamp[course.timeSpan[course.timeSpan.length - 1]][1]) {
                         Text($r('app.string.class_in_session'))
                           .fontColor($r('app.color.bright_blue'));
                       } else if (this.currentTime.getTime() >
@@ -565,7 +574,8 @@ struct Index {
                         .textOverflow({ overflow: TextOverflow.Ellipsis })
                         .visibility(course.location === '' ? Visibility.None : Visibility.Visible);
 
-                      Text(`\udb80\udfdc ${ScheduleSources.commonClassTime[course.timeSpan[0]][0]}~${ScheduleSources.commonClassTime[course.timeSpan[course.timeSpan.length - 1]][1]}`)
+                      Text(`\udb80\udfdc ${ScheduleSources.commonClassTime[course.timeSpan[0]][0]}~${ScheduleSources.commonClassTime[course.timeSpan[course.timeSpan.length -
+                        1]][1]}`)
                         .maxLines(1)
                         .textOverflow({ overflow: TextOverflow.Ellipsis });
                     }
@@ -582,7 +592,7 @@ struct Index {
                   }
                 }
               });
-              if (this.isTodayCourseEnd) {
+              if (this.termState === 3) {
                 Column() {
                   Image($r('app.media.course_finish_today'))
                     .height(75)
@@ -593,6 +603,7 @@ struct Index {
                 .margin({ top: 12, bottom: 12 });
               }
             }
+
 
             if (this.tomorrowCourse.length > 0) {
               Row() {
@@ -800,8 +811,7 @@ struct Index {
   /**
    * 页面: 功能
    */
-  @Builder
-  pageFunction() {
+  @Builder pageFunction() {
     Column() {
       Scroll(this.scrollerForScroll) {
         Column() {
@@ -814,14 +824,16 @@ struct Index {
             ForEach(otherGridDataList, (item: GridData, index: number) => {
               GridComponent({
                 gridData: item,
-                isLastItem: index === otherGridDataList.length - 1,
                 gridIndex: index,
                 pageInfo: this.pageInfo,
                 copyMostUsedFunc: this.copyMostUsedFunc
               })
             }, (item: GridData,index:number) => index + JSON.stringify(item))
+
+            ListItem().height('100%')
           }
-          .padding({ bottom: '40vp' })
+          // .padding({ bottom: '40vp' })
+          .borderRadius({ topLeft: 20, topRight: 20 })
           .edgeEffect(EdgeEffect.Spring)
           .scrollBar(BarState.Off)
           .onReachStart(() => {
@@ -851,16 +863,15 @@ struct Index {
             }
           })
           .width('100%')
-          .height("calc(100% - 56vp)")
+          .height("calc(100% - 59vp)") // this.listBuilder的高度：51 + 8 = 59
         }
       }
       .scrollBar(BarState.Off)
       .width('100%')
       .height('100%')
-      .edgeEffect(EdgeEffect.Fade)
+      .edgeEffect(EdgeEffect.None)
       .onWillScroll((yOffset: number) => {
-        if (!((this.scrollPosition === ScrollPosition.start && yOffset < 0)
-          || (this.scrollPosition === ScrollPosition.end && yOffset > 0))) {
+        if (!((this.scrollPosition === ScrollPosition.start && yOffset < 0) || (this.scrollPosition === ScrollPosition.end && yOffset > 0))) {
           this.scrollPosition = ScrollPosition.center;
         }
       })
@@ -881,14 +892,15 @@ struct Index {
     }
     .width('100%')
     .height('100%')
+    .margin({ top: 8 })
+    .padding({ left: '12vp', right: '12vp' })
     .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
   }
 
   /**
    * 页面: 设置
    */
-  @Builder
-  pageSettings() {
+  @Builder pageSettings() {
     List({ space: 12 }) {
       ForEach(SettingsData.getSettingListData(), (item: ItemData[], _index: number) => {
         ListItemGroup() {
@@ -902,7 +914,7 @@ struct Index {
         }
         .divider({
           strokeWidth: '0.6vp',
-          color: $r('app.color.grid_border'),
+          color: $r('sys.color.comp_divider'),
           startMargin: '12vp',
           endMargin: '12vp'
         })
@@ -912,9 +924,7 @@ struct Index {
 
       }/*, (item: ItemData) => JSON.stringify(item)*/)
 
-      ListItem()
-        .visibility(Visibility.Hidden)
-        .height(50)
+      ListItem().height(50)
     }
     .height('100%')
     .width('100%')
@@ -1053,8 +1063,7 @@ struct Index {
     }
   }
 
-  @Builder
-  settingExitButton(){
+  @Builder settingExitButton(){
     Column() {
       Button($r('app.string.exit_app'), { type: ButtonType.Capsule })
         .buttonStyle(ButtonStyleMode.NORMAL)
@@ -1128,7 +1137,7 @@ struct Index {
           .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
 
         }
-        .barBackgroundColor(BackgroundImage.blurLevel === undefined ? $r(`app.color.shaded_background${BackgroundImage.themeColor}`) : undefined)
+        .barBackgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background' + BackgroundImage.themeColor.toString()) : undefined)
         .barBackgroundBlurStyle(BackgroundImage.blurLevel)
         .barHeight('auto')
         .barWidth('100%')
@@ -1147,6 +1156,7 @@ struct Index {
       .navBarWidthRange(['336vp', '50%'])
       .hideTitleBar(true)
       .hideToolBar(true)
+      .mode(UnifiedPreferences.getNumberSync('AdaptSplit', NavigationMode.Auto))
       .onNavigationModeChange((mode: NavigationMode) => {
         this.isSplit = mode;
       })

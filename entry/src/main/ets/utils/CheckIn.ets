@@ -2,7 +2,7 @@
 import UnifiedPreferences, { LAST_DAY_KEY, TOTAL_DAYS_KEY, CONSECUTIVE_DAYS_KEY, CONTENT_KEY } from '../utils/UnifyPreference';
 
 export class CheckInTools {
-  private static CHECK_IN_CONTENT_LIST: string[] = [
+  static readonly CHECK_IN_CONTENT_LIST: string[] = [
     '呐呐，作业写完了吗？该不会是……一个字都没动吧？噗——真是活该！', // 0
     '喂！早饭吃了吗？不会又饿着肚子吧？要是低血糖晕倒了，我可不会去医务室看你这种不爱惜自己的杂鱼的！',
     '签到完成！今天的课程好像很难呢～对你来说肯定很吃力吧？需要我这个天才来教教你吗？……求我呀～！',
@@ -33,7 +33,7 @@ export class CheckInTools {
     '签到有什么用？问得好，但你还是点了。',
     '可……可恶！我想不到新的签到词了！(；´д｀)ゞ……你给出几个点子？',
     '早八人，早八魂！',
-    '签到成功！今天演得差不多，可以准备谢幕了（雾）' // 30
+    '签到成功！今天演得差不多，可以准备谢幕了' // 30
   ];
   private static TIME_TO_INDEX: number[][] = [
     [0, 2, 7, 8, 9, 10, 11, 12, 13, 14, 18, 21, 22, 23, 24, 25, 26, 27, 28], // 半夜: 0~4点

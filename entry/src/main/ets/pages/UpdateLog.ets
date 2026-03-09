@@ -88,7 +88,7 @@ struct UpdateLog {
                   if (layer3) {
                     const result: string[] = extractCredits(layer3.id);
                     layer3.id = result[0];
-                    layer3.credits = Number(result[1]);
+                    layer3.credits = result[1];
                     convertSchedule.push(layer3);
                   }
                 });

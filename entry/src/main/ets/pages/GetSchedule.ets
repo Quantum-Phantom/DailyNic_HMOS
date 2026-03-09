@@ -254,7 +254,7 @@ struct Webview {
                 .fontWeight(FontWeight.Bold)
                 .fontSize(30)
                 .fontColor($r('app.color.red'))
-              Text($r('app.string.network_error_explain'))
+              Text($r('app.string.network_error_explain', this.loadError))
                 .textAlign(TextAlign.Center)
                 .margin({ top: 6, bottom: 10 })
                 .fontColor(this.webAutoDarkMode ? $r('app.color.normal_text') : '#000000')
@@ -381,26 +381,27 @@ struct Webview {
         if (!this.allowGet) {
           this.getUIContext().getPromptAction().showToast({ message: $r('app.string.do_not_worry'), duration: 1500 });
         } else if (this.isTimetablePage) {
+          // 异步执行回调，所以要嵌套执行
           this.webviewController.runJavaScript(startTimeQueryJS, (error, result) => { // 此处返回值没有双引号
             if (error) { /* 理论上这里不会出什么错误 */
               return;
             }
             this.startTime = Number(result);
+            this.webviewController.runJavaScript(getSemesterNameJS, (error, result) => {
+              if (error) {
+                this.semesterName = '自定义名称';
+                return;
+              }
+              this.semesterName = result.replace(/^["']|["']$/g, '').replace(/\\/g, '');
+              this.webviewController.runJavaScript(timeTableQueryJS, (error, result) => {
+                if (!error && result)
+                  this.timetable = result.replace(/^["']|["']$/g, '').replace(/\\/g, '');
+                else
+                  this.timetable = '[[[]]]';
+                this.showSelectTerm = true;
+              });
+            });
           });
-          this.webviewController.runJavaScript(getSemesterNameJS, (error, result) => {
-            if (error) {
-              this.semesterName = '自定义名称';
-              return;
-            }
-            this.semesterName = result.replace(/^["']|["']$/g, '').replace(/\\/g, '');
-          });
-          this.webviewController.runJavaScript(timeTableQueryJS, (error, result) => {
-            if (!error && result)
-              this.timetable = result.replace(/^["']|["']$/g, '').replace(/\\/g, '');
-            else
-              this.timetable = '[[[]]]';
-          });
-          this.showSelectTerm = true;
         } else if (this.isExamInfoPage) {
           this.webviewController.runJavaScript(examInfoQueryJS, (error, result) => {
             if (error) {
@@ -436,7 +437,7 @@ struct Webview {
 
   @State showSelectTerm: boolean = false;
   @State semesterName: string = '自定义名称';
-  @State selectIndex: number = 0;
+  @State selectIndex: number = ScheduleManager.displaySemester;
   @State semesters: semesterAttribute[] = ScheduleManager.semesters;
 
   @Builder selectTerm() {
@@ -467,7 +468,7 @@ struct Webview {
           .height(50)
           .width('100%')
           .onClick(() => {
-            ScheduleManager.newSemester(this.semesterName, '从教务系统导入', this.startTime, Date.now(), undefined, ScheduleManager.parseOnlineSchedule(JSON.parse(this.timetable) as classAttribute[][][]));
+            ScheduleManager.newSemester(this.semesterName, '从教务系统导入', this.startTime, Date.now(), undefined, ScheduleManager.parseOnlineSchedule(JSON.parse(this.timetable) as classAttribute[][][], true));
             this.semesters = ScheduleManager.semesters;
             this.selectIndex = this.semesters.length - 1;
             this.getUIContext().getPromptAction().showToast({ message: $r('app.string.have_saved', truncateString(this.semesterName, 10)) })
@@ -503,23 +504,25 @@ struct Webview {
       .align(Alignment.Top)
       .layoutWeight(1)
 
+      Text($r('app.string.retain_color_priority'))
+        .margin({ top: 5, bottom: 5 })
+
       Row() {
         Button($r('app.string.cover'))
           .buttonStyle(ButtonStyleMode.TEXTUAL)
           .width('50%')
           .onClick(() => {
-            ScheduleManager.coverExistSemester(this.selectIndex, ScheduleManager.parseOnlineSchedule(JSON.parse(this.timetable) as classAttribute[][][]), false);
+            ScheduleManager.coverExistSemester(this.selectIndex, ScheduleManager.parseOnlineSchedule(JSON.parse(this.timetable) as classAttribute[][][]), false, true);
             this.getUIContext().getPromptAction().showToast({ message: $r('app.string.have_covered', truncateString(this.semesters[this.selectIndex].name, 10)) });
           })
         Button($r('app.string.append'))
           .buttonStyle(ButtonStyleMode.NORMAL)
           .width('50%')
           .onClick(() => {
-            ScheduleManager.coverExistSemester(this.selectIndex, ScheduleManager.parseOnlineSchedule(JSON.parse(this.timetable) as classAttribute[][][]), true);
+            ScheduleManager.coverExistSemester(this.selectIndex, ScheduleManager.parseOnlineSchedule(JSON.parse(this.timetable) as classAttribute[][][]), true, true);
             this.getUIContext().getPromptAction().showToast({ message: $r('app.string.have_appended', truncateString(this.semesters[this.selectIndex].name, 10)) });
           })
       }
-      .margin({ top: 10 })
       .width('100%')
     }
     .width('100%')

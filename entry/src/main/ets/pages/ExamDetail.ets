@@ -2,7 +2,7 @@
 import { CounterComponent, CounterType, LengthUnit } from '@kit.ArkUI'
 import * as tools from '../utils/tools'
 import examManager, { examAttribute, areExamAttributesEqual } from '../utils/ExamManager';
-import BackgroundImage from '../utils/BgImageManager';
+import BackgroundImage, { presetColor } from '../utils/BgImageManager';
 
 @Builder
 export function ExamBuilder(name: string, param?: Object) {
@@ -31,8 +31,7 @@ struct ExamDetail {
   private endHour: number = 0;
   private endMinute: number = 0;
 
-  @Builder
-  examDetailDialog() {
+  @Builder examDetailDialog() {
     Column() {
       Row({ space: 8 }) {
         Text(this.isChangeSchedule ? $r('app.string.exam_detail') : $r('app.string.exam_detail_new'))
@@ -342,6 +341,7 @@ struct ExamDetail {
           Text($r('app.string.class_detail_priority'));
           Slider({ min: 0, max: 10, value: this.oriExamInfo.importance, step: 1, style: SliderStyle.InSet })
             .showSteps(true)
+            .selectedColor(presetColor[BackgroundImage.themeColor][2])
             .layoutWeight(1)
             .onChange((value: number) => {
               this.newExamInfo.importance = value;
