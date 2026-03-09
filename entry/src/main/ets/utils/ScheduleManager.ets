@@ -42,13 +42,13 @@ export function areClassAttributesEqual(a: classAttribute, b: classAttribute, ch
 
 class ScheduleManager {
   // 所有学期
-  semesters: semesterAttribute[];
+  semesters: semesterAttribute[] = [];
   // 课表页展示的默认课程（number是当前周数），通过getDisplayClassesByWeek获取整周的课程
-  displayIndex: Map<number, classAttribute[]>;
+  displayIndex: Map<number, classAttribute[]> = new Map<number, classAttribute[]>();
   // 首页及卡片展示的默认课程（number是当前周数），通过getDefaultClassesByDay获取整周的课程
-  defaultIndex: Map<number, Map<number, classAttribute[]>>;
+  defaultIndex: Map<number, Map<number, classAttribute[]>> = new Map<number, Map<number, classAttribute[]>>();
   // 当前展示学期的编号
-  displaySemester: number;
+  displaySemester: number = 0;
 
   // 以下内容针对首页/服务卡片/系统日程添加
   // 默认学期的编号，通过semesters[defaultSemester]读取
@@ -56,9 +56,11 @@ class ScheduleManager {
 
 
   constructor() {
+    if (UnifyPreferences.preferenceInstance() !== null) { this.init(); }
+  }
+
+  init() {
     // 读取所有学期的信息
-    this.displayIndex = new Map<number, classAttribute[]>();
-    this.defaultIndex = new Map<number, Map<number, classAttribute[]>>();
     this.semesters = JSON.parse(UnifyPreferences.getSync('SemestersData', '[]')) as semesterAttribute[];
     this.setDefaultSemester(this.displaySemester = UnifyPreferences.getNumberSync('DefaultSemester', 0)); // 默认第一个是课表
     if (this.semesters.length === 0) { // 如果是第一次使用

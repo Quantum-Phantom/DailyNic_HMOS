@@ -21,6 +21,7 @@ class FormDataClass {
   constructor(refreshType: number) {
     const currentTime = new Date();
     if (refreshType === 0) { // 0 → 刷新课表
+      ScheduleManager.init();
       this.title = $r("app.string.schedule_card_title");
       const termStartTime: number = ScheduleManager.semesters[ScheduleManager.defaultSemester].beginTime;
       let currentWeek: number = 0;
@@ -35,8 +36,8 @@ class FormDataClass {
         termState = 1;
         currentWeek = Math.ceil((currentTime.getTime() - termStartTime) / millisecondsPerWeek);
       }
-      this.todayCourse = ScheduleManager.getClassByDay(currentWeek, currentTime.getDay());
-      this.tomorrowCourse = ScheduleManager.getClassByDay(currentWeek + (currentTime.getDay() === 6 ? 1 : 0), (currentTime.getDay() + 1) % 7);
+      this.todayCourse = ScheduleManager.getDefaultClassByDay(currentWeek, currentTime.getDay());
+      this.tomorrowCourse = ScheduleManager.getDefaultClassByDay(currentWeek + (currentTime.getDay() === 6 ? 1 : 0), (currentTime.getDay() + 1) % 7);
 
       //this.cardListParameter.itemCount = this.todayCourse.length;
       this.count = this.todayCourse.length;
