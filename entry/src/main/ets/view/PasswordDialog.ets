@@ -184,6 +184,7 @@ export default struct PasswordDialog {
         if (!this.isFromSetting) {
           Button($r('app.string.no_reminding'))
             .buttonStyle(ButtonStyleMode.NORMAL)
+            .fontColor(presetColor[BackgroundImage.themeColor][2])
             .onClick(() => {
               UnifiedPreferences.putSync(REMIND_KEY, false);
               this.getUIContext().getPromptAction().showToast({ message: $r('app.string.input_later'), duration: 2000 });
@@ -192,8 +193,8 @@ export default struct PasswordDialog {
             .layoutWeight(1)
         }
         Button($r('app.string.cancel'))
-          .fontColor(presetColor[BackgroundImage.themeColor][2])
           .buttonStyle(ButtonStyleMode.TEXTUAL)
+          .fontColor(presetColor[BackgroundImage.themeColor][2])
           .onClick(() => {
             this.controller.close();
           })

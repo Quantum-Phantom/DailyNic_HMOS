@@ -4,6 +4,8 @@ import { customizeClick, gIndex_to_pic } from '../utils/FunctionOrder';
 import UnifiedPreferences from '../utils/UnifyPreference';
 import { GridData, otherGridDataList } from '../constants/GridListDataSources';
 import { refreshFunc, mostUsedFunc } from '../utils/FunctionOrder';
+import { presetColor } from '../utils/BgImageManager';
+import BackgroundImage from '../utils/BgImageManager';
 
 @CustomDialog
 export default struct CustomClick {
@@ -49,10 +51,12 @@ export default struct CustomClick {
           .buttonStyle(ButtonStyleMode.TEXTUAL)
           .width('50%')
           .onClick(() => this.dialogController.close())
+          .fontColor(presetColor[BackgroundImage.themeColor][2])
 
         Button($r('app.string.ok'))
           .buttonStyle(ButtonStyleMode.EMPHASIZED)
           .width('50%')
+          .backgroundColor(presetColor[BackgroundImage.themeColor][2])
           .onClick(() => {
             customizeClick(this.gridIndex, this.index, this.clickTimes);
             refreshFunc(); // 刷新点击次数显示
