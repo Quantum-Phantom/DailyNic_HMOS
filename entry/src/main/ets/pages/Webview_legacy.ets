@@ -10,6 +10,7 @@ import { fillInformationJS, deleteAIHelper } from '../utils/tools';
 import accountInfoProvider from '../utils/Encryption';
 import PasswordDialog from '../view/PasswordDialog';
 import BackgroundImage from '../utils/BgImageManager';
+import { WantAbility } from '../utils/WantAbility'
 
 const desktopUrl: string[] = ['https://young.ustc.edu.cn/login'] // 需要默认访问桌面版站点时使用
 const autoJumpUrl: string[] = ['https://jw.ustc.edu.cn/for-std/course-table', 'https://jw.ustc.edu.cn/for-std/exam-arrange', 'https://jw.ustc.edu.cn/for-std/grade/sheet'];
@@ -147,13 +148,7 @@ struct Webview {
       MenuItem({ content: $r('app.string.open_in_browser'), startIcon: $r('app.media.browser') })
         .enabled(this.allowSysOpen)
         .onClick(() => {
-          (this.getUIContext().getHostContext() as common.UIAbilityContext).startAbility({
-            action: 'ohos.want.action.viewData',
-            entities: ['entity.system.browsable'],
-            uri: this.webviewController.getUrl()
-          }).catch((err: BusinessError) => {
-              console.error(`startAbility failed, code is ${err.code}, message is ${err.message}`);
-            })
+          WantAbility.StartBrowser(this.getUIContext().getHostContext() as common.UIAbilityContext, this.webviewController.getUrl());
         })
     }
   }
@@ -285,21 +280,10 @@ struct Webview {
             if (event) {
               let uri: string = event.data.getRequestUrl();
               if (uri.startsWith('mailto:')) {
-                (this.getUIContext().getHostContext() as common.UIAbilityContext).startAbility({
-                  action: 'ohos.want.action.sendToData',
-                  uri: uri
-                }).catch((err: BusinessError) => {
-                    console.error(`startAbility failed, code is ${err.code}, message is ${err.message}`);
-                  })
+                WantAbility.SendEmail(this.getUIContext().getHostContext() as common.UIAbilityContext, uri);
                 return true;
               } else if (uri.indexOf('tel:') === 0) {
-                call.makeCall(uri.substring(4), (err) => {
-                  if (!err) {
-                    console.info('make call succeeded.');
-                  } else {
-                    console.info('make call fail, err is:' + JSON.stringify(err));
-                  }
-                });
+                WantAbility.MakeCall(uri.substring(4));
                 return true;
               }
             }

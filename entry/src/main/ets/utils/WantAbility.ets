@@ -4,6 +4,7 @@
 
 import { common, Want } from "@kit.AbilityKit";
 import { BusinessError } from '@kit.BasicServicesKit';
+import { call } from "@kit.TelephonyKit";
 
 export class WantAbility {
   static StartQQ(hostContext: common.UIAbilityContext) {
@@ -50,6 +51,35 @@ export class WantAbility {
       uri: 'https://github.com/Your-USTC/DailyNic_HMOS/issues'
     }).catch((err: BusinessError) => {
       console.error(`startAbility failed, code is ${err.code}, message is ${err.message}`);
+    });
+  }
+
+  static StartBrowser(hostContext: common.UIAbilityContext, url: string) {
+    hostContext.startAbility({
+      action: 'ohos.want.action.viewData',
+      entities: ['entity.system.browsable'],
+      uri: url
+    }).catch((err: BusinessError) => {
+      console.error(`startAbility failed, code is ${err.code}, message is ${err.message}`);
+    })
+  }
+
+  static SendEmail(hostContext: common.UIAbilityContext, uri: string) {
+    hostContext.startAbility({
+      action: 'ohos.want.action.sendToData',
+      uri: uri
+    }).catch((err: BusinessError) => {
+      console.error(`startAbility failed, code is ${err.code}, message is ${err.message}`);
+    })
+  }
+
+  static MakeCall(uri: string) {
+    call.makeCall(uri, (err) => {
+      if (!err) {
+        console.info('make call succeeded.');
+      } else {
+        console.info('make call fail, err is:' + JSON.stringify(err));
+      }
     });
   }
 }

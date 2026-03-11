@@ -23,6 +23,7 @@ import ItemData from '../view/SettingsComponent'
 
 import { setUSTCLink, setHUSTLink } from '../constants/Links'
 import display from '@ohos.display'
+import { WantAbility } from '../utils/WantAbility'
 
 // 滚动条参数
 enum ScrollPosition {
@@ -372,14 +373,35 @@ struct Index {
         ListItem() {
           Column() {
             Row() {
+              Text($r('app.string.archive'))
+                .fontSize(13)
+                .visibility(Visibility.Hidden)
+                .margin({ left: 20 })
+
               Text($r('app.string.daily_checkin'))
                 .fontSize(18)
                 .fontWeight(FontWeight.Bold)
                 .fontColor($r('app.color.normal_text'))
+                .layoutWeight(1)
+                .textAlign(TextAlign.Center)
+
+              Text($r('app.string.archive'))
+                .fontSize(13)
+
+              Image($r('app.media.right_arrow'))
+                .height(28)
+                .width(20)
+                .objectFit(ImageFit.Contain)
+                .draggable(false)
             }
             .width('100%')
-            .margin({ top: 15, bottom: 10 })
-            .justifyContent(FlexAlign.Center)
+            .padding(8)
+            .onClick(() => {
+              if (this.pageInfo.popToName('CheckinCollection') === -1) {
+                this.pageInfo.clear();
+                this.pageInfo.pushPath({ name: 'CheckinCollection' });
+              }
+            })
 
             Row() {
               Text(this.checkInContent)
@@ -387,6 +409,7 @@ struct Index {
                 .fontSize(20)
                 .textShadow({ radius: 1 })
                 .lineSpacing({ value: 10, unit: LengthUnit.FP })
+                .wordBreak(WordBreak.BREAK_ALL)
             }
             .width('80%')
             .margin({ bottom: 10 })
@@ -397,11 +420,11 @@ struct Index {
                 .buttonStyle(this.checkedInToday ? ButtonStyleMode.NORMAL : ButtonStyleMode.EMPHASIZED)
                 .enabled(!this.checkedInToday)
                 .onClick(() => {
-                  const GeneratedDestructArray_1 = CheckInTools.doCheckIn()
-                  this.checkInTotal = GeneratedDestructArray_1[0]
-                  this.checkedInToday = true
-                  this.checkInConsecutive = GeneratedDestructArray_1[1]
-                  this.checkInContent = GeneratedDestructArray_1[2]
+                  const GeneratedDestructArray_1 = CheckInTools.doCheckIn();
+                  this.checkInTotal = GeneratedDestructArray_1[0];
+                  this.checkedInToday = true;
+                  this.checkInConsecutive = GeneratedDestructArray_1[1];
+                  this.checkInContent = GeneratedDestructArray_1[2];
                 })
             }
             .width('90%')
@@ -434,30 +457,23 @@ struct Index {
       ListItem() {
         Column() {
           Row() {
-            if (this.showRecentCourse) {
-              Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
-                Image($r('app.media.refresh'))
-                  .height(20)
-                  .width(20)
-                  .draggable(false)
-              }
-              .height(36)
-              .width(36)
-              .onClick(() => {
-                this.refreshInfo();
-              })
-            } else {
-              Blank().width(36);
+            Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
+              Image($r('app.media.refresh'))
+                .height(20)
+                .width(20)
+                .draggable(false)
             }
-
-            Blank()
+            .height(36)
+            .width(36)
+            .visibility(this.showRecentCourse ? Visibility.Visible : Visibility.Hidden)
+            .onClick(() => {
+              this.refreshInfo();
+            })
 
             Text($r('app.string.local_schedule'))
               .fontSize(18)
               .fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.normal_text'))
-
-            Blank()
 
             Image($r('app.media.right_arrow'))
               .height(28)
@@ -467,7 +483,8 @@ struct Index {
               .draggable(false)
           }
           .width('100%')
-          .padding({ left: 8, right: 8, top: 8, bottom: 8 })
+          .justifyContent(FlexAlign.SpaceBetween)
+          .padding(8)
           .onClick(() => {
             if (this.pageInfo.popToName('Schedule') === -1) {
               this.pageInfo.clear();
@@ -485,7 +502,6 @@ struct Index {
               Column() {
                 Image($r('app.media.no_course_term_not_start'))
                   .height(75)
-                  .interpolation(ImageInterpolation.Medium)
                   .draggable(false);
                 Text($r('app.string.no_class_term_not_start'))
                   .textAlign(TextAlign.Center);
@@ -504,7 +520,6 @@ struct Index {
               Column() {
                 Image($r('app.media.no_course_term_end'))
                   .height(75)
-                  .interpolation(ImageInterpolation.Medium)
                   .draggable(false);
                 Text($r('app.string.no_class_term_end'))
                   .textAlign(TextAlign.Center);
@@ -596,7 +611,6 @@ struct Index {
                 Column() {
                   Image($r('app.media.course_finish_today'))
                     .height(75)
-                    .interpolation(ImageInterpolation.Medium)
                     .draggable(false);
                   Text($r('app.string.class_finish_today'));
                 }
@@ -668,30 +682,23 @@ struct Index {
       ListItem() {
         Column() {
           Row() {
-            if (this.showExamDetail) {
-              Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
-                Image($r('app.media.refresh'))
-                  .height(20)
-                  .width(20)
-                  .draggable(false)
-              }
-              .height(36)
-              .width(36)
-              .onClick(() => {
-                this.refreshInfo();
-              });
-            } else {
-              Blank().width(36);
+            Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
+              Image($r('app.media.refresh'))
+                .height(20)
+                .width(20)
+                .draggable(false)
             }
-
-            Blank()
+            .height(36)
+            .width(36)
+            .visibility(this.showExamDetail ? Visibility.Visible : Visibility.Hidden)
+            .onClick(() => {
+              this.refreshInfo();
+            });
 
             Text($r('app.string.exam_detail'))
               .fontSize(18)
               .fontWeight(FontWeight.Bold)
               .fontColor($r('app.color.normal_text'))
-
-            Blank()
 
             Image($r('app.media.right_arrow'))
               .height(28)
@@ -701,7 +708,8 @@ struct Index {
               .draggable(false)
           }
           .width('100%')
-          .padding({ left: 8, right: 8, top: 8, bottom: 8 })
+          .padding(8)
+          .justifyContent(FlexAlign.SpaceBetween)
           .onClick(() => {
             if (this.pageInfo.popToName('ExamDetail') === -1) {
               this.pageInfo.clear();
@@ -715,7 +723,6 @@ struct Index {
               Column() {
                 Image($r('app.media.no_exam1'))
                   .height(75)
-                  .interpolation(ImageInterpolation.Medium)
                   .draggable(false)
                 Text($r('app.string.no_exam_info1'));
               }
@@ -1077,14 +1084,7 @@ struct Index {
         .width('100%')
         .margin({ bottom: 15 })
         .onClick(() => {
-          const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
-          context.terminateSelf((err) => {
-            if (!err) {
-              context.getApplicationContext().killAllProcesses().catch((error: Error) => {
-                console.error(`Quitting ERROR: [${error.name}] ${error.message}`);
-              })
-            }
-          })
+          WantAbility.quit(this.getUIContext().getHostContext() as common.UIAbilityContext);
         })
     }
     .width('80%')
@@ -1099,7 +1099,13 @@ struct Index {
   @StorageLink('isSplit') isSplit: NavigationMode = NavigationMode.Auto;
 
   build() {
-    Column() {
+    Stack() {
+      Image(BackgroundImage.pic)
+        .height('100%')
+        .width('100%')
+        .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+        .autoResize(true)
+
       Navigation(this.pageInfo) {
         Tabs({ barPosition: BarPosition.End, controller: this.tabsController }) {
           /**
@@ -1150,8 +1156,6 @@ struct Index {
         })
       }
       .enableDragBar(true)
-      .backgroundColor('#00d00721')
-      .opacity(BackgroundImage.opacityLevel)
       .navBarWidth('360vp')
       .navBarWidthRange(['336vp', '50%'])
       .hideTitleBar(true)
@@ -1160,13 +1164,19 @@ struct Index {
       .onNavigationModeChange((mode: NavigationMode) => {
         this.isSplit = mode;
       })
+
+      if (BackgroundImage.opacityLevel !== 1)
+        Image(BackgroundImage.pic)
+          .height('100%')
+          .width('100%')
+          .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+          .autoResize(true)
+          .opacity(1 - BackgroundImage.opacityLevel)
+          .hitTestBehavior(HitTestMode.None)
     }
     .height('100%')
     .width('100%')
     .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
     .backgroundColor($r('app.color.normal_background'))
-    .backgroundImage(BackgroundImage.pic)
-    .backgroundImageSize(ImageSize.Cover)
-    .backgroundImagePosition(Alignment.Center)
   }
 }
