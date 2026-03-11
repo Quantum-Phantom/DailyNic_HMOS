@@ -155,12 +155,6 @@ struct Webview {
               console.error(`startAbility failed, code is ${err.code}, message is ${err.message}`);
             })
         })
-
-      MenuItem({ content: $r('app.string.help'), startIcon: $r('app.media.questionmark_circle')})
-        .onClick(() => {
-          this.getUIContext().getRouter().pushUrl({ url: 'pages/Help_legacy' })
-            .catch((err: Error) => { console.error(`Router ERROR: [${err.name}] ${err.message}`) });
-        })
     }
   }
 

@@ -36,8 +36,12 @@ class BackgroundImage {
    * @param context 传入上下文
    */
   async init(context: Context) {
-    if (this.imgPath === '' || !fileIo.accessSync(this.imgPath))
+    try {
+      if (this.imgPath === '' || !fileIo.accessSync(this.imgPath))
+        this.showImage = false;
+    } catch {
       this.showImage = false;
+    }
     if (this.showImage) {
       this.pic = fileUri.getUriFromPath(this.imgPath);
       if (this.backgroundBlur) { // 如果选择背景模糊

@@ -5,6 +5,7 @@ import { BusinessError } from '@kit.BasicServicesKit';
 import { photoAccessHelper } from '@kit.MediaLibraryKit';
 import UnifiedPreferences from '../utils/UnifyPreference';
 import BackgroundImage, { presetColor } from '../utils/BgImageManager';
+import { WantAbility } from '../utils/WantAbility';
 
 @Builder
 export function ThemeBuilder(name: string, param?: number[]) {
@@ -120,27 +121,7 @@ struct ThemeSetting {
         UnifiedPreferences.putSync('AdaptSplit', this.adaptSplit);
         UnifiedPreferences.putSync('FaultOccurred', false);
 
-        // 重启
-        let applicationContext = (this.getUIContext().getHostContext() as common.UIAbilityContext).getApplicationContext();
-        let want: Want = {
-          bundleName: 'com.nic.dailynic',
-          abilityName: 'EntryAbility'
-        };
-        try {
-          applicationContext.restartApp(want);
-        } catch (error) {
-          console.error(`restartApp fail, error: ${JSON.stringify(error)}`);
-          if (error.code === 16000064) {
-            const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
-            context.terminateSelf((err) => {
-              if (!err) {
-                context.getApplicationContext().killAllProcesses().catch((error: Error) => {
-                  console.error(`Quitting ERROR: [${error.name}] ${error.message}`);
-                })
-              }
-            });
-          }
-        }
+        WantAbility.restart(this.getUIContext().getHostContext() as common.UIAbilityContext);
       }
     }
   ];
@@ -177,6 +158,8 @@ struct ThemeSetting {
                 .constraintSize({ minHeight: 80, maxHeight: 200 })
                 .borderRadius(16)
                 .objectFit(ImageFit.Contain)
+                .autoResize(true)
+                .interpolation(ImageInterpolation.Medium)
                 .onComplete((value) => {
                   if (value !== undefined) {
                     let swapTemp: number;
@@ -185,8 +168,7 @@ struct ThemeSetting {
                       value.width = value.height;
                       value.height = swapTemp;
                     }
-                    if (value.width > this.windowWidth * 3 || value.height > this.windowHeight * 3 ||
-                      this.imageSize > 50000000) {
+                    if (value.width > this.windowWidth * 3 || value.height > this.windowHeight * 3 || this.imageSize > 50000000) {
                       this.showWarning = true;
                     } else {
                       this.showWarning = false;
@@ -279,13 +261,7 @@ struct ThemeSetting {
               .width('95%')
               .fontColor($r('app.color.red'))
               .fontSize(15)
-              .maxLines(1)
               .visibility(this.showWarning ? Visibility.Visible : Visibility.None);
-
-            Text($r('app.string.custom_background_hint'))
-              .fontSize(12)
-              .width('95%')
-              .margin({ bottom: 10 })
           }
           .margin({ left: 9, right: 9, top: 9 })
           .backgroundBlurStyle(BackgroundImage.blurLevel)
@@ -376,12 +352,12 @@ struct ThemeSetting {
             Row({ space: 5 }) {
               Image($r('app.media.dark_mode'))
                 .height(30);
-              Text('更改深浅色模式')
+              Text($r('app.string.change_dark_light_mode'))
                 .fontSize(20)
                 .fontWeight(FontWeight.Bold);
               Divider()
                 .layoutWeight(1);
-              Text('立即生效')
+              Text($r('app.string.apply_immediately'))
                 .margin({ right: 7 });
             }
             .width('100%')
@@ -393,7 +369,7 @@ struct ThemeSetting {
                   .height(28)
                   .width(28)
                   .margin({ right: 5 })
-                Text('浅色')
+                Text($r('app.string.light'))
                   .layoutWeight(1)
                 Image($r('app.media.checkmark'))
                   .visibility(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT ? Visibility.Visible : Visibility.Hidden)
@@ -416,7 +392,7 @@ struct ThemeSetting {
                   .height(24)
                   .width(24)
                   .margin({ right: 7, left: 2 })
-                Text('深色')
+                Text($r('app.string.dark'))
                   .layoutWeight(1)
                 Image($r('app.media.checkmark'))
                   .visibility(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? Visibility.Visible : Visibility.Hidden)
@@ -440,7 +416,7 @@ struct ThemeSetting {
                   .height(24)
                   .width(24)
                   .margin({ right: 7, left: 2 })
-                Text('跟随系统')
+                Text($r('app.string.follow_system'))
                   .layoutWeight(1)
                 Image($r('app.media.checkmark'))
                   .visibility(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET ? Visibility.Visible : Visibility.Hidden)
@@ -470,7 +446,7 @@ struct ThemeSetting {
             Row({ space: 5 }) {
               Image($r('app.media.rotate'))
                 .height(30);
-              Text('更改分栏模式')
+              Text($r('app.string.change_navigation_mode'))
                 .fontSize(20)
                 .fontWeight(FontWeight.Bold);
             }
@@ -483,7 +459,7 @@ struct ThemeSetting {
                   .height(24)
                   .width(24)
                   .margin({ right: 7, left: 2 })
-                Text('自适应窗口宽度')
+                Text($r('app.string.adapt_window_width'))
                   .layoutWeight(1)
                 Image($r('app.media.checkmark'))
                   .visibility(this.adaptSplit === NavigationMode.Auto ? Visibility.Visible : Visibility.Hidden)
@@ -502,7 +478,7 @@ struct ThemeSetting {
                   .height(24)
                   .width(24)
                   .margin({ right: 7, left: 2 })
-                Text('强制单栏显示')
+                Text($r('app.string.force_stack_mode'))
                   .layoutWeight(1)
                 Image($r('app.media.checkmark'))
                   .visibility(this.adaptSplit === NavigationMode.Stack ? Visibility.Visible : Visibility.Hidden)
@@ -532,7 +508,7 @@ struct ThemeSetting {
     }
     .title({ main: $r('app.string.theme_setting'), sub: $r('app.string.theme_setting_intro') }, {
       backgroundBlurStyle: BackgroundImage.blurLevel,
-      backgroundColor: BackgroundImage.blurLevel === undefined ? $r(`app.color.shaded_background${BackgroundImage.themeColor}`) : undefined
+      backgroundColor: BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background' + String(BackgroundImage.themeColor)) : undefined
     })
     .backButtonIcon($r('app.media.close'))
     .menus(this.menuItems)

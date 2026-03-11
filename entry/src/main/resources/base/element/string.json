@@ -45,6 +45,18 @@
       "value": "连续签到天数：%d"
     },
     {
+      "name": "archive",
+      "value": "图鉴"
+    },
+    {
+      "name": "unlock_item_num",
+      "value": "已解锁条目数: %d/%d"
+    },
+    {
+      "name": "require_more_sentences",
+      "value": "未完待续…\n点击此处加入群聊，与我们分享你的金句！\n抽取某些签到词可能需要满足特定的条件…"
+    },
+    {
       "name": "local_schedule",
       "value": "本地课表"
     },
@@ -225,12 +237,8 @@
       "value": "自定义背景图片"
     },
     {
-      "name": "custom_background_hint",
-      "value": " \uDB80\uDE9C （如果你不理解下面的话，请前往帮助页面）如果你需要调整亮度，请在系统图库中编辑。尽量选择文件大小和分辨率合适（可通过“在图库中打开图片再截屏”的方式调整）的图片，否则可能会导致卡顿和不稳定。如果你选择的是动图，那么只会显示第一帧。"
-    },
-    {
       "name": "too_large_bg_image",
-      "value": "图片体积或分辨率可能过大，请考虑下面的解决方案"
+      "value": "图片体积或分辨率可能过大。虽然我们已经对此进行了优化，但如果仍然卡顿，建议你选择文件大小和分辨率合适的图片（可通过“在图库中打开图片后截屏”的方式来调整）。此外，即使没有卡顿，也建议你进行此操作，因为高分辨率图片可能会出现锯齿，也会占用更多内存。"
     },
     {
       "name": "pick_image",
@@ -267,6 +275,38 @@
     {
       "name": "ok_and_restart",
       "value": "重启并应用更改"
+    },
+    {
+      "name": "change_dark_light_mode",
+      "value": "更改深浅色模式"
+    },
+    {
+      "name": "apply_immediately",
+      "value": "立即生效"
+    },
+    {
+      "name": "dark",
+      "value": "深色"
+    },
+    {
+      "name": "light",
+      "value": "浅色"
+    },
+    {
+      "name": "follow_system",
+      "value": "跟随系统"
+    },
+    {
+      "name": "change_navigation_mode",
+      "value": "更改分栏模式"
+    },
+    {
+      "name": "adapt_window_width",
+      "value": "自适应窗口宽度"
+    },
+    {
+      "name": "force_stack_mode",
+      "value": "强制单栏显示"
     },
     {
       "name": "try_to_custom_empty",
@@ -917,8 +957,12 @@
       "value": "已保存到 根目录/%s"
     },
     {
-      "name": "save_file_fail",
-      "value": "已保存到%s"
+      "name": "save_file_cancel",
+      "value": "已取消保存\u2022\u1dc4\u0847\u2022\u1dc5"
+    },
+    {
+      "name": "read_file_cancel",
+      "value": "已取消读取\u2022\u1dc4\u0847\u2022\u1dc5"
     },
     {
       "name": "downloading_d",

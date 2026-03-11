@@ -143,8 +143,7 @@ struct Webview {
 
       MenuItem({ content: $r('app.string.help'), startIcon: $r('app.media.questionmark_circle')})
         .onClick(() => {
-          this.getUIContext().getRouter().pushUrl({ url: 'pages/Help_legacy' })
-            .catch((err: Error) => { console.error(`Router ERROR: [${err.name}] ${err.message}`) });
+          this.pathStack.pushPath({ name: 'Help' });
         })
     }
     .subMenuExpandingMode(SubMenuExpandingMode.STACK_EXPAND)
@@ -182,7 +181,6 @@ struct Webview {
     NavDestination() {
       Stack({ alignContent: Alignment.TopStart }) {
         Web({ src: this.url, controller: this.webviewController })
-          .backgroundColor('#00d00721')
           .javaScriptProxy({
             object: accountInfoProvider,
             name: "infoProvider",
@@ -483,10 +481,9 @@ struct Webview {
       .layoutWeight(1)
     }
     .title(this.customTitle(), {
-      backgroundColor: (BackgroundImage.blurLevel === undefined ? $r(`app.color.shaded_background${BackgroundImage.themeColor}`) : '#00d00721')
+      backgroundColor: (BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background' + String(BackgroundImage.themeColor)) : '#00d00721')
     })
     .hideBackButton(true)
-    .backgroundColor('#00d00721')
     .backgroundBlurStyle(BackgroundImage.blurLevel)
     .onReady((context: NavDestinationContext) => {
       this.pathStack = context.pathStack;
