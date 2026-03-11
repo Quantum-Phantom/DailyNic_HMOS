@@ -11,6 +11,7 @@ import { uniformTypeDescriptor } from '@kit.ArkData';
 import { BusinessError } from '@kit.BasicServicesKit';
 import { Link } from '../constants/Links';
 import UpdateInfo from '../view/UpdateInfo';
+import { WantAbility } from '../utils/WantAbility'
 
 @Builder
 export function AboutBuilder(name: string, param?: Object) {
@@ -80,16 +81,7 @@ struct About {
                   .fontColor(undefined)
                 Span($r('app.string.join_qq_group'))
                   .onClick(() => {
-                    (this.context.getHostContext() as common.UIAbilityContext)
-                      .openLink("mqqapi://card/show_pslcard?src_type=internal&version=1&uin=931920982&card_type=group&source=external&jump_from=webapi",
-                        { appLinkingOnly: false })
-                      .catch((error: Error) => {
-                        (this.context.getHostContext() as common.UIAbilityContext).startAbility({
-                          action: 'ohos.want.action.viewData',
-                          entities: ['entity.system.browsable'],
-                          uri: 'https://qm.qq.com/q/MM3mA0VeW4'
-                        });
-                      })
+                    WantAbility.StartQQ(this.getUIContext().getHostContext() as common.UIAbilityContext);
                   })
               }
               .margin({ top: 10, bottom: 10 })
@@ -120,11 +112,7 @@ struct About {
                       confirm: {
                         value: $r('app.string.ok'),
                         action: () => {
-                          (this.context.getHostContext() as common.UIAbilityContext).startAbility({
-                            action: 'ohos.want.action.viewData',
-                            entities: ['entity.system.browsable'],
-                            uri: 'https://github.com/Your-USTC/DailyNic_HMOS'
-                          })
+                          WantAbility.openGitHub(this.getUIContext().getHostContext() as common.UIAbilityContext);
                         }
                       }
                     });

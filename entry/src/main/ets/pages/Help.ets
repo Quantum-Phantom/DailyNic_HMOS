@@ -3,6 +3,7 @@ import { LengthUnit } from '@kit.ArkUI';
 import { getContArray } from '../utils/tools';
 import BackgroundImage from '../utils/BgImageManager';
 import { common } from '@kit.AbilityKit';
+import { WantAbility } from '../utils/WantAbility';
 
 @Builder
 export function HelpBuilder(name: string, param?: Object) {
@@ -21,23 +22,14 @@ struct Help {
       value: $r('app.string.join_qq_group'),
       icon: $r('app.media.message_on_message'),
       action: () => {
-        (this.context.getHostContext() as common.UIAbilityContext)
-          .openLink("mqqapi://card/show_pslcard?src_type=internal&version=1&uin=931920982&card_type=group&source=external&jump_from=webapi",
-            { appLinkingOnly: false })
-          .catch((error: Error) => {
-            (this.context.getHostContext() as common.UIAbilityContext).startAbility({
-              action: 'ohos.want.action.viewData',
-              entities: ['entity.system.browsable'],
-              uri: 'https://qm.qq.com/q/MM3mA0VeW4'
-            });
-          })
+        WantAbility.StartQQ(this.getUIContext().getHostContext() as common.UIAbilityContext);
       }
     }
   ];
   pathStack: NavPathStack = new NavPathStack();
   build() {
     NavDestination() {
-      List({ initialIndex: 0 }) {
+      List() {
         ForEach(getContArray([[0, 11]]), (index: number) => {
           ListItem() {
             Column() {
@@ -111,7 +103,7 @@ struct Help {
     }
     .title($r('app.string.help'), {
       backgroundBlurStyle: BackgroundImage.blurLevel,
-      backgroundColor: BackgroundImage.blurLevel === undefined ? $r(`app.color.shaded_background${BackgroundImage.themeColor}`) : undefined
+      backgroundColor: BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background' + String(BackgroundImage.themeColor)) : undefined
     })
     .menus(this.menuItems)
     .backButtonIcon($r('app.media.close'))
