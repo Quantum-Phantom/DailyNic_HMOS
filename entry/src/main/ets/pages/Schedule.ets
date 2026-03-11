@@ -1,14 +1,13 @@
 
 import { PopoverDialog, Popup } from '@kit.ArkUI';
 import * as ScheduleSources from '../constants/ScheduleSources';
-import { classAttribute, semesterAttribute } from '../constants/ScheduleSources';
+import { classAttribute, semesterAttribute, exportSemester, exportedData } from '../constants/ScheduleSources';
 import ScheduleManager, { areClassAttributesEqual } from '../utils/ScheduleManager';
 import * as tools from '../utils/tools';
 import { weekTranslate } from '../utils/tools';
 import UnifiedPreferences, { millisecondsPerWeek } from '../utils/UnifyPreference';
 import BackgroundImage, { presetColor } from '../utils/BgImageManager';
 import RenameDialog from '../view/RenameDialog';
-
 
 const criticalHeight: number = 32; // 紧凑模式临界值(vp)
 const classAndTeacher: number = 22; // 教室和教师占用高度
@@ -71,7 +70,8 @@ struct Schedule {
             this.showPinchHint = false;
           }
         }]
-      })}
+      })
+    }
   }
   @State showColorHint: boolean = false;
   @Builder colorHintPopup() {
@@ -336,22 +336,41 @@ struct Schedule {
   @Builder archiveMenu() {
     Menu() {
       MenuItem({ content: $r('app.string.import_schedule'), startIcon: $r('app.media.import') })
-        .onClick(() => {});
+        .onClick(() => {
+          tools.readStringFromFile(this.getUIContext(), '数据交换格式|.json').then(result => {
+            if (result === 'null') {
+              this.getUIContext().getPromptAction().showToast({ message: $r('app.string.read_file_cancel') });
+            } else {
+              try {
+                const rawImportedData = JSON.parse(result) as exportedData;
+                const checkResult = ScheduleSources.validateExportedData(rawImportedData);
+                if (checkResult === '') {
+                  const oldNum: number = ScheduleManager.semesters.length;
+                  rawImportedData.semesters.forEach(importSemester => {
+                    ScheduleManager.newSemester(importSemester.attribute.name, importSemester.attribute.source, importSemester.attribute.beginTime, importSemester.attribute.createTime, importSemester.attribute.totalWeekNum, importSemester.courses);
+                  })
+                  if (rawImportedData.semesters.length > 0) {
+                    ScheduleManager.switchTempSemester(oldNum + rawImportedData.defaultSemester);
+                    this.initSchedule();
+                  }
+                  this.getUIContext().getPromptAction().showToast({ message: '导入成功' });
+                } else {
+                  this.getUIContext().getPromptAction().showToast({ message: checkResult });
+                }
+              } catch {
+                this.getUIContext().getPromptAction().showToast({ message: $r('app.string.read_file_format_error') });
+              }
+            }
+          });
+        });
+
       MenuItem({ content: $r('app.string.export_schedule'), startIcon: $r('app.media.export') })
         .onClick(() => {
           const saveTime: number = Math.trunc(Date.now() / 1000);
-          interface exportSemester {
-            attribute: semesterAttribute,
-            courses: classAttribute[]
-          };
-          interface exportedData {
-            exportTime: number,
-            scheduleVersion: string,
-            semesters: exportSemester[]
-          };
           let userContent: exportedData = {
             exportTime: saveTime,
             scheduleVersion: '3.0.0',
+            defaultSemester: ScheduleManager.defaultSemester,
             semesters: Array.from(ScheduleManager.semesters, (semester) => {
               return {
                 attribute: semester,
@@ -360,7 +379,7 @@ struct Schedule {
             })
           };
 
-          tools.saveToFile(this.getUIContext(), "DailyNicSchedule_" + String(saveTime) + ".json", '数据交换格式|.json', JSON.stringify(userContent));
+          tools.saveStringToFile(this.getUIContext(), "DailyNicSchedule_" + String(saveTime) + ".json", '数据交换格式|.json', JSON.stringify(userContent));
         });
     }
   }
@@ -388,8 +407,7 @@ struct Schedule {
         .margin({ right: 8 })
         .onClick(() => {
           this.showConflictClass = false;
-          this.getUIContext().getRouter().pushUrl({ url: 'pages/Help_legacy' })
-            .catch((err: Error) => { console.error(`Router ERROR: [${err.name}] ${err.message}`) });
+          this.pathStack.pushPath({ name: 'Help' });
         })
 
         Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
@@ -1009,9 +1027,6 @@ struct Schedule {
             }
           }
         })
-        .onAppear(() => {
-          this.showXiuHint = UnifiedPreferences.getBoolSync('ShowPinchHint', true);
-        });
       }
       .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
       .layoutWeight(1)
@@ -1035,11 +1050,12 @@ struct Schedule {
     .hideBackButton(true)
     .title({ builder: this.customTitle(), height: 98 }, {
       backgroundBlurStyle: BackgroundImage.blurLevel,
-      backgroundColor: (BackgroundImage.blurLevel === undefined ? $r(`app.color.shaded_background${BackgroundImage.themeColor}`) : '#00d00721')
+      backgroundColor: (BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background' + String(BackgroundImage.themeColor)) : '#00d00721')
     })
     .onReady((context: NavDestinationContext) => {
       this.pathStack = context.pathStack;
       this.initSchedule();
+      setTimeout(() => this.showXiuHint = UnifiedPreferences.getBoolSync('ShowPinchHint', true), 0);
     });
   }
 

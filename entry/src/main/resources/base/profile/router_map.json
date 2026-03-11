@@ -34,6 +34,11 @@
       "name": "ThemeSetting",
       "pageSourceFile": "src/main/ets/pages/ThemeSetting.ets",
       "buildFunction": "ThemeBuilder"
+    },
+    {
+      "name": "CheckinCollection",
+      "pageSourceFile": "src/main/ets/pages/CheckinCollection.ets",
+      "buildFunction": "CheckinBuilder"
     }
   ]
 }

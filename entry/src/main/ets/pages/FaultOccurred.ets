@@ -1,9 +1,10 @@
 
 import UnifiedPreferences from '../utils/UnifyPreference';
 import { BusinessError, pasteboard } from '@kit.BasicServicesKit';
-import { common, Want } from '@kit.AbilityKit';
+import { common } from '@kit.AbilityKit';
 import { examAttribute } from '../utils/ExamManager';
 import { classAttribute } from '../constants/ScheduleSources';
+import { WantAbility } from '../utils/WantAbility';
 
 interface exportClassInfo {
   data: string,
@@ -224,38 +225,13 @@ struct FaultOccurred {
           .onClick(() => {
             UnifiedPreferences.putSync('RecoveryMode', false);
             UnifiedPreferences.putSync('FaultOccurred', false);
-            let applicationContext = (this.getUIContext().getHostContext() as common.UIAbilityContext).getApplicationContext();
-            let want: Want = {
-              bundleName: 'com.nic.dailynic',
-              abilityName: 'EntryAbility'
-            };
-            try {
-              applicationContext.restartApp(want);
-            } catch (error) {
-              console.error(`restartApp fail, error: ${JSON.stringify(error)}`);
-              if (error.code === 16000064) {
-                const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
-                context.terminateSelf((err) => {
-                  if (!err) {
-                    context.getApplicationContext().killAllProcesses().catch((error: Error) => {
-                      console.error(`Quitting ERROR: [${error.name}] ${error.message}`);
-                    })
-                  }
-                });
-              }
-            }
+            WantAbility.restart(this.getUIContext().getHostContext() as common.UIAbilityContext);
           })
         Button($r('app.string.contact_developer'))
           .buttonStyle(ButtonStyleMode.NORMAL)
           .margin({ top: 10})
           .onClick(() => {
-            (this.getUIContext().getHostContext() as common.UIAbilityContext).startAbility({
-              action: 'ohos.want.action.viewData',
-              entities: ['entity.system.browsable'],
-              uri: 'https://github.com/Your-USTC/DailyNic_HMOS/issues'
-            }).catch((err: BusinessError) => {
-              console.error(`startAbility failed, code is ${err.code}, message is ${err.message}`);
-            })
+            WantAbility.openGitHub(this.getUIContext().getHostContext() as common.UIAbilityContext);
           })
       }
       .width('100%')

@@ -5,6 +5,7 @@ import * as FunctionOrder from '../utils/FunctionOrder';
 import * as tools from '../utils/tools';
 import BackgroundImage from '../utils/BgImageManager';
 import CustomClickDialog from './CustomClickDialog';
+import { Popup } from '@kit.ArkUI';
 
 @Component
 export default struct GridComponent {
@@ -18,24 +19,52 @@ export default struct GridComponent {
     Column() {
       Row() {
         if (this.gridIndex === -1)
-          Text() {
-            Span(this.gridData.groupName)
+          Row() {
+            Text(this.gridData.groupName)
               .fontSize('20fp')
               .height('30vp')
               .fontWeight(FontWeight.Bold)
-            ImageSpan($r('app.media.eraser_line'))
-              .height(20)
-              .width(20)
-              .verticalAlign(ImageSpanAlignment.CENTER)
-              .margin({ left: 6 })
+              .layoutWeight(1)
+
+            Button({ buttonStyle: ButtonStyleMode.NORMAL, type: ButtonType.Circle }) {
+              Image($r('app.media.setting'))
+                .height(20)
+                .width(20)
+            }
+            .height(36)
+            .width(36)
+            .bindPopup(this.showPopup, {
+              builder: this.frequencyPopup(),
+              placement: Placement.Bottom,
+              width: 300,
+              onStateChange: (status) => {
+                if (!status.isVisible) {
+                  this.showPopup = false;
+                }
+              }
+            })
+            .onClick(() => {
+              this.showPopup = true;
+            })
+
+            Button({ buttonStyle: ButtonStyleMode.NORMAL, type: ButtonType.Circle }) {
+              Image($r('app.media.eraser_line'))
+                .height(20)
+                .width(20)
+            }
+            .height(36)
+            .width(36)
+            .margin({ left: 6 })
+            .onClick(() => {
+              FunctionOrder.resetFunc();
+              FunctionOrder.refreshFunc(); // 刷新点击次数显示
+              this.copyMostUsedFunc = FunctionOrder.mostUsedFunc;
+            })
           }
-          .height(30)
-          .margin({ top: '10vp', left: '15vp' })
-          .onClick(() => {
-            FunctionOrder.resetFunc();
-            FunctionOrder.refreshFunc(); // 刷新点击次数显示
-            this.copyMostUsedFunc = FunctionOrder.mostUsedFunc;
-          })
+          .height(40)
+          .padding({ top: '10vp', left: '15vp', right: '10vp' })
+          .clip(false)
+          .width('100%')
         else
           Text(this.gridData.groupName) // 功能界面各组的标题
             .fontSize('20fp')
@@ -156,5 +185,22 @@ export default struct GridComponent {
     .borderRadius(20)
     .backgroundBlurStyle(BackgroundImage.blurLevel)
     .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.grid_background') : undefined)
+  }
+
+
+  @State showPopup: boolean = false;
+  @Builder frequencyPopup() {
+    Row() {
+      Popup({
+        message: { text: $r('app.string.help0_content_brief') },
+        showClose: false,
+        buttons: [{
+          text: $r('app.string.close_this_hint'),
+          action: () => {
+            this.showPopup = false;
+          }
+        }]
+      })
+    }
   }
 }

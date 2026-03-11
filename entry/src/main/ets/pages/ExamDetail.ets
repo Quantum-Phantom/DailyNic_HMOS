@@ -573,7 +573,7 @@ struct ExamDetail {
             })
           }
           .width('100%')
-          .layoutWeight(1)
+          .height('100%')
           .alignListItem(ListItemAlign.Center)
           .scrollBar(BarState.Auto)
           .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
@@ -581,7 +581,7 @@ struct ExamDetail {
           .padding({ left: 12, right: 12 })
         }
       }
-      .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+      .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
       .height('100%')
       .width('100%')
       .bindSheet($$this.showSheet, this.examDetailDialog(), {
@@ -645,7 +645,7 @@ struct ExamDetail {
     }
     .title({ main: $r('app.string.exam_detail'), sub: '\udb80\udfd5 '+ this.currentTime.toLocaleString('zh-cn') }, {
       backgroundBlurStyle: BackgroundImage.blurLevel,
-      backgroundColor: BackgroundImage.blurLevel === undefined ? $r(`app.color.shaded_background${BackgroundImage.themeColor}`) : undefined
+      backgroundColor: BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background' + String(BackgroundImage.themeColor)) : undefined
     })
     .backButtonIcon($r('app.media.close'))
     .menus(this.menuItems)

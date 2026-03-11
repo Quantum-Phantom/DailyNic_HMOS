@@ -962,7 +962,11 @@
     },
     {
       "name": "read_file_cancel",
-      "value": "已取消读取\u2022\u1dc4\u0847\u2022\u1dc5"
+      "value": "已取消或权限获取失败，请重试\u2022\u1dc4\u0847\u2022\u1dc5"
+    },
+    {
+      "name": "read_file_format_error",
+      "value": "文件格式不正确 \u2022\u1dc4\u0847\u2022\u1dc5"
     },
     {
       "name": "downloading_d",
