@@ -412,13 +412,15 @@ struct ExamDetail {
           name: "GetSchedule",
           param: [$r('app.string.online_exam_info'), 'https://jw.ustc.edu.cn/for-std/exam-arrange'],
           onPop: (popInfo: PopInfo) => {
-            const routerParams = popInfo.result as string;
-            if (routerParams != undefined && routerParams != '') {
-              examManager.storeExam(JSON.parse(routerParams));
+            if (typeof popInfo.result === "string") {
+              const routerParams: string = popInfo.result;
+              if (routerParams != '') {
+                examManager.storeExam(JSON.parse(routerParams));
+                examManager.readStoredExam();
+                this.currentTime = new Date();
+                this.examInfo = examManager.allExamInfo;
+              }
             }
-            examManager.readStoredExam();
-            this.currentTime = new Date();
-            this.examInfo = examManager.allExamInfo;
           }
         });
       }

@@ -35,6 +35,7 @@ struct CheckinGallery {
               Row() {
                 Text(CheckInTools.CHECK_IN_CONTENT_LIST[index])
                   .layoutWeight(1)
+                  .wordBreak(WordBreak.BREAK_ALL)
               }
               .width('100%')
             } else {
