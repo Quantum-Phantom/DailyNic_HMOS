@@ -594,7 +594,7 @@ struct Index {
                         .maxLines(1)
                         .textOverflow({ overflow: TextOverflow.Ellipsis });
                     }
-                    .width('45%')
+                    .width('48%')
                     .alignItems(HorizontalAlign.Start);
                   }
                   .width('100%')

@@ -346,13 +346,15 @@ struct Schedule {
                 const checkResult = ScheduleSources.validateExportedData(rawImportedData);
                 if (checkResult === '') {
                   const oldNum: number = ScheduleManager.semesters.length;
+                  let currentTime = Date.now();
                   rawImportedData.semesters.forEach(importSemester => {
-                    ScheduleManager.newSemester(importSemester.attribute.name, importSemester.attribute.source, importSemester.attribute.beginTime, importSemester.attribute.createTime, importSemester.attribute.totalWeekNum, importSemester.courses);
+                    ScheduleManager.newSemester(importSemester.attribute.name, importSemester.attribute.source, importSemester.attribute.beginTime, ++currentTime, importSemester.attribute.totalWeekNum, importSemester.courses);
                   })
                   if (rawImportedData.semesters.length > 0) {
                     ScheduleManager.switchTempSemester(oldNum + rawImportedData.defaultSemester);
                     this.initSchedule();
                   }
+                  this.showSemesters = true;
                   this.getUIContext().getPromptAction().showToast({ message: '导入成功' });
                 } else {
                   this.getUIContext().getPromptAction().showToast({ message: checkResult });
