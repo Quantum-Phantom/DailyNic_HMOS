@@ -1,5 +1,5 @@
 
-import { PopoverDialog, Popup } from '@kit.ArkUI';
+import { MeasureText, PopoverDialog, Popup } from '@kit.ArkUI';
 import * as ScheduleSources from '../constants/ScheduleSources';
 import { classAttribute, semesterAttribute, exportSemester, exportedData } from '../constants/ScheduleSources';
 import ScheduleManager, { areClassAttributesEqual } from '../utils/ScheduleManager';
@@ -465,14 +465,15 @@ struct Schedule {
                   Span(weekTranslate[lesson.dayOfWeek]);
                   Span(` ${ScheduleSources.commonClassTime[lesson.timeSpan[0]][0]}-${ScheduleSources.commonClassTime[lesson.timeSpan[lesson.timeSpan.length - 1]][1]}`);
                 }
-                  .maxLines(1)
-                  .textOverflow({ overflow: TextOverflow.Ellipsis })
+                .maxLines(1)
+                .textOverflow({ overflow: TextOverflow.Ellipsis })
               }
+              .width(165)
               .alignItems(HorizontalAlign.Start);
             }
           }
           .width('100%')
-          .padding({ top: 10, bottom: 10, left: 16, right: 16 })
+          .padding(10)
           .backgroundColor($r('app.color.grid_background'))
           .borderRadius(20)
           .onClick(() => {
@@ -752,29 +753,31 @@ struct Schedule {
   }
 
   refreshGrid() {
-    this.thisWeekSchedule = ScheduleManager.getDisplayClassesByWeek(this.weekDisplayed);
-    this.sepConflictClass();
-  }
-
-  sepConflictClass() {
+    const rawData: ScheduleSources.classAttribute[] = ScheduleManager.getDisplayClassesByWeek(this.weekDisplayed);
+    this.thisWeekSchedule = [];
     this.conflictSchedule = [];
-    this.thisWeekSchedule.sort((a, b) => {
+    rawData.sort((a, b) => {
       if (a.priority !== b.priority) {
         return a.priority - b.priority;
       }
       return b.timeSpan[0] - a.timeSpan[0];
     });
+
     const flag: boolean[][] = Array(7).fill(null).map(() => Array(14).fill(false));
-    for (let i = this.thisWeekSchedule.length - 1; i >= 0; i--) {
-      next_class:
-        for (let eachSpan of this.thisWeekSchedule[i].timeSpan) {
-          if (flag[this.thisWeekSchedule[i].dayOfWeek][eachSpan]) {
-            this.conflictSchedule.push(this.thisWeekSchedule[i]);
-            this.thisWeekSchedule.splice(i, 1);
-            break next_class;
-          }
-          flag[this.thisWeekSchedule[i].dayOfWeek][eachSpan] = true;
+    let noConflict: boolean = true;
+    for (let i = rawData.length - 1; i >= 0; i--) {
+      noConflict = true;
+      for (let eachSpan of rawData[i].timeSpan) {
+        if (flag[rawData[i].dayOfWeek][eachSpan]) {
+          this.conflictSchedule.push(rawData[i]);
+          noConflict = false;
+          break;
         }
+        flag[rawData[i].dayOfWeek][eachSpan] = true;
+      }
+      if (noConflict) {
+        this.thisWeekSchedule.push(rawData[i]);
+      }
     }
   }
   
@@ -790,9 +793,8 @@ struct Schedule {
       this.currentWeek = this.weekDisplayed = Math.ceil((currentTime.getTime() - termStartTime) / millisecondsPerWeek);
       this.currentWeekStart = this.weekStart = new Date(new Date(currentTime).setDate(currentTime.getDate() - currentTime.getDay())).setHours(0, 0, 0, 0);
     }
-    this.thisWeekSchedule = ScheduleManager.getDisplayClassesByWeek(this.currentWeek);
     this.displayName = this.semesters[this.displayTerm].name;
-    this.sepConflictClass();
+    this.refreshGrid();
   }
 
   pathStack: NavPathStack = new NavPathStack();
