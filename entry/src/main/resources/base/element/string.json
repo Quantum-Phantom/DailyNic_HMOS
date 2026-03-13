@@ -113,6 +113,10 @@
       "value": "覆盖"
     },
     {
+      "name": "cover_duplicate",
+      "value": "仅覆盖重名课程"
+    },
+    {
       "name": "have_appended",
       "value": "已追加到「%s」"
     },
@@ -962,7 +966,7 @@
     },
     {
       "name": "read_file_cancel",
-      "value": "已取消或权限获取失败，请重试\u2022\u1dc4\u0847\u2022\u1dc5"
+      "value": "\u2022\u1dc4\u0847\u2022\u1dc5已取消或权限获取失败，请重启应用后重试"
     },
     {
       "name": "read_file_format_error",

@@ -3,10 +3,10 @@ import { webview } from '@kit.ArkWeb';
 import ScheduleManager from '../utils/ScheduleManager';
 import PasswordDialog from '../view/PasswordDialog';
 import accountInfoProvider from '../utils/Encryption';
-import BackgroundImage from '../utils/BgImageManager';
-import { fillInformationJS, getRandomInt, truncateString } from '../utils/tools';
+import BackgroundImage, { presetColor } from '../utils/BgImageManager';
+import { fillInformationJS, truncateString } from '../utils/tools';
 import UnifiedPreferences, { PASSWORD_KEY, REMIND_KEY, UID_KEY}  from '../utils/UnifyPreference';
-import { classAttribute, semesterAttribute } from '../constants/ScheduleSources';
+import { classAttribute, COVER_MODE, semesterAttribute } from '../constants/ScheduleSources';
 import { ExceptionPrompt, MarginType } from '@kit.ArkUI';
 
 @Builder
@@ -508,19 +508,31 @@ struct Webview {
         .margin({ top: 5, bottom: 5 })
 
       Row() {
-        Button($r('app.string.cover'))
-          .buttonStyle(ButtonStyleMode.TEXTUAL)
-          .width('50%')
-          .onClick(() => {
-            ScheduleManager.coverExistSemester(this.selectIndex, ScheduleManager.parseOnlineSchedule(JSON.parse(this.timetable) as classAttribute[][][]), false, true);
-            this.getUIContext().getPromptAction().showToast({ message: $r('app.string.have_covered', truncateString(this.semesters[this.selectIndex].name, 10)) });
-          })
         Button($r('app.string.append'))
           .buttonStyle(ButtonStyleMode.NORMAL)
+          .fontColor(presetColor[BackgroundImage.themeColor][2])
+          .width('25%')
+          .onClick(() => {
+            ScheduleManager.coverExistSemester(this.selectIndex, ScheduleManager.parseOnlineSchedule(JSON.parse(this.timetable) as classAttribute[][][]), COVER_MODE.APPEND, true);
+            this.getUIContext().getPromptAction().showToast({ message: $r('app.string.have_appended', truncateString(this.semesters[this.selectIndex].name, 10)) });
+          })
+
+        Button($r('app.string.cover'))
+          .buttonStyle(ButtonStyleMode.TEXTUAL)
+          .fontColor(presetColor[BackgroundImage.themeColor][2])
+          .width('25%')
+          .onClick(() => {
+            ScheduleManager.coverExistSemester(this.selectIndex, ScheduleManager.parseOnlineSchedule(JSON.parse(this.timetable) as classAttribute[][][]), COVER_MODE.COVER, true);
+            this.getUIContext().getPromptAction().showToast({ message: $r('app.string.have_covered', truncateString(this.semesters[this.selectIndex].name, 10)) });
+          })
+
+        Button($r('app.string.cover_duplicate'))
+          .buttonStyle(ButtonStyleMode.EMPHASIZED)
+          .backgroundColor(presetColor[BackgroundImage.themeColor][2])
           .width('50%')
           .onClick(() => {
-            ScheduleManager.coverExistSemester(this.selectIndex, ScheduleManager.parseOnlineSchedule(JSON.parse(this.timetable) as classAttribute[][][]), true, true);
-            this.getUIContext().getPromptAction().showToast({ message: $r('app.string.have_appended', truncateString(this.semesters[this.selectIndex].name, 10)) });
+            ScheduleManager.coverExistSemester(this.selectIndex, ScheduleManager.parseOnlineSchedule(JSON.parse(this.timetable) as classAttribute[][][]), COVER_MODE.COVER_DUPLICATE, true);
+            this.getUIContext().getPromptAction().showToast({ message: $r('app.string.have_covered', truncateString(this.semesters[this.selectIndex].name, 10)) });
           })
       }
       .width('100%')

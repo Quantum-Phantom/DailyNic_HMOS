@@ -47,8 +47,8 @@ export default struct PasswordDialog {
           .layoutWeight(1);
         Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
           Image($r('app.media.trash_red'))
-            .width(24)
-            .height(24)
+            .width(20)
+            .height(20)
         }
         .visibility(this.showDelButton ? Visibility.Visible : Visibility.Hidden)
         .height(36)

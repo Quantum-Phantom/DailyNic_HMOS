@@ -296,3 +296,5 @@ export function validateExportedData(data: object): string {
 
   return '';
 }
+
+export enum COVER_MODE { COVER, COVER_DUPLICATE, APPEND };

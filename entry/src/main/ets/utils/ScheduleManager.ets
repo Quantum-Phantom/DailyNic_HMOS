@@ -1,7 +1,7 @@
 // 用于管理多学期的 ScheduleManager
 
 import UnifyPreferences from './UnifyPreference';
-import { classAttribute, semesterAttribute } from '../constants/ScheduleSources';
+import { classAttribute, COVER_MODE, semesterAttribute } from '../constants/ScheduleSources';
 import { colorSet, colorSetLen, extractCredits, getRandomInt } from './tools';
 
 function areNumberArraysEqual(a: number[], b: number[]): boolean {
@@ -188,10 +188,10 @@ class ScheduleManager {
    * 覆盖或合并指定学期的课程数据。会保留原有的颜色和优先级
    * @param id 学期索引
    * @param newSchedule 新课程列表
-   * @param insert 是否为合并模式（true为合并，false为覆盖，默认false）
+   * @param insertMode 0：覆盖，1：覆盖出现过的同名课程，2：追加
    * @returns undefined，但如果发生错误则返回错误信息的字符串
    */
-  coverExistSemester(id: number, newSchedule: classAttribute[], insert: boolean = false, fillAll: boolean = false): string | undefined {
+  coverExistSemester(id: number, newSchedule: classAttribute[], insertMode: COVER_MODE, fillAll: boolean = false): string | undefined {
     try {
       const originSchedule: classAttribute[] = JSON.parse(UnifyPreferences.getSync('SemesterDataAt' + String(this.semesters[id].createTime), '[]'));
 
@@ -221,7 +221,7 @@ class ScheduleManager {
         }
       }
 
-      if (insert) {
+      if (insertMode === COVER_MODE.APPEND) {
         const newLength: number = newSchedule.length;
         for (const originClass of originSchedule) {
           // 检查是否已存在相同的课程
@@ -235,32 +235,33 @@ class ScheduleManager {
             newSchedule.push(originClass);
           }
         }
-        UnifyPreferences.putSync('SemesterDataAt' + String(this.semesters[id].createTime), JSON.stringify(newSchedule));
-        let latestWeek: number = this.getLatestWeek(newSchedule);
-        if (latestWeek !== this.semesters[id].totalWeekNum) {
-          this.semesters[id].totalWeekNum = latestWeek;
-          UnifyPreferences.putSync('SemestersData', JSON.stringify(this.semesters));
-        }
-        let err: string | undefined;
-        if (id === this.displaySemester)
-          err = this.rebuildDisplayIndex(newSchedule);
-        if (id === this.defaultSemester)
-          err = this.rebuildDefaultIndex(newSchedule) || err;
-        return err;
-      } else { // 直接覆盖
-        UnifyPreferences.putSync('SemesterDataAt' + String(this.semesters[id].createTime), JSON.stringify(newSchedule));
-        let latestWeek: number = this.getLatestWeek(newSchedule);
-        if (latestWeek !== this.semesters[id].totalWeekNum) {
-          this.semesters[id].totalWeekNum = latestWeek;
-          UnifyPreferences.putSync('SemestersData', JSON.stringify(this.semesters));
-        }
-        let err: string | undefined;
-        if (id === this.displaySemester)
-          err = this.rebuildDisplayIndex(newSchedule);
-        if (id === this.defaultSemester)
-          err = this.rebuildDefaultIndex(newSchedule) || err;
+      } else if (insertMode === COVER_MODE.COVER_DUPLICATE) { // 覆盖出现过的课程
+        const newLength: number = newSchedule.length;
+        let flag: boolean;
+        originSchedule.forEach(originClass => {
+          flag = true;
+          for (let i = 0; i < newLength; i++)
+            if (newSchedule[i].name === originClass.name) {
+              flag = false;
+              break;
+            }
+          if (flag)
+            newSchedule.push(originClass);
+        })
       }
-      return;
+
+      UnifyPreferences.putSync('SemesterDataAt' + String(this.semesters[id].createTime), JSON.stringify(newSchedule));
+      let latestWeek: number = this.getLatestWeek(newSchedule);
+      if (latestWeek !== this.semesters[id].totalWeekNum) {
+        this.semesters[id].totalWeekNum = latestWeek;
+        UnifyPreferences.putSync('SemestersData', JSON.stringify(this.semesters));
+      }
+      let err: string | undefined;
+      if (id === this.displaySemester)
+        err = this.rebuildDisplayIndex(newSchedule);
+      if (id === this.defaultSemester)
+        err = this.rebuildDefaultIndex(newSchedule) || err;
+      return err;
     } catch(err) {
       return JSON.stringify(err);
     }
@@ -333,7 +334,7 @@ class ScheduleManager {
         });
       }
       originClass.push(newClass);
-      return this.coverExistSemester(id, originClass, false);
+      return this.coverExistSemester(id, originClass, COVER_MODE.COVER);
     } catch(err) {
       return JSON.stringify(err);
     }
@@ -357,7 +358,7 @@ class ScheduleManager {
           break;
         }
       if (hasEqualClass)
-        return this.coverExistSemester(id, originClass, false);
+        return this.coverExistSemester(id, originClass, COVER_MODE.COVER);
     } catch(err) {
       return JSON.stringify(err);
     }

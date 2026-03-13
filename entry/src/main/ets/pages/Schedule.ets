@@ -449,7 +449,8 @@ struct Schedule {
                 .fontWeight(FontWeight.Bold)
                 .maxLines(2)
                 .layoutWeight(1)
-                .textOverflow({ overflow: TextOverflow.Ellipsis });
+                .textOverflow({ overflow: TextOverflow.Ellipsis })
+                .margin({ top: 5, bottom: 5 });
 
               Column() {
                 Text(`\udb81\uddf3 ${lesson.teacher}`)
@@ -470,12 +471,12 @@ struct Schedule {
                 .maxLines(1)
                 .textOverflow({ overflow: TextOverflow.Ellipsis })
               }
-              .width(165)
+              .width(162)
               .alignItems(HorizontalAlign.Start);
             }
           }
           .width('100%')
-          .padding(10)
+          .padding({ top: 10, bottom: 10, left: 13, right: 13 })
           .backgroundColor($r('app.color.grid_background'))
           .borderRadius(20)
           .onClick(() => {
@@ -766,7 +767,7 @@ struct Schedule {
     });
 
     const flag: boolean[][] = Array(7).fill(null).map(() => Array(14).fill(false));
-    let noConflict: boolean = true;
+    let noConflict: boolean;
     for (let i = rawData.length - 1; i >= 0; i--) {
       noConflict = true;
       for (let eachSpan of rawData[i].timeSpan) {
