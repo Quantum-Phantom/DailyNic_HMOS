@@ -322,7 +322,7 @@ struct Webview {
       .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
     }
     .title(this.customTitle(), {
-      backgroundColor: (BackgroundImage.blurLevel === undefined ? $r(`app.color.shaded_background${BackgroundImage.themeColor}`) : '#00d00721')
+      backgroundColor: (BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background' + String(BackgroundImage.themeColor)) : '#00d00721')
     })
     .hideBackButton(true)
     .backgroundColor('#00d00721')

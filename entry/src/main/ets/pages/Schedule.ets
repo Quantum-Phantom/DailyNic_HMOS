@@ -556,7 +556,11 @@ struct Schedule {
         .width(42)
         .height(42)
         .margin({ right: 8 })
-        .onClick(() => {})
+        .onClick(() => {
+          ScheduleManager.toppingSemester(this.displayTerm);
+          this.defaultSemester = ScheduleManager.defaultSemester;
+          this.initSchedule();
+        })
 
         Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
           Image($r('app.media.plus_square'))

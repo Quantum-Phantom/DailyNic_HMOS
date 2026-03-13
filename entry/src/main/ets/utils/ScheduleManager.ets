@@ -474,6 +474,30 @@ class ScheduleManager {
     }
     return parsedData;
   }
+
+  toppingSemester(target: number): string | undefined {
+    try {
+      if (this.displaySemester === target)
+        this.displaySemester = 0;
+      else if (this.displaySemester < target)
+        this.displaySemester++;
+      if (this.defaultSemester === target)
+        this.defaultSemester = 0;
+      else if (this.defaultSemester < target)
+        this.defaultSemester++;
+
+      const targetSemester: semesterAttribute = this.semesters[target];
+      for (let i = target; i > 0; i--) {
+        this.semesters[i] = this.semesters[i - 1];
+      }
+      this.semesters[0] = targetSemester;
+      UnifyPreferences.putSync('SemestersData', JSON.stringify(this.semesters));
+      UnifyPreferences.putSync('DefaultSemester', this.defaultSemester); // 不需要rebuildIndex（内容不变），因此不调用this.setDefaultSemester()
+      return;
+    } catch(err) {
+      return JSON.stringify(err);
+    }
+  }
 }
 
 export default new ScheduleManager();
