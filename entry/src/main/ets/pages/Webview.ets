@@ -187,6 +187,7 @@ struct Webview {
           .javaScriptAccess(true)
           .width('100%')
           .height('100%')
+          .backgroundColor(BackgroundImage.blurLevel === undefined ? undefined : '#00d00721')
           .darkMode(this.webAutoDarkMode ? WebDarkMode.Auto : WebDarkMode.Off)
           .forceDarkAccess(this.webAutoDarkMode)
           .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
@@ -469,6 +470,7 @@ struct Webview {
     })
     .hideBackButton(true)
     .backgroundBlurStyle(BackgroundImage.blurLevel)
+    .backgroundColor(BackgroundImage.blurLevel === undefined ? undefined : '#00d00721')
     .onReady((context: NavDestinationContext) => {
       this.pathStack = context.pathStack;
 
@@ -485,8 +487,7 @@ struct Webview {
     })
   }
 
-  @Builder
-  customTitle() {
+  @Builder customTitle() {
     Row({ space: 6 }) {
       Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
         Image($r('app.media.close'))

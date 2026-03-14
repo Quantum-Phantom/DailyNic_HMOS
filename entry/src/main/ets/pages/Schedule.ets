@@ -557,9 +557,11 @@ struct Schedule {
         .height(42)
         .margin({ right: 8 })
         .onClick(() => {
-          ScheduleManager.toppingSemester(this.displayTerm);
-          this.defaultSemester = ScheduleManager.defaultSemester;
-          this.initSchedule();
+          if (this.displayTerm > 0) {
+            ScheduleManager.toppingSemester(this.displayTerm);
+            this.defaultSemester = ScheduleManager.defaultSemester;
+            this.initSchedule();
+          }
         })
 
         Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
