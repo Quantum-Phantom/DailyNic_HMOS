@@ -99,7 +99,7 @@ struct AddCard {
     NavDestination() {
       Scroll() {
         Column() {
-          Text('点击下面的卡片以添加 2×4 大小的卡片到桌面；此外，你也可以长按桌面上的 App 图标，添加 4×4 大小的卡片。')
+          Text('点击下面的卡片以添加 2×4 大小的卡片到桌面；此外，长按桌面上的 App 图标，可以添加 4×4 大小的卡片。')
 
           Row({ space: 5 }) {
             Image($r('app.media.class_card'))
@@ -165,18 +165,11 @@ struct AddCard {
           .margin({ top: 16, bottom: 5 })
           .width('100%')
 
-          Row() {
-            Text('你也可以按照右图所示步骤，在桌面添加课表和考试的快捷方式，点击即可直达相应页面。')
-              .constraintSize({ maxWidth: 'calc(100% - 222px)' })
-              .layoutWeight(1)
-            Image($r('app.media.shortcut'))
-              .width('222px')
-              .height('350px')
-              .borderRadius(10)
-              .margin({ left: 10 })
-          }
-          .justifyContent(FlexAlign.SpaceEvenly)
-          .width('100%')
+          Text('你也可以按照下图所示步骤，在桌面添加课表和考试的快捷方式，点击快捷方式即可直达相应页面。')
+          Image($r('app.media.shortcut'))
+            .width('222px')
+            .height('350px')
+            .borderRadius(10)
         }
         .width('100%')
         .padding(10)
