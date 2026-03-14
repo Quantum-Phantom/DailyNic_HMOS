@@ -11,15 +11,12 @@ struct Class_schedule_dailyCard {
   @LocalStorageProp('tomorrowCourse') tomorrowCourse: ScheduleSources.classAttribute[] = [];
   @LocalStorageProp('title') title: ResourceStr = '';
   @LocalStorageProp('count') count: number = 0;
-  @LocalStorageProp('termState') termState: number = 1;
 
   @LocalStorageProp('cardListParameter') cardListParameter: CardListParameter = new CardListParameter(
     /* backgroundColor          */ $r('sys.color.ohos_id_color_background'),
     /* title                    */ $r('app.string.schedule_card_title'),
     /* backgroundImage          */ undefined,
     /* backgroundImageSize      */ ImageSize.Auto,
-    /* isMask                   */ true,
-    /* maskColor                */ $r('app.color.pure_white_or_black'),
     /* isItemCount              */ true,
     /* itemCount                */ this.todayCourse.length,
     /* itemCountColor           */ $r('sys.color.ohos_id_color_emphasize'),
@@ -35,13 +32,13 @@ struct Class_schedule_dailyCard {
       ListItem() {
         Column() {
           Image($r('app.media.no_course_today'))
-            .height(50)
-          Text(true ? $r('app.string.no_class_term_end') : $r('app.string.no_class_today'))
+            .height(60)
+          Text($r('app.string.no_class_today'))
         }
         .justifyContent(FlexAlign.Center)
       }
       .width('100%')
-      .height(true ? '100%' : undefined)
+      .height('100%')
       .padding({ top: 12, bottom: 12 })
     } else {
       ForEach(this.todayCourse, (course: ScheduleSources.classAttribute, index: number) => {

@@ -263,7 +263,7 @@ struct ThemeSetting {
               .fontSize(15)
               .visibility(this.showWarning ? Visibility.Visible : Visibility.None);
           }
-          .margin({ left: 9, right: 9, top: 9 })
+          .padding({ bottom: 6 })
           .backgroundBlurStyle(BackgroundImage.blurLevel)
           .borderRadius(23)
 
@@ -343,7 +343,6 @@ struct ThemeSetting {
               )
             )
           }
-          .margin({ left: 9, right: 9 })
           .backgroundBlurStyle(BackgroundImage.blurLevel)
           .borderRadius(BackgroundImage.blurLevel === undefined ? undefined : 23)
           .clip(true)
@@ -438,7 +437,6 @@ struct ThemeSetting {
             .width('95%')
             .margin({ bottom: 10 })
           }
-          .margin({ left: 9, right: 9 })
           .backgroundBlurStyle(BackgroundImage.blurLevel)
           .borderRadius(23)
 
@@ -496,10 +494,10 @@ struct ThemeSetting {
             .width('95%')
             .margin({ bottom: 10 })
           }
-          .margin({ left: 9, right: 9, bottom: 9 })
           .backgroundBlurStyle(BackgroundImage.blurLevel)
           .borderRadius(23)
         }
+        .padding(9)
         .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
         .width('100%')
       }

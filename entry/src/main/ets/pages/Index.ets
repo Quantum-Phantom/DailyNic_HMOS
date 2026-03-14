@@ -342,10 +342,7 @@ struct Index {
     }
 
     examManager.readStoredExam();
-    this.exams = examManager.allExamInfo;
-    for (let i = this.exams.length - 1; i >= 0; i--)
-      if (this.currentTime.getTime() > this.exams[i].endTimeStamp)
-        this.exams.splice(i, 1);
+    this.exams = examManager.allExamInfo.filter(item => this.currentTime.getTime() <= item.endTimeStamp);
   }
 
   showMessage(message: string | ResourceStr, duration?: number) {
@@ -501,7 +498,7 @@ struct Index {
             if (this.termState === 0) {
               Column() {
                 Image($r('app.media.no_course_term_not_start'))
-                  .height(75)
+                  .height(100)
                   .draggable(false);
                 Text($r('app.string.no_class_term_not_start'))
                   .textAlign(TextAlign.Center);
@@ -510,7 +507,7 @@ struct Index {
             } else if (this.termState === 2) {
               Column() {
                 Image($r('app.media.no_course_today'))
-                  .height(75)
+                  .height(100)
                   .draggable(false);
                 Text($r('app.string.no_class_today'))
                   .textAlign(TextAlign.Center);
@@ -519,7 +516,7 @@ struct Index {
             } else if (this.termState === 4) {
               Column() {
                 Image($r('app.media.no_course_term_end'))
-                  .height(75)
+                  .height(100)
                   .draggable(false);
                 Text($r('app.string.no_class_term_end'))
                   .textAlign(TextAlign.Center);
@@ -610,7 +607,7 @@ struct Index {
               if (this.termState === 3) {
                 Column() {
                   Image($r('app.media.course_finish_today'))
-                    .height(75)
+                    .height(100)
                     .draggable(false);
                   Text($r('app.string.class_finish_today'));
                 }
@@ -722,7 +719,7 @@ struct Index {
             if (this.exams.length === 0) {
               Column() {
                 Image($r('app.media.no_exam1'))
-                  .height(75)
+                  .height(100)
                   .draggable(false)
                 Text($r('app.string.no_exam_info1'));
               }
@@ -732,14 +729,17 @@ struct Index {
                 Row() {
                   if (this.currentTime.getTime() < singleExam.beginTimeStamp) {
                     Flex({ wrap: FlexWrap.Wrap, alignItems: ItemAlign.End }) {
-                      Text() {
-                        Span(tools.formatTimeDiff(this.currentTime.getTime(), singleExam.beginTimeStamp, 0).toString())
-                          .fontSize(36)
-                        Span($r('app.string.day'))
-                          .fontSize(18)
+                      if (singleExam.beginTimeStamp - this.currentTime.getTime() > 86400000) {
+                        Text() {
+                          Span(tools.formatTimeDiff(this.currentTime.getTime(), singleExam.beginTimeStamp, 0)
+                            .toString())
+                            .fontSize(36)
+                          Span($r('app.string.day'))
+                            .fontSize(18)
+                        }
+                        .fontWeight(FontWeight.Bold)
+                        .fontColor($r('app.color.green'))
                       }
-                      .fontWeight(FontWeight.Bold)
-                      .fontColor($r('app.color.green'))
 
                       Text() {
                         Span(Number((tools.formatTimeDiff(this.currentTime.getTime(), singleExam.beginTimeStamp, 1)
@@ -982,19 +982,10 @@ struct Index {
         break;
 
       case 6:
-        // 选择最常访问显示个数
-        this.getUIContext().showTextPickerDialog({
-          selected: FunctionOrder.maxRecord - 1,
-          range: tools.getContArray([[1, 20]], true) as string[], // 在此处修改允许用户选择的最大显示数量上限！！（现在是20）
-          defaultPickerItemHeight: 36,
-          canLoop: false,
-          onAccept: (value: TextPickerResult) => {
-            FunctionOrder.setMaxRecord(Number(value.value));
-            this.showMessage(`已更改为 ${value.value}`);
-            FunctionOrder.refreshFunc(); // 刷新点击次数显示
-            this.copyMostUsedFunc = FunctionOrder.mostUsedFunc;
-          }
-        })
+        if (this.pageInfo.popToName('AddCard') === -1) {
+          this.pageInfo.clear();
+          this.pageInfo.pushPath({ name: 'AddCard' });
+        }
         break;
 
       case 7:

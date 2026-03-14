@@ -15,7 +15,7 @@ export class SettingsData {
         new ItemData(5, $r('app.string.theme_setting'), $r('app.media.penshape'))
       ],
       [
-        new ItemData(6, $r('app.string.set_max_record'), $r('app.media.more')),
+        new ItemData(6, $r('app.string.add_desktop_form'), $r('app.media.heart_square_stack_fill')),
         new ItemData(7, $r('app.string.web_auto_dark_mode'), $r('app.media.moon'), $r('app.string.setting_toggle')),
         new ItemData(8, $r('app.string.web_back_press'), $r('app.media.house'), $r('app.string.setting_toggle'))
       ],

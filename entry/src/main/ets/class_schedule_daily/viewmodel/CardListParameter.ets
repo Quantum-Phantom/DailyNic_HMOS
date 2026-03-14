@@ -5,9 +5,6 @@ export class CardListParameter {
   backgroundImage?: ResourceStr;
   backgroundImageSize?: ImageSize;
 
-  isMask?: boolean;
-  maskColor?: ResourceColor;
-
   isItemCount?: boolean;
   itemCount?: number;
   itemCountColor?: ResourceColor;
@@ -24,8 +21,6 @@ export class CardListParameter {
     title: ResourceStr,
     backgroundImage?: ResourceStr,
     backgroundImageSize?: ImageSize,
-    isMask?: boolean,
-    maskColor?: ResourceColor,
     isItemCount?: boolean,
     itemCount?: number,
     itemCountColor?: ResourceColor,
@@ -38,8 +33,6 @@ export class CardListParameter {
     this.title = title;
     this.backgroundImage = backgroundImage;
     this.backgroundImageSize = backgroundImageSize;
-    this.isMask = isMask;
-    this.maskColor = maskColor;
     this.isItemCount = isItemCount;
     this.itemCount = itemCount;
     this.itemCountColor = itemCountColor;

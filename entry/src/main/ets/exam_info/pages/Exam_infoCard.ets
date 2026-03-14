@@ -1,6 +1,6 @@
 import { CardListComponent } from '../view/CardListComponent';
 import { CardListParameter } from '../viewmodel/CardListParameter';
-import examManager, { examAttribute } from '../../utils/ExamManager';
+import { examAttribute } from '../../utils/ExamManager';
 import * as tools from '../../utils/tools';
 
 let localStorage = new LocalStorage();
@@ -17,8 +17,6 @@ struct Class_schedule_dailyCard {
     /* title                    */ $r('app.string.schedule_card_title'),
     /* backgroundImage          */ undefined,
     /* backgroundImageSize      */ ImageSize.Auto,
-    /* isMask                   */ true,
-    /* maskColor                */ $r('app.color.pure_white_or_black'),
     /* isItemCount              */ true,
     /* itemCount                */ this.examInfo.length,
     /* itemCountColor           */ $r('sys.color.ohos_id_color_emphasize'),
@@ -27,7 +25,7 @@ struct Class_schedule_dailyCard {
     /* isBottomIcon             */ false,
     /* bottomIcon               */ undefined
   )
-  @LocalStorageProp('currentTime') currentTime: number = 0;
+  @LocalStorageProp('currentTime') currentTime: number = Date.now();
 
   @Builder
   cardListBuilder() {
@@ -44,28 +42,28 @@ struct Class_schedule_dailyCard {
         Row() {
           if (this.currentTime < singleExam.beginTimeStamp) {
             if (singleExam.beginTimeStamp - this.currentTime >= 86400000)
-            Text() {
-              Span(tools.formatTimeDiff(this.currentTime, singleExam.beginTimeStamp, 0).toString())
-                .fontSize(36)
-              Span($r('app.string.day'))
-                .fontSize(18)
-            }
-            .fontWeight(FontWeight.Bold)
-            .fontColor($r('app.color.green'))
-            .textAlign(TextAlign.Center)
-            .width('30%');
+              Text() {
+                Span(tools.formatTimeDiff(this.currentTime, singleExam.beginTimeStamp, 0).toString())
+                  .fontSize(36)
+                Span($r('app.string.day'))
+                  .fontSize(18)
+              }
+              .fontWeight(FontWeight.Bold)
+              .fontColor($r('app.color.green'))
+              .textAlign(TextAlign.Center)
+              .width('30%');
             else
-            Text() {
-              Span(Number((tools.formatTimeDiff(this.currentTime, singleExam.beginTimeStamp, 1)
-                + tools.formatTimeDiff(this.currentTime, singleExam.beginTimeStamp, 2) / 60).toExponential(1)).toString())
-                .fontSize(28)
-              Span($r('app.string.hour'))
-                .fontSize(14)
-            }
-            .fontWeight(FontWeight.Bold)
-            .fontColor($r('app.color.hour'))
-            .textAlign(TextAlign.Center)
-            .width('30%');
+              Text() {
+                Span(Number((tools.formatTimeDiff(this.currentTime, singleExam.beginTimeStamp, 1)
+                  + tools.formatTimeDiff(this.currentTime, singleExam.beginTimeStamp, 2) / 60).toExponential(1)).toString())
+                  .fontSize(28)
+                Span($r('app.string.hour'))
+                  .fontSize(14)
+              }
+              .fontWeight(FontWeight.Bold)
+              .fontColor($r('app.color.hour'))
+              .textAlign(TextAlign.Center)
+              .width('30%');
           } else {
             Text($r('app.string.exam_processing'))
               .fontSize(18)

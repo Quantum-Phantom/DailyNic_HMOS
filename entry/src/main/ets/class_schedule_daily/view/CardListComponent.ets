@@ -73,27 +73,15 @@ export struct CardListComponent {
         }
         .pixelRound({ bottom: PixelRoundCalcPolicy.FORCE_CEIL })
 
-        Stack({ alignContent: Alignment.BottomEnd }) {
-          if (this.cardListParameter.isMask !== undefined) {
-            Row()
-              .width('100%')
-              .height(24)
-              .linearGradient({
-                direction: GradientDirection.Top,
-                repeating: false,
-                colors: [[this.cardListParameter.maskColor, 0.0], [$r('app.color.transparent'), 1.0]]
-              })
-              .pixelRound({ bottom: PixelRoundCalcPolicy.FORCE_CEIL })
-              .hitTestBehavior(HitTestMode.None)
-          }
-
-          if (this.cardListParameter.isBottomIcon !== undefined) {
+        if (this.cardListParameter.isBottomIcon !== undefined) {
+          Column() {
             Image(this.cardListParameter.bottomIcon)
               .width(32)
               .height(32)
           }
+          .alignItems(HorizontalAlign.End)
+          .width('100%')
         }
-        .width('100%')
       }
       .backgroundImage(this.cardListParameter.backgroundImage)
       .backgroundImageSize(this.cardListParameter.backgroundImageSize)

@@ -3,6 +3,7 @@ import { CounterComponent, CounterType, LengthUnit } from '@kit.ArkUI'
 import * as tools from '../utils/tools'
 import examManager, { examAttribute, areExamAttributesEqual } from '../utils/ExamManager';
 import BackgroundImage, { presetColor } from '../utils/BgImageManager';
+import { i18n } from '@kit.LocalizationKit';
 
 @Builder
 export function ExamBuilder(name: string, param?: Object) {
@@ -645,7 +646,7 @@ struct ExamDetail {
         })
       })
     }
-    .title({ main: $r('app.string.exam_detail'), sub: '\udb80\udfd5 '+ this.currentTime.toLocaleString('zh-cn') }, {
+    .title({ main: $r('app.string.exam_detail'), sub: '\udb80\udfd5 '+ this.currentTime.toLocaleString('zh-cn', { year: "numeric", month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: !i18n.System.is24HourClock() })}, {
       backgroundBlurStyle: BackgroundImage.blurLevel,
       backgroundColor: BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background' + String(BackgroundImage.themeColor)) : undefined
     })

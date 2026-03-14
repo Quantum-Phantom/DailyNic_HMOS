@@ -19,7 +19,7 @@ export default struct GridComponent {
     Column() {
       Row() {
         if (this.gridIndex === -1)
-          Row() {
+          Row({ space: 6 }) {
             Text(this.gridData.groupName)
               .fontSize('20fp')
               .height('30vp')
@@ -28,6 +28,28 @@ export default struct GridComponent {
 
             Button({ buttonStyle: ButtonStyleMode.NORMAL, type: ButtonType.Circle }) {
               Image($r('app.media.setting'))
+                .height(20)
+                .width(20)
+            }
+            .height(36)
+            .width(36)
+            .onClick(() => {
+              this.getUIContext().showTextPickerDialog({
+                selected: FunctionOrder.maxRecord - 1,
+                range: tools.getContArray([[1, 20]], true) as string[], // 在此处修改允许用户选择的最大显示数量上限！！（现在是20）
+                defaultPickerItemHeight: 36,
+                canLoop: false,
+                onAccept: (value: TextPickerResult) => {
+                  FunctionOrder.setMaxRecord(Number(value.value));
+                  this.getUIContext().getPromptAction().showToast({ message: `已更改为 ${value.value}` });
+                  FunctionOrder.refreshFunc(); // 刷新点击次数显示
+                  this.copyMostUsedFunc = FunctionOrder.mostUsedFunc;
+                }
+              })
+            })
+
+            Button({ buttonStyle: ButtonStyleMode.NORMAL, type: ButtonType.Circle }) {
+              Image($r('app.media.sort'))
                 .height(20)
                 .width(20)
             }
@@ -54,7 +76,6 @@ export default struct GridComponent {
             }
             .height(36)
             .width(36)
-            .margin({ left: 6 })
             .onClick(() => {
               FunctionOrder.resetFunc();
               FunctionOrder.refreshFunc(); // 刷新点击次数显示

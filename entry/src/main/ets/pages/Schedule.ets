@@ -1,5 +1,5 @@
 
-import { MeasureText, PopoverDialog, Popup } from '@kit.ArkUI';
+import { PopoverDialog, Popup } from '@kit.ArkUI';
 import * as ScheduleSources from '../constants/ScheduleSources';
 import { classAttribute, semesterAttribute, exportSemester, exportedData } from '../constants/ScheduleSources';
 import ScheduleManager, { areClassAttributesEqual } from '../utils/ScheduleManager';
@@ -8,6 +8,7 @@ import { weekTranslate } from '../utils/tools';
 import UnifiedPreferences, { millisecondsPerWeek } from '../utils/UnifyPreference';
 import BackgroundImage, { presetColor } from '../utils/BgImageManager';
 import RenameDialog from '../view/RenameDialog';
+import { i18n } from '@kit.LocalizationKit';
 
 const criticalHeight: number = 32; // 紧凑模式临界值(vp)
 const classAndTeacher: number = 22; // 教室和教师占用高度
@@ -541,11 +542,17 @@ struct Schedule {
   @Builder SemesterDetail() {
     Column() {
       Row() {
-        Text($r('app.string.all_semesters'))
-          .fontWeight(FontWeight.Bold)
-          .fontSize(24)
-          .layoutWeight(1)
-          .margin({ left: 8 });
+        Column() {
+          Text($r('app.string.all_semesters'))
+            .fontWeight(FontWeight.Bold)
+            .fontSize(22)
+            .width('100%')
+          Text($r('app.string.all_semesters_intro'))
+            .fontSize(13)
+            .width('100%')
+        }
+        .layoutWeight(1)
+        .margin({ left: 8 });
 
         Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
           Image($r('app.media.top'))
@@ -712,12 +719,24 @@ struct Schedule {
 
               Row() {
                 Text($r('app.string.all_semesters_start_date'))
-                CalendarPicker({ selected: new Date(semester.beginTime) })
-                  .edgeAlign(CalendarAlign.CENTER)
-                  .onChange((value: Date) => {
-                    ScheduleManager.changeSemesterStartTime(index, value.setHours(0, 0, 0, 0) - 86400000 * value.getDay());
-                    if (this.displayTerm === index)
-                      this.initSchedule();
+                Button(new Date(semester.beginTime).toLocaleDateString('zh-cn', { year: 'numeric', month: 'short', day: 'numeric' }))
+                  .buttonStyle(ButtonStyleMode.NORMAL)
+                  .height(30)
+                  .borderRadius(15)
+                  .fontColor(presetColor[BackgroundImage.themeColor][2])
+                  .onClick(() => {
+                    this.getUIContext().showDatePickerDialog({
+                      start: new Date(0),
+                      end: new Date(4133865600000),
+                      selected: new Date(semester.beginTime),
+                      showTime: false,
+                      selectedTextStyle: { color: presetColor[BackgroundImage.themeColor][2] },
+                      onDateAccept: (value: Date) => {
+                        ScheduleManager.changeSemesterStartTime(index, value.setHours(0, 0, 0, 0) - 86400000 * value.getDay());
+                        if (this.displayTerm === index)
+                          this.initSchedule();
+                      }
+                    })
                   })
               }
               .margin({ left: 15 })
@@ -732,7 +751,7 @@ struct Schedule {
                   .layoutWeight(1)
               }
 
-              Text($r('app.string.all_semesters_create_time', new Date(semester.createTime).toLocaleString('zh-cn')))
+              Text($r('app.string.all_semesters_create_time', new Date(semester.createTime).toLocaleString('zh-cn', { year: "numeric", month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: !i18n.System.is24HourClock() })))
                 .margin({ left: 15 })
                 .textAlign(TextAlign.Start)
             }
@@ -1218,7 +1237,7 @@ struct Schedule {
        * 周数信息与翻页
        */
       Row() { // 高度30
-        Text(new Date(this.weekStart).toLocaleString('fr-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }) + ' ~ ' + new Date(this.weekStart + 518400000).toLocaleString('fr-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }))
+        Text(new Date(this.weekStart).toLocaleString('zh-cn', { year: 'numeric', month: '2-digit', day: '2-digit' }) + ' ~ ' + new Date(this.weekStart + 518400000).toLocaleString('zh-cn', { year: 'numeric', month: '2-digit', day: '2-digit' }))
           .id('week_of_term_span')
           .fontWeight(FontWeight.Bold)
           .fontSize(14)

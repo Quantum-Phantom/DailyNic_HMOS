@@ -14,8 +14,7 @@
       "isDynamic": true,
       "isDefault": true,
       "updateEnabled": true,
-      "scheduledUpdateTime": "10:30",
-      "updateDuration": 1,
+      "updateDuration": 24,
       "defaultDimension": "2*4",
       "supportDimensions": [
         "2*4",
@@ -36,8 +35,7 @@
       "isDynamic": true,
       "isDefault": false,
       "updateEnabled": true,
-      "scheduledUpdateTime": "10:30",
-      "updateDuration": 1,
+      "updateDuration": 4,
       "defaultDimension": "2*4",
       "supportDimensions": [
         "2*4",

@@ -69,8 +69,12 @@
       "value": "开始日期："
     },
     {
+      "name": "all_semesters_intro",
+      "value": "上限20周，周日是一周首日"
+    },
+    {
       "name": "all_semesters_total_week",
-      "value": "\u3000总周数：%d (上限 20)"
+      "value": "\u3000总周数：%d"
     },
     {
       "name": "all_semesters_source",
@@ -321,8 +325,8 @@
       "value": "「最常访问」功能是根据点击次数从大到小排序的，计数上限为 2147483627。你可以将该值手动设置为 0 以删除「%s」，或者设置为 2147483628~2147483647 中的任何一个整数以置顶。"
     },
     {
-      "name": "set_max_record",
-      "value": "设置「最常访问」显示数量"
+      "name": "add_desktop_form",
+      "value": "添加桌面服务卡片"
     },
     {
       "name": "web_auto_dark_mode",
