@@ -1,17 +1,24 @@
 import { AddFormMenuItem } from "@kit.ArkUI";
 import { formBindingData } from "@kit.FormKit";
-import { BusinessError } from "@kit.BasicServicesKit";
+import { BusinessError, deviceInfo } from "@kit.BasicServicesKit";
 import BackgroundImage, { presetColor } from  '../utils/BgImageManager';
 
 
 @Builder
 export function AddCardBuilder() {
-  AddCard();
+  if (deviceInfo.deviceType === 'phone')
+    AddCard({ cardSize: { maxWidth: 300, maxHeight: 140 } });
+  else if (deviceInfo.deviceType === 'tablet')
+    AddCard({ cardSize: { maxWidth: 360, maxHeight: 160 } });
+  else
+    AddCard({ cardSize: { maxWidth: 412, maxHeight: 180 } });
 }
 
 @Entry
 @Component
 struct AddCard {
+  cardSize: ConstraintSizeOptions | undefined;
+
   @Builder CardMenu(cardType: number, bindComponent: string) {
     Menu() {
       AddFormMenuItem({
@@ -112,7 +119,8 @@ struct AddCard {
           }
           .margin({ top: 16, bottom: 5 })
           .width('100%')
-          Text('大约每 12 小时自动刷新一次。若手机处于锁屏状态，则解锁后刷新。')
+          Text('大约每 12 小时自动刷新一次。若设备处于锁屏状态，则解锁后刷新。')
+            .margin({ bottom: 3 })
 
           Column() {
             this.SimulateCard($r('app.string.schedule_card_title'), $r('app.string.no_class_today'), $r('app.media.no_course_today'))
@@ -120,7 +128,7 @@ struct AddCard {
           .padding({ top: 12, left: 12, right: 12 })
           .width('100%')
           .height('100%')
-          .constraintSize({ maxWidth: '841px', maxHeight: '365px' })
+          .constraintSize(this.cardSize)
           .borderRadius(20)
           .backgroundColor($r('app.color.grid_background'))
           .id('ClassCard')
@@ -138,7 +146,8 @@ struct AddCard {
           .margin({ top: 16, bottom: 5 })
           .width('100%')
 
-          Text('大约每 2 小时自动刷新一次。若手机处于锁屏状态，则解锁后刷新。')
+          Text('大约每 2 小时自动刷新一次。若设备处于锁屏状态，则解锁后刷新。')
+            .margin({ bottom: 3 })
 
           Column() {
             this.SimulateCard($r('app.string.exam_info_display_name'), $r('app.string.no_exam_info1'), $r('app.media.no_exam1'))
@@ -146,7 +155,7 @@ struct AddCard {
           .padding({ top: 12, left: 12, right: 12 })
           .width('100%')
           .height('100%')
-          .constraintSize({ maxWidth: '841px', maxHeight: '365px' })
+          .constraintSize(this.cardSize)
           .borderRadius(20)
           .backgroundColor($r('app.color.grid_background'))
           .id('ExamCard')
@@ -166,6 +175,7 @@ struct AddCard {
           .width('100%')
 
           Text('你也可以按照下图所示步骤，在桌面添加课表和考试的快捷方式，点击快捷方式即可直达相应页面。')
+            .margin({ bottom: 3 })
           Image($r('app.media.shortcut'))
             .width('222px')
             .height('350px')

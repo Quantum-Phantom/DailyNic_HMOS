@@ -1,3 +1,4 @@
+import BackgroundImage, { presetColor } from "../utils/BgImageManager";
 
 @CustomDialog
 export default struct RenameDialog {
@@ -33,11 +34,13 @@ export default struct RenameDialog {
       Row() {
         Button($r('app.string.cancel'))
           .buttonStyle(ButtonStyleMode.TEXTUAL)
+          .fontColor(presetColor[BackgroundImage.themeColor][2])
           .width('50%')
           .onClick(() => this.controller.close())
 
         Button($r('app.string.ok'))
           .buttonStyle(ButtonStyleMode.EMPHASIZED)
+          .backgroundColor(presetColor[BackgroundImage.themeColor][2])
           .width('50%')
           .onClick(() => {
             this.onConfirm(this.name);

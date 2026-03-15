@@ -768,6 +768,7 @@ struct Schedule {
             })
           }
           .width('100%')
+          .transition(TransitionEffect.move(TransitionEdge.BOTTOM).animation({ duration: 600, delay: 60 * index, curve: Curve.Ease }))
         });
       }
       .contentEndOffset(16)
