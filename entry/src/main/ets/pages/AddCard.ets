@@ -119,11 +119,12 @@ struct AddCard {
           }
           .margin({ top: 16, bottom: 5 })
           .width('100%')
-          Text('大约每 12 小时自动刷新一次。若设备处于锁屏状态，则解锁后刷新。')
+          Text('每天 00:00 自动刷新一次。若设备处于锁屏状态，则解锁后刷新。')
             .margin({ bottom: 3 })
 
           Column() {
-            this.SimulateCard($r('app.string.schedule_card_title'), $r('app.string.no_class_today'), $r('app.media.no_course_today'))
+            this.SimulateCard($r('app.string.schedule_card_title'), $r('app.string.no_class_today'),
+              $r('app.media.no_course_today'))
           }
           .padding({ top: 12, left: 12, right: 12 })
           .width('100%')
@@ -146,11 +147,12 @@ struct AddCard {
           .margin({ top: 16, bottom: 5 })
           .width('100%')
 
-          Text('大约每 2 小时自动刷新一次。若设备处于锁屏状态，则解锁后刷新。')
+          Text('大约每 3 小时自动刷新一次。若设备处于锁屏状态，则解锁后刷新。')
             .margin({ bottom: 3 })
 
           Column() {
-            this.SimulateCard($r('app.string.exam_info_display_name'), $r('app.string.no_exam_info1'), $r('app.media.no_exam1'))
+            this.SimulateCard($r('app.string.exam_info_display_name'), $r('app.string.no_exam_info1'),
+              $r('app.media.no_exam1'))
           }
           .padding({ top: 12, left: 12, right: 12 })
           .width('100%')
@@ -158,8 +160,8 @@ struct AddCard {
           .constraintSize(this.cardSize)
           .borderRadius(20)
           .backgroundColor($r('app.color.grid_background'))
-          .id('ExamCard')
-          .bindMenu(this.CardMenu(1, 'ExamCard'))
+            .id('ExamCard')
+            .bindMenu(this.CardMenu(1, 'ExamCard'))
 
           Row({ space: 5 }) {
             Image($r('app.media.exam_card'))

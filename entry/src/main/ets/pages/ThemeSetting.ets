@@ -152,9 +152,9 @@ struct ThemeSetting {
             .width('100%')
 
             Stack() {
-              Image(this.isShown ? this.imgPreview : $r('app.media.confused'))
+              Image(this.isShown ? this.imgPreview : $r('app.media.suspect'))
                 .width('95%')
-                .alt($r('app.media.confused'))
+                .alt($r('app.media.suspect'))
                 .constraintSize({ minHeight: 80, maxHeight: 200 })
                 .borderRadius(16)
                 .objectFit(ImageFit.Contain)

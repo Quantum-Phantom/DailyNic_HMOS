@@ -33,6 +33,7 @@ struct Class_schedule_dailyCard {
         Column() {
           Image($r('app.media.no_course_today'))
             .height(60)
+            .interpolation(ImageInterpolation.Medium)
           Text($r('app.string.no_class_today'))
         }
         .justifyContent(FlexAlign.Center)
