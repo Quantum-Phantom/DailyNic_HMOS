@@ -128,8 +128,11 @@ struct Index {
     if (UnifiedPreferences.getBoolSync('InitialLaunch', true)) {
       this.getUIContext().getRouter().pushUrl({ url: 'pages/Declaration' })
         .catch((err: Error) => { console.error(`Router ERROR: [${err.name}] ${err.message}`) })
-    } else if (UnifiedPreferences.getSync('AppVersion') !== '2.0.0') {
+    } else if (UnifiedPreferences.getSync('AppVersion') !== '3.0.0') {
       this.getUIContext().getRouter().pushUrl({ url: 'pages/UpdateLog' })
+        .then(() => {
+          this.refreshInfo();
+        })
         .catch((err: Error) => { console.error(`Router ERROR: [${err.name}] ${err.message}`) })
     }
   }
