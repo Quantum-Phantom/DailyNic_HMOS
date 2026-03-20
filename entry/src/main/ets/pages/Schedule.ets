@@ -372,7 +372,7 @@ struct Schedule {
           const saveTime: number = Math.trunc(Date.now() / 1000);
           let userContent: exportedData = {
             exportTime: saveTime,
-            scheduleVersion: '3.0.0',
+            scheduleVersion: '2.1.0',
             defaultSemester: ScheduleManager.defaultSemester,
             semesters: Array.from(ScheduleManager.semesters, (semester) => {
               return {
