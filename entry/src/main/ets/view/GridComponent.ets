@@ -36,11 +36,11 @@ export default struct GridComponent {
             .onClick(() => {
               this.getUIContext().showTextPickerDialog({
                 selected: FunctionOrder.maxRecord - 1,
-                range: tools.getContArray([[1, 20]], true) as string[], // 在此处修改允许用户选择的最大显示数量上限！！（现在是20）
+                range: (tools.getContArray([[1, 28]], true) as string[]).map(count => '至多显示 ' + count + ' 个'), // 在此处修改允许用户选择的最大显示数量上限！！（现在是20）
                 defaultPickerItemHeight: 36,
                 canLoop: false,
                 onAccept: (value: TextPickerResult) => {
-                  FunctionOrder.setMaxRecord(Number(value.value));
+                  FunctionOrder.setMaxRecord(value.index as number + 1);
                   this.getUIContext().getPromptAction().showToast({ message: `已更改为 ${value.value}` });
                   FunctionOrder.refreshFunc(); // 刷新点击次数显示
                   this.copyMostUsedFunc = FunctionOrder.mostUsedFunc;
@@ -77,9 +77,36 @@ export default struct GridComponent {
             .height(36)
             .width(36)
             .onClick(() => {
-              FunctionOrder.resetFunc();
-              FunctionOrder.refreshFunc(); // 刷新点击次数显示
-              this.copyMostUsedFunc = FunctionOrder.mostUsedFunc;
+              this.getUIContext().showAlertDialog({
+                message: '你真的要清空「最常访问」吗？',
+                autoCancel: true,
+                alignment: DialogAlignment.Center,
+                gridCount: 4,
+                primaryButton: {
+                  value: $r('app.string.cancel'),
+                  action: () => {}
+                },
+                secondaryButton: {
+                  enabled: true,
+                  defaultFocus: true,
+                  style: DialogButtonStyle.DEFAULT,
+                  fontColor: $r('app.color.red'),
+                  value: $r('app.string.ok'),
+                  action: () => {
+                    FunctionOrder.resetFunc();
+                    FunctionOrder.refreshFunc(); // 刷新点击次数显示
+                    this.copyMostUsedFunc = FunctionOrder.mostUsedFunc;
+                  }
+                },
+                onWillDismiss: (dismissDialogAction: DismissDialogAction) => {
+                  if (dismissDialogAction.reason === DismissReason.PRESS_BACK) {
+                    dismissDialogAction.dismiss();
+                  }
+                  if (dismissDialogAction.reason === DismissReason.TOUCH_OUTSIDE) {
+                    dismissDialogAction.dismiss();
+                  }
+                }
+              });
             })
           }
           .height(40)

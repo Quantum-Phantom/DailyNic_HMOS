@@ -79,6 +79,7 @@ struct ThemeSetting {
   @State isShown: boolean = BackgroundImage.showImage; // 显示预览图片
   @State imgPreview: ResourceStr = (BackgroundImage.imgPath == '') ? $r('app.media.confused') : fileUri.getUriFromPath(BackgroundImage.imgPath); //预览图片
   @State blurNum: BlurStyle = UnifiedPreferences.getNumberSync('BlurLevel', BlurStyle.Regular); // 模糊程度常数
+  @State imgBrightness: number = UnifiedPreferences.getNumberSync('BackgroundBrightness', 100);
   private selectResult: string | undefined = undefined; // 选择图片的结果
   private oriImgPath: string = ''; // 原始图片路径
   private imageSize: number = 0; // 图片文件大小
@@ -118,6 +119,8 @@ struct ThemeSetting {
           UnifiedPreferences.putSync('OpacityLevel', this.opacityNum);
         if (this.selectedColor !== BackgroundImage.themeColor)
           UnifiedPreferences.putSync('ThemeColor', this.selectedColor);
+        if (this.imgBrightness !== BackgroundImage.brightness)
+          UnifiedPreferences.putSync('BackgroundBrightness', this.imgBrightness);
         UnifiedPreferences.putSync('AdaptSplit', this.adaptSplit);
         UnifiedPreferences.putSync('FaultOccurred', false);
 
@@ -153,13 +156,19 @@ struct ThemeSetting {
 
             Stack() {
               Image(this.isShown ? this.imgPreview : $r('app.media.suspect'))
-                .width('95%')
                 .alt($r('app.media.suspect'))
-                .constraintSize({ minHeight: 80, maxHeight: 200 })
+                .width('100%')
+                .height(this.isShown ? undefined : 180)
+                .constraintSize({ minHeight: 80, maxHeight: 360 })
                 .borderRadius(16)
                 .objectFit(ImageFit.Contain)
+                .opacity(this.isShown ? this.imgBrightness / 100 : 1)
                 .autoResize(true)
                 .interpolation(ImageInterpolation.Medium)
+                .animation({
+                  duration: 500,
+                  curve: Curve.Ease
+                })
                 .onComplete((value) => {
                   if (value !== undefined) {
                     let swapTemp: number;
@@ -187,6 +196,7 @@ struct ThemeSetting {
                 })
             }
             .margin({ bottom: 5 })
+            .padding({ left: 16, right: 16 })
 
             Row() {
               Text($r('app.string.background_opaque'))
@@ -255,10 +265,29 @@ struct ThemeSetting {
                   });
               }
             }
-            .width('95%');
+            .padding({ left: 16, right: 16 });
+
+            Row() {
+              Text($r('app.string.image_brightness'));
+
+              Slider({
+                value: this.imgBrightness,
+                min: 0,
+                max: 100,
+                step: 1,
+                style: SliderStyle.InSet
+              })
+                .showSteps(false)
+                .showTips(true)
+                .layoutWeight(1)
+                .selectedColor(presetColor[BackgroundImage.themeColor][2])
+                .onChange((value: number) => {
+                  this.imgBrightness = value;
+                });
+            }
+            .padding({ left: 16, right: 16 })
 
             Text($r('app.string.too_large_bg_image'))
-              .width('95%')
               .fontColor($r('app.color.red'))
               .fontSize(15)
               .visibility(this.showWarning ? Visibility.Visible : Visibility.None);
@@ -292,7 +321,7 @@ struct ThemeSetting {
             Text(this.isShown && this.showBlurSlider ? $r('app.string.custom_theme_color_into') : $r('app.string.click_slide_change_color'))
               .fontSize(13)
               .fontColor(this.isShown && this.showBlurSlider ? $r('app.color.red') : undefined)
-              .width('95%')
+              .padding({ left: 16, right: 16 })
               .textAlign(TextAlign.Center)
               .margin({ bottom: 5, top: 5 })
 
@@ -434,7 +463,7 @@ struct ThemeSetting {
               })
             }
             .justifyContent(FlexAlign.SpaceEvenly)
-            .width('95%')
+            .padding({ left: 16, right: 16 })
             .margin({ bottom: 10 })
           }
           .backgroundBlurStyle(BackgroundImage.blurLevel)
@@ -491,7 +520,7 @@ struct ThemeSetting {
               })
             }
             .justifyContent(FlexAlign.SpaceEvenly)
-            .width('95%')
+            .padding({ left: 16, right: 16 })
             .margin({ bottom: 10 })
           }
           .backgroundBlurStyle(BackgroundImage.blurLevel)

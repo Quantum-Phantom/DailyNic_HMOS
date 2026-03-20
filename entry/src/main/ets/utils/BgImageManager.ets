@@ -30,6 +30,7 @@ class BackgroundImage {
   opacityLevel: number = 1;
   backgroundBlur: boolean = UnifiedPreferences.getBoolSync('BackgroundBlur', true); // 选择背景模糊
   themeColor: number = UnifiedPreferences.getNumberSync('ThemeColor', 0);
+  brightness: number = 1;
 
   /**
    * 初始化
@@ -51,6 +52,7 @@ class BackgroundImage {
         // this.blurLevel = undefined;
         this.opacityLevel = UnifiedPreferences.getNumberSync('OpacityLevel', 100) / 100;
       }
+      this.brightness = UnifiedPreferences.getNumberSync('BackgroundBrightness', 100) / 100;
     } else {
       this.pic = undefined;
       // this.blurLevel = undefined;

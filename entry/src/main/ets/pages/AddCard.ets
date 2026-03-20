@@ -107,6 +107,7 @@ struct AddCard {
       Scroll() {
         Column() {
           Text('点击下面的卡片以添加 2×4 大小的卡片到桌面；此外，长按桌面上的 App 图标，可以添加 4×4 大小的卡片。')
+            .padding({ left: 8, right: 8 })
 
           Row({ space: 5 }) {
             Image($r('app.media.class_card'))
@@ -119,12 +120,13 @@ struct AddCard {
           }
           .margin({ top: 16, bottom: 5 })
           .width('100%')
-          Text('每天 00:00 自动刷新一次。若设备处于锁屏状态，则解锁后刷新。')
+
+          Text('每天 00:00 自动刷新一次。由于系统限制，若设备处于锁屏状态，则解锁后刷新，或者可能不刷新。')
             .margin({ bottom: 3 })
+            .padding({ left: 8, right: 8 })
 
           Column() {
-            this.SimulateCard($r('app.string.schedule_card_title'), $r('app.string.no_class_today'),
-              $r('app.media.no_course_today'))
+            this.SimulateCard($r('app.string.schedule_card_title'), $r('app.string.no_class_today'), $r('app.media.no_course_today'))
           }
           .padding({ top: 12, left: 12, right: 12 })
           .width('100%')
@@ -147,12 +149,12 @@ struct AddCard {
           .margin({ top: 16, bottom: 5 })
           .width('100%')
 
-          Text('大约每 3 小时自动刷新一次。若设备处于锁屏状态，则解锁后刷新。')
+          Text('大约每 3 小时')
             .margin({ bottom: 3 })
+            .padding({ left: 8 , right: 8 })
 
           Column() {
-            this.SimulateCard($r('app.string.exam_info_display_name'), $r('app.string.no_exam_info1'),
-              $r('app.media.no_exam1'))
+            this.SimulateCard($r('app.string.exam_info_display_name'), $r('app.string.no_exam_info1'), $r('app.media.no_exam1'))
           }
           .padding({ top: 12, left: 12, right: 12 })
           .width('100%')
@@ -178,13 +180,17 @@ struct AddCard {
 
           Text('你也可以按照下图所示步骤，在桌面添加课表和考试的快捷方式，点击快捷方式即可直达相应页面。')
             .margin({ bottom: 3 })
+            .padding({ left: 8, right: 8 })
+
           Image($r('app.media.shortcut'))
-            .width('222px')
-            .height('350px')
+            .width('100%')
+            .height('100%')
+            .constraintSize({ maxWidth: '218px', maxHeight: '346px' })
+            .objectFit(ImageFit.Contain)
             .borderRadius(10)
         }
         .width('100%')
-        .padding(10)
+        .padding(8)
         .backgroundColor(BackgroundImage.showImage && BackgroundImage.blurLevel === undefined ? $r('app.color.normal_background') : undefined)
         .backgroundBlurStyle(BackgroundImage.blurLevel)
         .borderRadius(23)

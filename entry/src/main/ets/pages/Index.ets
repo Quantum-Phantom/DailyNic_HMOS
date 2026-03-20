@@ -1096,6 +1096,7 @@ struct Index {
         .width('100%')
         .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
         .autoResize(true)
+        .opacity(BackgroundImage.brightness)
 
       Navigation(this.pageInfo) {
         Tabs({ barPosition: BarPosition.End, controller: this.tabsController }) {
@@ -1162,12 +1163,12 @@ struct Index {
           .width('100%')
           .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
           .autoResize(true)
-          .opacity(1 - BackgroundImage.opacityLevel)
+          .opacity((1 - BackgroundImage.opacityLevel) * BackgroundImage.brightness)
           .hitTestBehavior(HitTestMode.None)
     }
     .height('100%')
     .width('100%')
     .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
-    .backgroundColor($r('app.color.normal_background'))
+    .backgroundColor(BackgroundImage.showImage ? $r('app.color.pure_white_or_black') : $r('app.color.normal_background'))
   }
 }

@@ -750,6 +750,7 @@ struct Schedule {
                 Text(semester.source)
                   .layoutWeight(1)
               }
+              .alignItems(VerticalAlign.Top)
 
               Text($r('app.string.all_semesters_create_time', new Date(semester.createTime).toLocaleString('zh-cn', { year: "numeric", month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: !i18n.System.is24HourClock() })))
                 .margin({ left: 15 })

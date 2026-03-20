@@ -269,6 +269,10 @@
       "value": "组件模糊"
     },
     {
+      "name": "image_brightness",
+      "value": "图片亮度"
+    },
+    {
       "name": "custom_theme_color",
       "value": "更改主题色"
     },
