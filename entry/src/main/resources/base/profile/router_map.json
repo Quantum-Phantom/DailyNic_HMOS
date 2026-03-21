@@ -44,6 +44,11 @@
       "name": "AddCard",
       "pageSourceFile": "src/main/ets/pages/AddCard.ets",
       "buildFunction": "AddCardBuilder"
+    },
+    {
+      "name": "GetClassByName",
+      "pageSourceFile": "src/main/ets/pages/GetClassByName.ets",
+      "buildFunction": "GCBNBuilder"
     }
   ]
 }

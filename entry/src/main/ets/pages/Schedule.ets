@@ -329,7 +329,9 @@ struct Schedule {
           });
         });
       MenuItem({ content: $r('app.string.search_in_all_courses'), startIcon: $r('app.media.search') })
-        .onClick(() => {});
+        .onClick(() => {
+          this.pathStack.pushPath({ name: 'GetClassByName' })
+        });
       MenuItem({ startIcon: $r('app.media.archive'), content: "导入和导出", builder: this.archiveMenu() })
     }
     .subMenuExpandingMode(SubMenuExpandingMode.STACK_EXPAND)
