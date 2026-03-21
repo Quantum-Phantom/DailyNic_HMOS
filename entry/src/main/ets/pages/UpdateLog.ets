@@ -80,32 +80,7 @@ struct UpdateLog {
           .buttonStyle(ButtonStyleMode.TEXTUAL)
           .enabled(this.agreePolitic)
           .onClick(() => {
-            if (UnifiedPreferences.hasSync('scheduleInfo')) {
-              const legacySchedule: classAttribute[][][] = JSON.parse(UnifiedPreferences.getSync('scheduleInfo', '[[[]]]'));
-              const convertSchedule: classAttribute[] = [];
-              legacySchedule.forEach(layer1 => {
-                layer1?.forEach(layer2 => {
-                  layer2?.forEach(layer3 => {
-                    if (layer3) {
-                      const result: string[] = extractCredits(layer3.id);
-                      layer3.id = result[0];
-                      layer3.credits = result[1];
-                      layer3.dayOfWeek = (layer3.dayOfWeek + 1) % 7;
-                      convertSchedule.push(layer3);
-                    }
-                  });
-                });
-              });
-              ScheduleManager.newSemester('App 旧版本保存的课表', '从版本 ' + UnifiedPreferences.getSync('AppVersion', '2.0.0') + ' 自动转换', Number(UnifiedPreferences.getSync('termStartTime', '20250721')), Date.now(), undefined, convertSchedule);
-              ScheduleManager.setDefaultSemester(ScheduleManager.semesters.length - 1);
-              ScheduleManager.switchTempSemester(ScheduleManager.semesters.length - 1);
-              UnifiedPreferences.deleteSync('termStartTime');
-              UnifiedPreferences.deleteSync('scheduleInfo');
-              UnifiedPreferences.deleteSync('FinalWeek');
-            }
-
             UnifiedPreferences.putSync('AppVersion', '2.1.0');
-            this.getUIContext().getRouter().getParams();
             this.getUIContext().getRouter().back();
           })
       }
