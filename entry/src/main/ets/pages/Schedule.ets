@@ -9,6 +9,7 @@ import UnifiedPreferences, { millisecondsPerWeek } from '../utils/UnifyPreferenc
 import BackgroundImage, { presetColor } from '../utils/BgImageManager';
 import RenameDialog from '../view/RenameDialog';
 import { i18n } from '@kit.LocalizationKit';
+import { JSON } from '@kit.ArkTS';
 
 const criticalHeight: number = 32; // 紧凑模式临界值(vp)
 const classAndTeacher: number = 22; // 教室和教师占用高度
@@ -345,6 +346,8 @@ struct Schedule {
               this.getUIContext().getPromptAction().showToast({ message: $r('app.string.read_file_cancel') });
             } else {
               try {
+                console.log('1!!!');
+                console.log('!!!' + result);
                 const rawImportedData = JSON.parse(result) as exportedData;
                 const checkResult = ScheduleSources.validateExportedData(rawImportedData);
                 if (checkResult === '') {
@@ -362,7 +365,8 @@ struct Schedule {
                 } else {
                   this.getUIContext().getPromptAction().showToast({ message: checkResult });
                 }
-              } catch {
+              } catch(error) {
+                console.log('!!!' + JSON.stringify(error));
                 this.getUIContext().getPromptAction().showToast({ message: $r('app.string.read_file_format_error') });
               }
             }

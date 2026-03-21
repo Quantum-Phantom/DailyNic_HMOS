@@ -129,7 +129,7 @@ struct Index {
       this.getUIContext().getRouter().pushUrl({ url: 'pages/Declaration' })
         .catch((err: Error) => { console.error(`Router ERROR: [${err.name}] ${err.message}`) });
     } else if (UnifiedPreferences.getSync('AppVersion') !== '2.1.0') {
-      this.getUIContext().getRouter().pushUrl({ url: 'pages/UpdateLog' })
+      this.getUIContext().getRouter().pushUrl({ url: 'pages/UpdateLog', params: () => { this.refreshInfo() } })
         .catch((err: Error) => { console.error(`Router ERROR: [${err.name}] ${err.message}`) });
     }
   }

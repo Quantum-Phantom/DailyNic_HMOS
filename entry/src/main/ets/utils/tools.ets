@@ -313,7 +313,7 @@ export function saveStringToFile(context: UIContext, fileName: string, suffixCho
     documentViewPicker.save(documentSaveOptions).then((documentSaveResult: string[]) => {
       if (documentSaveResult.length > 0) {
         let uri: string = documentSaveResult[0];
-        let file = fileIo.openSync(uri, fileIo.OpenMode.READ_WRITE);
+        let file = fileIo.openSync(uri, fileIo.OpenMode.WRITE_ONLY | fileIo.OpenMode.TRUNC);
         /*let writeLen: number = */
         fileIo.writeSync(file.fd, saveData);
         fileIo.closeSync(file);

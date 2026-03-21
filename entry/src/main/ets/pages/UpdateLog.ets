@@ -101,9 +101,11 @@ struct UpdateLog {
               ScheduleManager.switchTempSemester(ScheduleManager.semesters.length - 1);
               UnifiedPreferences.deleteSync('termStartTime');
               UnifiedPreferences.deleteSync('scheduleInfo');
+              UnifiedPreferences.deleteSync('FinalWeek');
             }
 
             UnifiedPreferences.putSync('AppVersion', '2.1.0');
+            this.getUIContext().getRouter().getParams();
             this.getUIContext().getRouter().back();
           })
       }

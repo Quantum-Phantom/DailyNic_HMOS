@@ -3,7 +3,7 @@ import UnifiedPreferences from '../utils/UnifyPreference';
 import { BusinessError, pasteboard } from '@kit.BasicServicesKit';
 import { common } from '@kit.AbilityKit';
 import { examAttribute } from '../utils/ExamManager';
-import { classAttribute } from '../constants/ScheduleSources';
+import { classAttribute, semesterAttribute } from '../constants/ScheduleSources';
 import { WantAbility } from '../utils/WantAbility';
 
 interface exportClassInfo {
@@ -43,6 +43,14 @@ struct FaultOccurred {
             .onClick(() => {
               this.button1ClickTimes++;
               if (this.button1ClickTimes == 2) {
+                const semesters = JSON.parse(UnifiedPreferences.getSync('SemestersData', '[]')) as semesterAttribute[];
+                semesters.forEach(semester => {
+                  UnifiedPreferences.deleteSync('SemesterDataAt' + String(semester.createTime));
+                });
+                UnifiedPreferences.deleteSync('SemestersData');
+                UnifiedPreferences.deleteSync('DefaultSemester');
+
+                // v2.0.0 and below
                 UnifiedPreferences.deleteSync('scheduleInfo');
                 UnifiedPreferences.deleteSync('termStartTime');
                 UnifiedPreferences.deleteSync('FinalWeek');
@@ -83,7 +91,8 @@ struct FaultOccurred {
         .padding({ top: 10, bottom: 10, left: 10, right: 10 });
 
         Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Center, alignItems: ItemAlign.Center, alignContent: FlexAlign.Start }) {
-          Row() {
+          Text('「导入和导出课表」功能现已迁移到课表页面')
+          /* Row() {
             Row() {
               PasteButton({ icon: PasteIconStyle.LINES, buttonType: ButtonType.Circle})
                 .size({ width: 30, height: 30 })
@@ -150,7 +159,7 @@ struct FaultOccurred {
                 });
               });
           }
-          .margin({ top: 10 });
+          .margin({ top: 10 }); */
 
           Row() {
             Row() {
