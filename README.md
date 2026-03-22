@@ -33,8 +33,9 @@
 - [x] 从教务系统自动提取课表/考试信息，并导入到本地
 - [x] 在首页显示今日与明日课程、考试倒计时
 - [x] 点击课程/考试以查看显示详情
-- [x] 手动添加、修改、删除课程/考试
+- [x] 手动添加、修改、删除、导入和导出课程/考试
 - [x] 将课程/考试导入系统日历，设置提醒时间，或清除本 App 创建的所有日程
+- [x] 在多个学期的课表之间切换
 - [x] 针对可能的错误和崩溃启用恢复模式
 
 ### 校园常用功能链接
@@ -47,6 +48,7 @@
 
 - [x] 适配鸿蒙多端设备（手机/平板/PC）
 - [x] 适配浅色/深色模式
+- [x] 可高度自定义背景图片，支持设置不同的主题色以与背景图相适应
 - [x] 网页可强制以深色模式显示
 - [x] 定制首页功能
 - [x] “你的课表”和“考试信息”可添加至桌面卡片
@@ -54,10 +56,10 @@
 ## 软件截图
 
 ### Mate 70 Pro+
-<image src="resources/light_1.png" width="160"/><image src="resources/dark_2.png" width="160"/><image src="resources/light_3.png" width="160"/><image src="resources/light_4.png" width="160"/>
+<image src="resources/phone_1.png" width="160"/><image src="resources/phone_2.png" width="160"/><image src="resources/phone_3.png" width="160"/><image src="resources/phone_4.png" width="160"/>
 
 ### MatePad Air 12 2025
-<image src="resources/dark_5.png" width="480"/>
+<image src="resources/pad.png" width="480"/>
 
 ## 开发指南
 
