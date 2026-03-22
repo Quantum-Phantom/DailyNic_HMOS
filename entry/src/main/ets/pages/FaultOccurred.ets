@@ -90,8 +90,10 @@ struct FaultOccurred {
         .borderColor($r('app.color.red'))
         .padding({ top: 10, bottom: 10, left: 10, right: 10 });
 
+        Text('「导入和导出课表」功能现已迁移到课表页面')
+          .margin({ top: 10 });
+
         Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Center, alignItems: ItemAlign.Center, alignContent: FlexAlign.Start }) {
-          Text('「导入和导出课表」功能现已迁移到课表页面')
           /* Row() {
             Row() {
               PasteButton({ icon: PasteIconStyle.LINES, buttonType: ButtonType.Circle})
@@ -161,7 +163,7 @@ struct FaultOccurred {
           }
           .margin({ top: 10 }); */
 
-          Row() {
+          // Row() {
             Row() {
               PasteButton({ icon: PasteIconStyle.LINES, buttonType: ButtonType.Circle})
                 .size({ width: 30, height: 30 })
@@ -224,8 +226,7 @@ struct FaultOccurred {
                   }
                 });
               });
-          }
-          .margin({ top: 10 });
+          // }
         }
         .width('100%')
 

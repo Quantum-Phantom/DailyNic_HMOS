@@ -164,7 +164,7 @@ struct Declaration {
                   break;
               }
               UnifiedPreferences.putSync('InitialLaunch', false);
-              UnifiedPreferences.putSync('AppVersion', '2.0.0');
+              UnifiedPreferences.putSync('AppVersion', '2.1.0');
               this.getUIContext().getRouter().back();
             } else {
               this.allowSwipe = false;
