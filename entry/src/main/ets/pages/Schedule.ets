@@ -8,8 +8,8 @@ import { weekTranslate } from '../utils/tools';
 import UnifiedPreferences, { millisecondsPerWeek } from '../utils/UnifyPreference';
 import BackgroundImage, { presetColor } from '../utils/BgImageManager';
 import RenameDialog from '../view/RenameDialog';
-import { i18n } from '@kit.LocalizationKit';
 import { JSON } from '@kit.ArkTS';
+import { FULL_TIME_FORMAT } from '../constants/BasicConstants';
 
 const criticalHeight: number = 32; // 紧凑模式临界值(vp)
 const classAndTeacher: number = 22; // 教室和教师占用高度
@@ -758,7 +758,7 @@ struct Schedule {
               }
               .alignItems(VerticalAlign.Top)
 
-              Text($r('app.string.all_semesters_create_time', new Date(semester.createTime).toLocaleString('zh-cn', { year: "numeric", month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: !i18n.System.is24HourClock() })))
+              Text($r('app.string.all_semesters_create_time', new Date(semester.createTime).toLocaleString('zh-cn', FULL_TIME_FORMAT)))
                 .margin({ left: 15 })
                 .textAlign(TextAlign.Start)
             }

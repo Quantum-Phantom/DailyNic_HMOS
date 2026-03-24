@@ -51,7 +51,7 @@ class FormDataClass {
       this.examInfo = examManager.allExamInfo.filter(item => this.currentTime <= item.endTimeStamp);
       this.count = this.examInfo.length;
     }
-    this.lastRefresh = '上次刷新: ' + currentTime.toLocaleString('zh-cn', { month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: !i18n.System.is24HourClock() });
+    this.lastRefresh = '上次刷新: ' + currentTime.toLocaleString('zh-cn', { month: 'short', day: 'numeric', hour: '2-digit', minute: 'numeric', hourCycle: i18n.System.is24HourClock() ? 'h23' : 'h12' });
   }
 }
 

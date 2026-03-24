@@ -4,6 +4,7 @@ import * as tools from '../utils/tools'
 import examManager, { examAttribute, areExamAttributesEqual } from '../utils/ExamManager';
 import BackgroundImage, { presetColor } from '../utils/BgImageManager';
 import { i18n } from '@kit.LocalizationKit';
+import { FULL_TIME_FORMAT } from '../constants/BasicConstants';
 
 @Builder
 export function ExamBuilder(name: string, param?: Object) {
@@ -646,7 +647,7 @@ struct ExamDetail {
         })
       })
     }
-    .title({ main: $r('app.string.exam_detail'), sub: '\udb80\udfd5 '+ this.currentTime.toLocaleString('zh-cn', { year: "numeric", month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: !i18n.System.is24HourClock() })}, {
+    .title({ main: $r('app.string.exam_detail'), sub: '\udb80\udfd5 '+ this.currentTime.toLocaleString('zh-cn', FULL_TIME_FORMAT)}, {
       backgroundBlurStyle: BackgroundImage.blurLevel,
       backgroundColor: BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background' + String(BackgroundImage.themeColor)) : undefined
     })
