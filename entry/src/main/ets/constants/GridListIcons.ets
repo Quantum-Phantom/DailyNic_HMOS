@@ -28,6 +28,8 @@ export let index_to_pic = new Map<string, ResourceStr>()
   .set('0.14', $r('app.media.WolframAlpha'))            // Wolfram Alpha
   .set('0.15', $r('app.media.WoKeXueShe'))              // 蜗壳学社
   .set('0.16', $r('app.media.KeChengZiLiao'))           // 课程资料
+  .set('0.17', $r('app.media.default_function_icon'))   // 学习通
+  .set('0.18', $r('app.media.default_function_icon'))   // 智慧树
 
   // 服务与工具
   .set('1.0', $r('app.media.ZhiHuiMenHu'))              // 智慧门户
@@ -68,3 +70,4 @@ export let index_to_pic = new Map<string, ResourceStr>()
   .set('3.8', $r('app.media.QuanJingDiTu'))             // 全景地图
   .set('3.9', $r('app.media.XiaoYuanBanChe'))           // 校园班车
   .set('3.10', $r('app.media.YingJuGouPiao'))           // 影剧购票
+  .set('3.11', $r('app.media.default_function_icon'))   // 教室使用情况查询

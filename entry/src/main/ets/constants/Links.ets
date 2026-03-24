@@ -43,6 +43,8 @@ export function setUSTCLink() {
     .set("0.14", { title: $r('app.string.WolframAlpha'), url: 'https://wolframalpha.com' })
     .set("0.15", { title: $r('app.string.WoKeXueShe'), url: 'https://ot.ustc.edu.cn/' })
     .set("0.16", { title: $r('app.string.KeChengZiLiao'), url: $rawfile('CourseResource.html') })
+    .set("0.17", { title: $r('app.string.XueXiTong'), url: 'https://i.chaoxing.com' })
+    .set("0.18", { title: $r('app.string.ZhiHuiShu'), url: 'https://onlineweb.zhihuishu.com'})
 
     // 服务与工具
     .set("1.0", { title: $r('app.string.ZhiHuiMenHu'), url: 'http://i.ustc.edu.cn' })
@@ -83,6 +85,7 @@ export function setUSTCLink() {
     .set("3.8", { title: $r('app.string.QuanJingDiTu'), url: 'https://vr.shouxi360.com/c/vyS6HSJjeej.html' })
     .set("3.9", { title: $r('app.string.XiaoYuanBanChe'), url: 'https://weixine.ustc.edu.cn/ustcqy/mobile/busTimetable_gov' })
     .set("3.10", { title: $r('app.string.YingJuGouPiao'), url: "https://ghticket.ustc.edu.cn" })
+    .set("3.11", { title: $r('app.string.JiaoShiChaXun'), url: $rawfile('BuildingQuery.html') })
 }
 
 export function setHUSTLink() {
@@ -105,6 +108,8 @@ export function setHUSTLink() {
     .set("0.14", { title: $r('app.string.WolframAlpha'), url: 'https://wolframalpha.com' })
     .set("0.15", { title: $r('app.string.WoKeXueShe'), url: 'http://xyzc.hust.edu.cn/yytd.htm' })
     .set("0.16", { title: $r('app.string.KeChengZiLiao'), url: 'https://yuhangchen1.github.io/HUST_OPEN_SOURCE/' })
+    .set("0.17", { title: $r('app.string.XueXiTong'), url: 'https://i.chaoxing.com' })
+    .set("0.18", { title: $r('app.string.ZhiHuiShu'), url: 'https://onlineweb.zhihuishu.com'})
 
     // 服务与工具
     .set("1.0", { title: $r('app.string.ZhiHuiMenHu'), url: 'http://one.hust.edu.cn/' })

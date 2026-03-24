@@ -89,6 +89,14 @@
       "value": "课程资料"
     },
     {
+      "name": "XueXiTong",
+      "value": "学习通"
+    },
+    {
+      "name": "ZhiHuiShu",
+      "value": "智慧树"
+    },
+    {
       "name": "QingChunKeDa",
       "value": "第二课堂"
     },
@@ -239,6 +247,10 @@
     {
       "name": "YingJuGouPiao",
       "value": "影剧购票"
+    },
+    {
+      "name": "JiaoShiChaXun",
+      "value": "教室查询"
     }
   ]
 }
