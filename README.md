@@ -1,7 +1,7 @@
 
 <div align="center">
 
-# <image src="AppScope/resources/base/media/icon_round.png" height="28" width="28"/> 妮可之记 <br> <font size="4">for HarmonyOS NEXT</font>
+# <image src="AppScope/resources/base/media/icon_round.png" height="28" width="28"/> 妮可之记 - 龙虾版 <br> <font size="4">for HarmonyOS NEXT</font>
 
 <image src="resources/introduction.png" width="100%"/>
 

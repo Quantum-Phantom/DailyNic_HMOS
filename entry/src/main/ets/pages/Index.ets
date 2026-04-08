@@ -1060,7 +1060,7 @@ struct Index {
         UnifiedPreferences.putSync('RecoveryMode', true);
         let applicationContext = (this.getUIContext().getHostContext() as common.UIAbilityContext).getApplicationContext();
         let want: Want = {
-          bundleName: 'com.nic.dailynic',
+          bundleName: 'com.nic.dailynic.openclaw',
           abilityName: 'EntryAbility'
         };
         try {
