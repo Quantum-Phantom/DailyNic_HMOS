@@ -1,17 +1,17 @@
 
-import { webview } from '@kit.ArkWeb'
-import { DESKTOP_MODE, MOBILE_MODE, TABLET_MODE, DESKTOP_UA, MOBILE_UA, TABLET_UA } from '../constants/UserAgent'
-import { BusinessError, deviceInfo } from '@kit.BasicServicesKit'
-import { common } from '@kit.AbilityKit'
-import UnifiedPreferences, { PASSWORD_KEY, REMIND_KEY, UID_KEY} from '../utils/UnifyPreference'
-import { call } from '@kit.TelephonyKit';
+import { webview } from '@kit.ArkWeb';
+import { common } from '@kit.AbilityKit';
 import { picker, fileUri } from  '@kit.CoreFileKit';
-import { fillInformationJS, deleteAIHelper } from '../utils/tools';
-import accountInfoProvider from '../utils/Encryption';
-import PasswordDialog from '../view/PasswordDialog';
-import BackgroundImage from '../utils/BgImageManager';
+import { BusinessError, deviceInfo } from '@kit.BasicServicesKit';
 import { Link } from '../constants/Links';
-import { WantAbility } from '../utils/WantAbility'
+import { WantAbility } from '../utils/WantAbility';
+import PasswordDialog from '../view/PasswordDialog';
+import accountInfoProvider from '../utils/Encryption';
+import BackgroundImage from '../utils/BgImageManager';
+import { MultiPageMenu, webName } from '../view/MultiPageMenu';
+import { fillInformationJS, deleteAIHelper } from '../utils/tools';
+import UnifiedPreferences, { PASSWORD_KEY, REMIND_KEY, UID_KEY} from '../utils/UnifyPreference';
+import { DESKTOP_MODE, MOBILE_MODE, TABLET_MODE, DESKTOP_UA, MOBILE_UA, TABLET_UA } from '../constants/UserAgent';
 
 const desktopUrl: string[] = ['https://young.ustc.edu.cn/login'] // 需要默认访问桌面版站点时使用
 const autoJumpUrl: string[] = ['https://jw.ustc.edu.cn/for-std/course-table', 'https://jw.ustc.edu.cn/for-std/exam-arrange', 'https://jw.ustc.edu.cn/for-std/grade/sheet'];
@@ -92,17 +92,27 @@ struct Webview {
           )
         )
 
-      MenuItem({ content: $r('app.string.wipe_cookie'), startIcon: $r('app.media.remove_cookie') })
+      MenuItem({ content: $r('app.string.switch_page'), builder: MultiPageMenu(this.pathStack),
+        startIcon: $r('app.media.switch_page'), endIcon: $r('sys.media.ohos_ic_public_arrow_right') })
+
+      MenuItem({ content: $r('app.string.switch_ua'), builder: this.changeUAMenu(),
+        startIcon: this.uaMode === MOBILE_MODE ? $r('app.media.mobile') : (this.uaMode === TABLET_MODE ? $r('app.media.tablet') : $r('app.media.desktop')),
+        endIcon: $r('sys.media.ohos_ic_public_arrow_right') })
+
+      MenuItem({ content: $r('app.string.open_file_manager'), startIcon: $r('app.media.folder_badge_eye') })
         .onClick(() => {
-          try {
-            // this.webviewController.removeCache(true);
-            // fileIo.rmdirSync('/data/storage/el2/base/cache/web/Cookies');
-            webview.WebCookieManager.clearAllCookiesSync();
-            // webview.WebCookieManager.clearSessionCookieSync();
-            this.showMessage($r('app.string.wipe_cache_success'), 500);
-          } catch (error) {
-            console.error(`rmdirSync ErrorCode: ${(error as BusinessError).code},  Message: ${(error as BusinessError).message}`);
-          }
+          (this.getUIContext().getHostContext() as common.UIAbilityContext).openLink('filemanager://openDirectory', { parameters: { 'fileUri': '/storage/Users/currentUser/Download/com.nic.dailynic' } });
+        })
+
+      MenuItem({ content: $r('app.string.open_in_full_screen'), startIcon: $r('app.media.arrow_right_up_and_square') })
+        .enabled(this.isSplit === NavigationMode.Split)
+        .onClick(() => {
+          this.getUIContext().getRouter().pushUrl({
+            url: 'pages/Webview_legacy',
+            params: { title: this.title, url: this.webviewController.getUrl() }
+          }).catch((err: Error) => {
+            console.error(`Router ERROR: [${err.name}] ${err.message}`)
+          });
         })
 
       MenuItem({ content: $r('app.string.trim_memory'), startIcon: $r('app.media.storage') })
@@ -116,24 +126,17 @@ struct Webview {
           }
         })
 
-      MenuItem({ content: $r('app.string.switch_ua'), builder: this.changeUAMenu(),
-        startIcon: this.uaMode === MOBILE_MODE ? $r('app.media.mobile') : (this.uaMode === TABLET_MODE ? $r('app.media.tablet') : $r('app.media.desktop')) })
-
-      MenuItem({ content: $r('app.string.open_in_full_screen'), startIcon: $r('app.media.arrow_right_up_and_square') })
-        .enabled(this.isSplit === NavigationMode.Split)
+      MenuItem({ content: $r('app.string.wipe_cookie'), startIcon: $r('app.media.remove_cookie') })
         .onClick(() => {
-          this.getUIContext().getRouter().pushUrl({
-            url: 'pages/Webview_legacy',
-            params: { title: this.title, url: this.webviewController.getUrl() }
-          }).catch((err: Error) => {
-            console.error(`Router ERROR: [${err.name}] ${err.message}`)
-          });
-        })
-
-      MenuItem({ content: $r('app.string.open_in_browser'), startIcon: $r('app.media.browser') })
-        .enabled(this.allowSysOpen)
-        .onClick(() => {
-          WantAbility.StartBrowser(this.getUIContext().getHostContext() as common.UIAbilityContext, this.webviewController.getUrl());
+          try {
+            // this.webviewController.removeCache(true);
+            // fileIo.rmdirSync('/data/storage/el2/base/cache/web/Cookies');
+            webview.WebCookieManager.clearAllCookiesSync();
+            // webview.WebCookieManager.clearSessionCookieSync();
+            this.showMessage($r('app.string.wipe_cache_success'), 500);
+          } catch (error) {
+            console.error(`rmdirSync ErrorCode: ${(error as BusinessError).code},  Message: ${(error as BusinessError).message}`);
+          }
         })
 
       MenuItem({ content: $r('app.string.help'), startIcon: $r('app.media.questionmark_circle')})
@@ -141,7 +144,7 @@ struct Webview {
           this.pathStack.pushPath({ name: 'Help' });
         })
     }
-    .subMenuExpandingMode(SubMenuExpandingMode.STACK_EXPAND)
+    // .subMenuExpandingMode(SubMenuExpandingMode.STACK_EXPAND)
   }
 
   @Builder changeUAMenu() {
@@ -304,7 +307,7 @@ struct Webview {
                           eachDownloadPercent.clear();
                           this.downloadItemTotal = 0;
                           try {
-                            (this.getUIContext().getHostContext() as common.UIAbilityContext).openLink('filemanager://openDirectory', { parameters: { 'fileUri': '' } });
+                            (this.getUIContext().getHostContext() as common.UIAbilityContext).openLink('filemanager://openDirectory', { parameters: { 'fileUri': webDownloadItem.getFullPath() } });
                           } catch (paramError) {
                             console.error(`Failed to start link. Code is ${paramError.code}, message is ${paramError.message}`);
                           }
@@ -482,6 +485,7 @@ struct Webview {
         this.webviewController.backward();
         return true;
       } else {
+        webName.pop();
         return false;
       }
     })
@@ -497,6 +501,7 @@ struct Webview {
       .height(40)
       .width(40)
       .onClick(() => {
+        webName.pop();
         this.webviewController.terminateRenderProcess();
         this.pathStack.pop();
       })
@@ -505,11 +510,12 @@ struct Webview {
         .fontSize(20)
         .fontWeight(FontWeight.Bold)
         .layoutWeight(1)
+        .maxLines(1)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
 
       Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
         Image($r('app.media.back'))
-          .height(20)
+          .height(22)
           .draggable(false)
       }
       .height(40)
@@ -559,7 +565,7 @@ struct Webview {
     }
     .padding({ left: 12, right: 12 })
     // .alignItems(VerticalAlign.Center)
-    .height(48)
+    .height(56)
     .width('100%')
   }
 }

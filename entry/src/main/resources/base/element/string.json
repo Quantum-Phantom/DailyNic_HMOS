@@ -205,6 +205,10 @@
       "value": "清除应用缓存"
     },
     {
+      "name": "switch_page",
+      "value": "切换页面"
+    },
+    {
       "name": "wipe_cookie",
       "value": "清除 Cookies"
     },
@@ -559,10 +563,6 @@
     {
       "name": "open_in_full_screen",
       "value": "在全屏页面中打开"
-    },
-    {
-      "name": "open_in_browser",
-      "value": "在系统浏览器中打开"
     },
     {
       "name": "page_forward",
@@ -991,6 +991,10 @@
     {
       "name": "download_finish",
       "value": "下载完毕(\uff61\u2022\u0300\u1d17-)\u2727"
+    },
+    {
+      "name": "open_file_manager",
+      "value": "打开「下载」文件夹"
     },
     {
       "name": "whether_open_file_manager",

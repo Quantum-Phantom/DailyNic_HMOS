@@ -431,7 +431,7 @@ struct Webview {
     }
     .padding({ left: 12, right: 12 })
     .alignItems(VerticalAlign.Center)
-    .height(48)
+    .height(56)
     .width('100%')
   }
 

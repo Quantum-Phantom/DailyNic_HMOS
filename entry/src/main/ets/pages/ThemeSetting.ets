@@ -343,7 +343,7 @@ struct ThemeSetting {
                 // })
               })
 
-              Image($r('app.media.checkmark_green'))
+              Image($r('app.media.selected'))
                 .width(diameter * 0.6)
                 .height(diameter * 0.6)
                 .offset({
@@ -393,19 +393,19 @@ struct ThemeSetting {
 
             Column() {
               Row() {
-                Image($r('app.media.light'))
-                  .height(28)
-                  .width(28)
-                  .margin({ right: 5 })
+                Image($r('app.media.brightness'))
+                  .height(27)
+                  .width(27)
+                  .margin({ right: 12, left: 2 })
                 Text($r('app.string.light'))
                   .layoutWeight(1)
-                Image($r('app.media.checkmark'))
+                Image($r('app.media.selected'))
                   .visibility(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT ? Visibility.Visible : Visibility.Hidden)
                   .height(27)
                   .width(27)
               }
               .width('100%')
-              .height(40)
+              .height(45)
               .onClick(() => {
                 if (this.colorMode !== ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT) {
                   this.colorMode = ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT;
@@ -416,19 +416,19 @@ struct ThemeSetting {
 
               Divider();
               Row() {
-                Image($r('app.media.dark'))
-                  .height(24)
-                  .width(24)
-                  .margin({ right: 7, left: 2 })
+                Image($r('app.media.moon'))
+                  .height(27)
+                  .width(27)
+                  .margin({ right: 12, left: 2 })
                 Text($r('app.string.dark'))
                   .layoutWeight(1)
-                Image($r('app.media.checkmark'))
+                Image($r('app.media.selected'))
                   .visibility(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? Visibility.Visible : Visibility.Hidden)
                   .height(27)
                   .width(27)
               }
               .width('100%')
-              .height(40)
+              .height(45)
               .justifyContent(FlexAlign.SpaceBetween)
               .onClick(() => {
                 if (this.colorMode !== ConfigurationConstant.ColorMode.COLOR_MODE_DARK) {
@@ -441,18 +441,18 @@ struct ThemeSetting {
               Divider();
               Row() {
                 Image($r('app.media.follow_system'))
-                  .height(24)
-                  .width(24)
-                  .margin({ right: 7, left: 2 })
+                  .height(27)
+                  .width(27)
+                  .margin({ right: 12, left: 2 })
                 Text($r('app.string.follow_system'))
                   .layoutWeight(1)
-                Image($r('app.media.checkmark'))
+                Image($r('app.media.selected'))
                   .visibility(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET ? Visibility.Visible : Visibility.Hidden)
                   .height(27)
                   .width(27)
               }
               .width('100%')
-              .height(40)
+              .height(45)
               .justifyContent(FlexAlign.SpaceBetween)
               .onClick(() => {
                 if (this.colorMode !== ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET) {
@@ -483,18 +483,18 @@ struct ThemeSetting {
             Column() {
               Row() {
                 Image($r('app.media.resize'))
-                  .height(24)
-                  .width(24)
-                  .margin({ right: 7, left: 2 })
+                  .height(27)
+                  .width(27)
+                  .margin({ right: 12, left: 2 })
                 Text($r('app.string.adapt_window_width'))
                   .layoutWeight(1)
-                Image($r('app.media.checkmark'))
+                Image($r('app.media.selected'))
                   .visibility(this.adaptSplit === NavigationMode.Auto ? Visibility.Visible : Visibility.Hidden)
                   .height(27)
                   .width(27)
               }
               .width('100%')
-              .height(40)
+              .height(45)
               .onClick(() => {
                 this.adaptSplit = NavigationMode.Auto;
               })
@@ -502,18 +502,18 @@ struct ThemeSetting {
               Divider();
               Row() {
                 Image($r('app.media.full_screen'))
-                  .height(24)
-                  .width(24)
-                  .margin({ right: 7, left: 2 })
+                  .height(27)
+                  .width(27)
+                  .margin({ right: 12, left: 2 })
                 Text($r('app.string.force_stack_mode'))
                   .layoutWeight(1)
-                Image($r('app.media.checkmark'))
+                Image($r('app.media.selected'))
                   .visibility(this.adaptSplit === NavigationMode.Stack ? Visibility.Visible : Visibility.Hidden)
                   .height(27)
                   .width(27)
               }
               .width('100%')
-              .height(40)
+              .height(45)
               .justifyContent(FlexAlign.SpaceBetween)
               .onClick(() => {
                 this.adaptSplit = NavigationMode.Stack;

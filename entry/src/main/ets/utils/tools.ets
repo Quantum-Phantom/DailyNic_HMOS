@@ -345,6 +345,15 @@ export async function readStringFromFile(context: UIContext, suffixChoices: stri
   }
 }
 
+export function debounce(func: () => void, delay: number) {
+  let timeoutId: number | null = null;
+  return () => {
+    if (timeoutId)
+      clearTimeout(timeoutId);
+    timeoutId = setTimeout(func, delay);
+  };
+}
+
 export const fillInformationJS = `
 (() => {
     const inputUID = infoProvider.getUID();

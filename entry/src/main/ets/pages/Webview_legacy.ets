@@ -144,12 +144,6 @@ struct Webview {
             this.uaMode = TABLET_MODE;
           })
       }
-
-      MenuItem({ content: $r('app.string.open_in_browser'), startIcon: $r('app.media.browser') })
-        .enabled(this.allowSysOpen)
-        .onClick(() => {
-          WantAbility.StartBrowser(this.getUIContext().getHostContext() as common.UIAbilityContext, this.webviewController.getUrl());
-        })
     }
   }
 
