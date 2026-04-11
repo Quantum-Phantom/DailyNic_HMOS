@@ -1,10 +1,11 @@
 {
   "name": "entry",
-  "version": "2.1.0",
-  "description": "Please describe the basic information.",
+  "version": "2.1.1",
+  "description": "Entry of com.nic.dailynic",
   "main": "",
   "author": "",
-  "license": "",
+  "homepage": "https://github.com/Your-USTC/DailyNic_HMOS",
+  "license": "GPLv3",
   "dependencies": {}
 }
 

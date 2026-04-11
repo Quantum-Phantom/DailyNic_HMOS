@@ -21,9 +21,9 @@ import GridComponent from '../view/GridComponent'
 import PasswordDialog from '../view/PasswordDialog'
 import ItemData from '../view/SettingsComponent'
 
-import { setUSTCLink, setHUSTLink } from '../constants/Links'
 import display from '@ohos.display'
 import { WantAbility } from '../utils/WantAbility'
+import { currentAppVersion, currentScheduleVersion } from '../constants/BasicConstants'
 
 // 滚动条参数
 enum ScrollPosition {
@@ -128,11 +128,11 @@ struct Index {
     if (UnifiedPreferences.getBoolSync('InitialLaunch', true)) {
       this.getUIContext().getRouter().pushUrl({ url: 'pages/Declaration' })
         .catch((err: Error) => { console.error(`Router ERROR: [${err.name}] ${err.message}`) });
-    } else if (UnifiedPreferences.getSync('AppVersion') !== '2.1.0') {
+    } else if (UnifiedPreferences.getSync('AppVersion') !== currentAppVersion) {
       this.getUIContext().getRouter().pushUrl({ url: 'pages/UpdateLog' })
         .catch((err: Error) => { console.error(`Router ERROR: [${err.name}] ${err.message}`) });
 
-      if (UnifiedPreferences.hasSync('scheduleInfo')) {
+      if (UnifiedPreferences.hasSync('scheduleInfo')) { // scheduleInfo键是 2.1.0（不含）以前专用的，因此不需要读取版本号
         const legacySchedule: ScheduleSources.classAttribute[][][] = JSON.parse(UnifiedPreferences.getSync('scheduleInfo', '[[[]]]'));
         const convertSchedule: ScheduleSources.classAttribute[] = [];
         legacySchedule.forEach(layer1 => {
@@ -969,28 +969,6 @@ struct Index {
 
   settingAction(cell: ItemData) {
     switch (cell.id) { // 根据 cell.id 区分设置项
-      case 0:
-        this.getUIContext().showTextPickerDialog({
-          selected: (UnifiedPreferences.getSync('school', 'USTC') === 'USTC' ? 1 : 0),
-          range: ['华中科技大学', '中国科学技术大学'],
-          defaultPickerItemHeight: 36,
-          canLoop: false,
-          onAccept: (value: TextPickerResult) => {
-            switch(value.index) {
-              case 1:
-                UnifiedPreferences.putSync('school', 'USTC');
-                setUSTCLink();
-                break;
-              case 0:
-                UnifiedPreferences.putSync('school', 'HUST');
-                setHUSTLink();
-                break;
-            }
-            this.showMessage(`已更改为 ${value.value}`);
-          }
-        });
-        break;
-
       case 1:
         this.dialogController.open();
         break;

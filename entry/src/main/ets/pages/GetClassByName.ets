@@ -111,7 +111,7 @@ struct GetClassByName {
           Image($r('app.media.sorry'))
             .width(100)
             .margin({ top: 16 })
-          Text('获取成功！在上方的文本框键入，再按下键盘上的搜索（Enter）按钮以搜索 qwq\nദ്ദി˶˃ ᵕ ˂ )✧')
+          Text('获取成功！在上方的文本框键入，再等待一秒以搜索 qwq\nദ്ദി˶˃ ᵕ ˂ )✧')
             .textAlign(TextAlign.Center)
             .margin({ top: 6, left: 16, right: 16 })
         } else if (this.requestStatus === SearchStatus.NO_RESULT) {

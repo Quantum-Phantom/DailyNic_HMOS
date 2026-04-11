@@ -121,7 +121,7 @@ struct AddCard {
           .margin({ top: 16, bottom: 5 })
           .width('100%')
 
-          Text('每天 00:00 自动刷新一次。由于系统限制，若设备处于锁屏状态，则解锁后刷新，或者可能不刷新。')
+          Text('每天 00:00 自动刷新一次。由于系统限制，若设备处于锁屏状态，则解锁后刷新，或者小概率不刷新。')
             .margin({ bottom: 3 })
             .padding({ left: 8, right: 8 })
 
@@ -149,7 +149,7 @@ struct AddCard {
           .margin({ top: 16, bottom: 5 })
           .width('100%')
 
-          Text('大约每 3 小时自动刷新一次。由于系统限制，若设备处于锁屏状态，则解锁后刷新，或者可能不刷新。')
+          Text('大约每 3 小时自动刷新一次。由于系统限制，若设备处于锁屏状态，则解锁后刷新，或者小概率不刷新。')
             .margin({ bottom: 3 })
             .padding({ left: 8 , right: 8 })
 
