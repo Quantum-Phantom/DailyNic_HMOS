@@ -89,12 +89,8 @@
       "value": "课程资料"
     },
     {
-      "name": "XueXiTong",
-      "value": "学习通"
-    },
-    {
-      "name": "ZhiHuiShu",
-      "value": "智慧树"
+      "name": "DaWuGongJu",
+      "value": "大雾工具"
     },
     {
       "name": "QingChunKeDa",
@@ -155,6 +151,14 @@
     {
       "name": "ZhiHuiMenHu",
       "value": "智慧门户"
+    },
+    {
+      "name": "XueXiTong",
+      "value": "学习通"
+    },
+    {
+      "name": "ZhiHuiShu",
+      "value": "智慧树"
     },
     {
       "name": "WangLuoZhuCeZhongXin",

@@ -5,7 +5,6 @@ export class SettingsData {
   getSettingListData(): Array<Array<ItemData>> {
     let settingListData: ItemData[][] = [
       [
-        new ItemData(0, $r('app.string.choose_school'), $r('app.media.swap')),
         new ItemData(1, $r('app.string.set_account_info'), $r('app.media.key_horizontal'))
       ],
       [
@@ -16,7 +15,7 @@ export class SettingsData {
       ],
       [
         new ItemData(6, $r('app.string.add_desktop_form'), $r('app.media.heart_square_stack_fill')),
-        new ItemData(7, $r('app.string.web_auto_dark_mode'), $r('app.media.moon'), $r('app.string.setting_toggle')),
+        new ItemData(7, $r('app.string.web_auto_dark_mode'), $r('app.media.browser'), $r('app.string.setting_toggle')),
         new ItemData(8, $r('app.string.web_back_press'), $r('app.media.house'), $r('app.string.setting_toggle'))
       ],
       [

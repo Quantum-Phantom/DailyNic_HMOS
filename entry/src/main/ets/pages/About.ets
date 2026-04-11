@@ -12,6 +12,7 @@ import { BusinessError } from '@kit.BasicServicesKit';
 import { Link } from '../constants/Links';
 import UpdateInfo from '../view/UpdateInfo';
 import { WantAbility } from '../utils/WantAbility'
+import { currentAppVersion } from '../constants/BasicConstants'
 
 @Builder
 export function AboutBuilder(name: string, param?: Object) {
@@ -62,7 +63,7 @@ struct About {
                 .fontWeight(FontWeight.Bold)
 
               Text() {
-                Span($r('app.string.version'))
+                Span($r('app.string.version', currentAppVersion))
                   .onClick(() => {
                     this.showUpdateLog = true;
                   })
@@ -93,7 +94,7 @@ struct About {
               .bindSheet($$this.showUpdateLog, this.UpdateLog(), {
                 detents: [SheetSize.LARGE],
                 preferType: SheetType.CENTER,
-                title: { subtitle: $r('app.string.version'), title: $r('app.string.update_log') },
+                title: { subtitle: $r('app.string.version', currentAppVersion), title: $r('app.string.update_log') },
                 backgroundColor: '#00d00721',
                 blurStyle: BlurStyle.Regular
               })

@@ -3,6 +3,7 @@
 import UnifyPreferences from './UnifyPreference';
 import { classAttribute, COVER_MODE, semesterAttribute } from '../constants/ScheduleSources';
 import { colorSet, colorSetLen, extractCredits, getRandomInt } from './tools';
+import { currentScheduleVersion } from '../constants/BasicConstants';
 
 function areNumberArraysEqual(a: number[], b: number[]): boolean {
   if (a.length !== b.length) return false;
@@ -67,6 +68,7 @@ class ScheduleManager {
       const currentTime = new Date();
       this.newSemester('默认', '初始自动生成', new Date(new Date(currentTime).setDate(currentTime.getDate() - currentTime.getDay())).setHours(0, 0, 0, 0), currentTime.getTime());
     }
+    UnifyPreferences.putSync('ScheduleVersion', currentScheduleVersion); // 新增内容，后面不需要每次写入
     this.rebuildDisplayIndex(JSON.parse(UnifyPreferences.getSync('SemesterDataAt' + String(this.semesters[this.displaySemester].createTime), '[]')) as classAttribute[]);
   }
 

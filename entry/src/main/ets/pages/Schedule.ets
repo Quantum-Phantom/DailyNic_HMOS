@@ -9,7 +9,7 @@ import UnifiedPreferences, { millisecondsPerWeek } from '../utils/UnifyPreferenc
 import BackgroundImage, { presetColor } from '../utils/BgImageManager';
 import RenameDialog from '../view/RenameDialog';
 import { JSON } from '@kit.ArkTS';
-import { FULL_TIME_FORMAT } from '../constants/BasicConstants';
+import { currentScheduleVersion, FULL_TIME_FORMAT } from '../constants/BasicConstants';
 
 const criticalHeight: number = 32; // 紧凑模式临界值(vp)
 const classAndTeacher: number = 22; // 教室和教师占用高度
@@ -378,7 +378,7 @@ struct Schedule {
           const saveTime: number = Math.trunc(Date.now() / 1000);
           let userContent: exportedData = {
             exportTime: saveTime,
-            scheduleVersion: '2.1.0',
+            scheduleVersion: currentScheduleVersion,
             defaultSemester: ScheduleManager.defaultSemester,
             semesters: Array.from(ScheduleManager.semesters, (semester) => {
               return {

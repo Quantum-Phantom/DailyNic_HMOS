@@ -4,6 +4,7 @@ import UpdateInfo from '../view/UpdateInfo';
 import ScheduleManager from '../utils/ScheduleManager';
 import UnifiedPreferences from '../utils/UnifyPreference';
 import { classAttribute } from '../constants/ScheduleSources';
+import { currentAppVersion } from '../constants/BasicConstants';
 
 @Entry
 @Component
@@ -70,7 +71,7 @@ struct UpdateLog {
         .bindSheet($$this.showSheet, this.agreementSheet(), {
           detents: [SheetSize.LARGE],
           preferType: SheetType.CENTER,
-          title: { title: $r('app.string.terms_of_use_and_privacy_policy'), subtitle: $r('app.string.version') }
+          title: { title: $r('app.string.terms_of_use_and_privacy_policy'), subtitle: $r('app.string.version', currentAppVersion) }
         })
       }
 
@@ -80,7 +81,7 @@ struct UpdateLog {
           .buttonStyle(ButtonStyleMode.TEXTUAL)
           .enabled(this.agreePolitic)
           .onClick(() => {
-            UnifiedPreferences.putSync('AppVersion', '2.1.0');
+            UnifiedPreferences.putSync('AppVersion', currentAppVersion);
             this.getUIContext().getRouter().back();
           })
       }
