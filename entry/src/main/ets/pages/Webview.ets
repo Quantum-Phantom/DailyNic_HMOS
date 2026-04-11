@@ -528,7 +528,7 @@ struct Webview {
               if (this.webviewController.accessBackward()) {
                 this.webviewController.backward();
               } else {
-                this.pathStack.pop();
+                this.showMessage($r('app.string.already_first_page'), 500);
               }
             }),
           LongPressGesture()

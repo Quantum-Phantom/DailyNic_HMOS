@@ -529,12 +529,7 @@ struct ExamDetail {
                 }
               }
               .width('100%')
-              .padding({
-                top: 10,
-                bottom: 10,
-                left: 16,
-                right: 16
-              })
+              .padding({ top: 10, bottom: 10, left: 16, right: 16 })
               .margin({ top: 8, bottom: 6 })
               .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.grid_background') : undefined)
               .backgroundBlurStyle(BackgroundImage.blurLevel)
@@ -580,9 +575,11 @@ struct ExamDetail {
           .height('100%')
           .alignListItem(ListItemAlign.Center)
           .scrollBar(BarState.Auto)
-          .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
+          .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: false })
           .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
           .padding({ left: 12, right: 12 })
+          .contentStartOffset(4)
+          .contentEndOffset(12)
         }
       }
       .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])

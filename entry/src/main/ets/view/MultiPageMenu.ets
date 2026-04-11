@@ -1,7 +1,14 @@
 import { GridData, otherGridDataList } from "../constants/GridListDataSources"
 import { LINK } from "../constants/Links"
 
-export const webName: ResourceStr[] = [];
+export let webName: ResourceStr[] = [];
+
+export function resetWebName(title?: ResourceStr) {
+  if (title)
+    webName = [title];
+  else
+    webName = [];
+}
 
 @Builder function singleGridItem(pageInfo: NavPathStack, linkName: ResourceStr[], groupIndex: number) {
   Menu() {
@@ -45,6 +52,9 @@ export const webName: ResourceStr[] = [];
 
 @Builder export function MultiPageMenu(pageInfo: NavPathStack) {
   Menu() {
+    MenuItem({ content: '在此处打开的新页面\n不会计入一次点击喵', startIcon: $r('app.media.info_circle') })
+      .contentFont({ size: 14 })
+      .hitTestBehavior(HitTestMode.None)
     MenuItem({ content: '置顶页面', builder: toppingPage(pageInfo), endIcon: $r('sys.media.ohos_ic_public_arrow_right') })
       .enabled(pageInfo.size() > 1)
     MenuItem({ content: '打开新网页', builder: singleSection(pageInfo), endIcon: $r('sys.media.ohos_ic_public_arrow_right') })

@@ -44,7 +44,8 @@ interface courseFromJW {
   period: number,
   periodsPerWeek: number,
   credits: number,
-  dateTimePlaceText: bilingual,
+  dateTimePlaceText: string,
+  dateTimePlacePersonText: bilingual, // 这个值没有属性en！！！
   stdCount: number,
   limitCount: number,
   graduateAndPostgraduate: boolean,
@@ -59,7 +60,7 @@ interface courseFromJW {
   teachLang: bilingual,
   education: bilingual,
   classType: bilingual,
-  teacherAssignmentList: TALIF,
+  teacherAssignmentList: TALIF[],
   adminClasses: bilingual[]
 }
 
@@ -71,8 +72,7 @@ struct GetClassByName {
   className: string = '';
   @State requestStatus: SearchStatus = SearchStatus.LOADING;
   obtainedData: courseFromJW[] = [];
-  @State shownData: courseIF[] = [];
-  numberWidth: string = '20vp';
+  @State shownData: courseFromJW[] = [];
   @State resultCount: number = 0;
 
   pathStack: NavPathStack = new NavPathStack();
@@ -114,55 +114,56 @@ struct GetClassByName {
           Text('获取成功！在上方的文本框键入，再按下键盘上的搜索（Enter）按钮以搜索 qwq\nദ്ദി˶˃ ᵕ ˂ )✧')
             .textAlign(TextAlign.Center)
             .margin({ top: 6, left: 16, right: 16 })
+        } else if (this.requestStatus === SearchStatus.NO_RESULT) {
+          Image($r('app.media.sorry'))
+            .width(100)
+            .margin({ top: 16 })
+          Text('emm…没有符合条件的搜索结果')
+            .textAlign(TextAlign.Center)
+            .margin({ top: 6, left: 16, right: 16 })
         } else if (this.requestStatus === SearchStatus.QUERY_SUCCESS) {
-          Row({ space: 6 }) {
-            Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
-              Image($r('app.media.filter'))
-                .height(22)
-                .width(22)
-            }
-            .height(40)
-            .width(40)
-            .onClick(() => {})
-
-            if (this.resultCount > 200)
-              Text(`检索到 200+ 个课堂，出于性能考虑，此处只显示 200 个，请考虑使用更精确的关键词`)
-            else
-              Text(`检索到 ${this.resultCount} 个课堂`)
-          }
-          .width('100%')
-          .padding({ left: 16, right: 16 })
-
           List({ space: 6 }) {
-            Repeat<courseIF>(this.shownData)
-              .each((item: RepeatItem<courseIF>) => {
+            Repeat<courseFromJW>(this.shownData)
+              .each((item: RepeatItem<courseFromJW>) => {
                 ListItem() {
                   Row({ space: 10 }) {
                     Text((item.index + 1).toString())
                       .fontSize(30)
                       .fontWeight(FontWeight.Bolder)
                       .textAlign(TextAlign.Center)
-                      .width(this.numberWidth)
+                      .width(56)
 
                     Column() {
-                      Text(item.item.cn)
+                      Text(item.item.course.cn)
                         .fontWeight(FontWeight.Bold)
                         .fontSize(20)
-                      Text(item.item.code)
+                      Text(item.item.dateTimePlaceText || '无数据')
+                        .wordBreak(WordBreak.BREAK_ALL)
+                      Text(`${item.item.credits} 学分`)
                     }
                     .alignItems(HorizontalAlign.Start)
                     .layoutWeight(1)
-
-                    Checkbox();
                   }
                   .width('100%')
+                  .padding({ top: 10, bottom: 10, left: 10, right: 10 })
+                  .borderRadius(20)
+                  .backgroundColor($r('app.color.grid_background'))
+                  .onClick(() => this.underConstruction())
                 }
+                .margin({ top: 4 })
               })
+
+            if (this.resultCount > 200)
+              ListItem() {
+                Text(`检索到 200+ 个课堂，出于性能考虑，此处只显示 200 个，请考虑使用更精确的关键词`)
+              }
           }
           .width('100%')
           .layoutWeight(1)
-          .padding({ left: 16, right: 16 })
+          .padding({ left: 12, right: 12 })
           .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
+          .contentStartOffset(8)
+          .contentEndOffset(12)
         }
       }
       .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
@@ -202,6 +203,7 @@ struct GetClassByName {
     console.log('debounce')
     try {
       if (name.length === 0) {
+        this.resultCount = 0;
         this.requestStatus = SearchStatus.WAITING_FOR_INPUT;
         return;
       }
@@ -216,20 +218,14 @@ struct GetClassByName {
             cnt++;
             if (cnt > 200)
               break;
-            this.shownData.push(i.course);
+            this.shownData.push(i);
           }
         }
+        this.resultCount = cnt;
         if (cnt === 0) {
           this.requestStatus = SearchStatus.NO_RESULT;
           return;
         }
-        this.resultCount = cnt;
-
-        this.numberWidth = this.getUIContext().getMeasureUtils().measureText({
-          textContent: this.shownData.length.toString(),
-          fontSize: '30fp',
-          fontWeight: FontWeight.Bolder
-        }).toString() + 'px';
 
         this.requestStatus = SearchStatus.QUERY_SUCCESS;
         console.log('debounce' + this.shownData.length.toString());
@@ -242,20 +238,41 @@ struct GetClassByName {
   }
 
   @Builder customTitle() {
-    Row() {
+    Row({ space: 5 }) {
       Search({ value: this.className, placeholder: '按课程名搜索' })
         .enabled(this.requestStatus !== SearchStatus.LOADING)
+        .layoutWeight(1)
         // .onSubmit((value: string) => {
         //   this.className = value;
         //   this.searchName(value);
         // })
         .onChange((value: string) => {
-          console.log('debounce debounce');
           this.className = value;
-          const searchCallback = debounce((): void => this.searchName(value), 1000);
-          searchCallback();
+          console.log('debounce debounce');
+          if (this.requestStatus !== SearchStatus.GET_DATA_FAILED) {
+            const searchCallback = debounce((): void => this.searchName(value), 1000);
+            searchCallback();
+          }
         })
+      Badge({ count: this.resultCount, maxCount: 200,
+        style: { badgeColor: /*'#FA2A2D'*/$r('sys.color.ohos_id_color_badge_red') } }) {
+        Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
+          Image($r('app.media.filter'))
+            .height(22)
+            .width(22)
+        }
+        .height(40)
+        .width(40)
+        .onClick(() => this.underConstruction())
+      }
     }
-    .padding({ left: 6 })
+    .padding({ left: 5, right: 7 })
+  }
+
+  underConstruction() {
+    if (this.requestStatus === SearchStatus.GET_DATA_FAILED)
+      this.getUIContext().getPromptAction().showToast({ message: '需要先获取课程数据 qwq' })
+    else
+      this.getUIContext().getPromptAction().showToast({ message: '此功能正在开发中 qwq' })
   }
 }

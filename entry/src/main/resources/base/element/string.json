@@ -206,7 +206,7 @@
     },
     {
       "name": "switch_page",
-      "value": "切换页面"
+      "value": "多页面切换"
     },
     {
       "name": "wipe_cookie",
@@ -574,7 +574,7 @@
     },
     {
       "name": "switch_ua",
-      "value": "切换浏览器标识"
+      "value": "更改浏览器标识"
     },
     {
       "name": "network_error",

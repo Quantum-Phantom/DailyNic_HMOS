@@ -6,7 +6,7 @@ import * as tools from '../utils/tools';
 import BackgroundImage from '../utils/BgImageManager';
 import CustomClickDialog from './CustomClickDialog';
 import { Popup } from '@kit.ArkUI';
-import { webName } from './MultiPageMenu';
+import { webName, resetWebName } from './MultiPageMenu';
 
 @Component
 export default struct GridComponent {
@@ -191,12 +191,10 @@ export default struct GridComponent {
                 let preName: string = FunctionOrder.order[index][0];
                 if (preName != undefined) {
                   webName.push(LINK.get(preName)?.title ?? 'blank');
-                  if (this.pageInfo.popToName('Webview') === -1) { // 打开对应页面
-                    this.pageInfo.clear();
-                    this.pageInfo.pushPath({ name: "Webview", param: LINK.get(preName) });
-                  }
-                  else
-                    this.pageInfo.replacePath({ name: "Webview", param: LINK.get(preName) });
+                  // 打开对应页面
+                  this.pageInfo.clear();
+                  this.pageInfo.pushPath({ name: "Webview", param: LINK.get(preName) });
+                  resetWebName(LINK.get(preName)?.title);
 
                   FunctionOrder.recordClick(Number(preName.split('.')[0]), Number(preName.split('.')[1])); // 记录点击次数
                   FunctionOrder.refreshFunc(); // 刷新点击次数显示
@@ -211,12 +209,10 @@ export default struct GridComponent {
             } else { // 已设置对应网址
               const paramData = LINK.get(this.gridIndex.toString() + '.' + index.toString());
               webName.push(paramData?.title ?? 'blank');
-              if (this.pageInfo.popToName('Webview') === -1) { // 打开对应页面
-                this.pageInfo.clear();
-                this.pageInfo.pushPath({ name: "Webview", param: paramData });
-              }
-              else
-                this.pageInfo.replacePath({ name: "Webview", param: paramData });
+              // 打开对应页面
+              this.pageInfo.clear();
+              this.pageInfo.pushPath({ name: "Webview", param: paramData });
+              resetWebName(paramData?.title);
 
               FunctionOrder.recordClick(this.gridIndex, index); // 点击次数+1
               FunctionOrder.refreshFunc(); // 刷新点击次数显示
