@@ -1,7 +1,7 @@
 
 import { webview } from '@kit.ArkWeb';
 import { common } from '@kit.AbilityKit';
-import { picker, fileUri } from  '@kit.CoreFileKit';
+import { Environment, picker, fileUri } from  '@kit.CoreFileKit';
 import { BusinessError, deviceInfo } from '@kit.BasicServicesKit';
 import { Link } from '../constants/Links';
 import { WantAbility } from '../utils/WantAbility';
@@ -101,7 +101,13 @@ struct Webview {
 
       MenuItem({ content: $r('app.string.open_file_manager'), startIcon: $r('app.media.folder_badge_eye') })
         .onClick(() => {
-          (this.getUIContext().getHostContext() as common.UIAbilityContext).openLink('filemanager://openDirectory', { parameters: { 'fileUri': '/storage/Users/currentUser/Download/com.nic.dailynic' } });
+          (this.getUIContext().getHostContext() as common.UIAbilityContext).openLink(
+            'filemanager://openDirectory', {
+              parameters: {
+                'fileUri': 'file://docs/storage/Users/currentUser/Download/com.nic.dailynic'
+              }
+            }
+          );
         })
 
       MenuItem({ content: $r('app.string.open_in_full_screen'), startIcon: $r('app.media.arrow_right_up_and_square') })
