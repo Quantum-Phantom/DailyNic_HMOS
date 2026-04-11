@@ -28,6 +28,7 @@ export let index_to_pic = new Map<string, ResourceStr>()
   .set('0.14', $r('app.media.WolframAlpha'))            // Wolfram Alpha
   .set('0.15', $r('app.media.WoKeXueShe'))              // 蜗壳学社
   .set('0.16', $r('app.media.KeChengZiLiao'))           // 课程资料
+  .set('0.17', $r('app.media.DaWuGongJu'))              // 大雾工具
 
   // 服务与工具
   .set('1.0', $r('app.media.ZhiHuiMenHu'))              // 智慧门户
