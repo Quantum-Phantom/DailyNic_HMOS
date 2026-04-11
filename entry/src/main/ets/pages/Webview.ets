@@ -104,7 +104,7 @@ struct Webview {
           (this.getUIContext().getHostContext() as common.UIAbilityContext).openLink(
             'filemanager://openDirectory', {
               parameters: {
-                'fileUri': 'file://docs/storage/Users/currentUser/Download/com.nic.dailynic'
+                'fileUri': 'file://docs/storage/Users/currentUser/Download/com.nic.dailynic.openclaw'
               }
             }
           );
