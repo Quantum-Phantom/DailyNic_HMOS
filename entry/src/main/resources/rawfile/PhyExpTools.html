@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>跳转 · 工具箱</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(145deg, #f6f9fc 0%, #e6f0f5 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      padding: 1.5rem;
+      margin: 0;
+    }
+
+    .card {
+      max-width: 720px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 2.5rem;
+      box-shadow: 0 25px 40px -10px rgba(2, 48, 71, 0.2),
+                  0 8px 18px rgba(0, 20, 30, 0.08),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.6);
+      padding: 2.2rem 2.2rem 2.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      transition: transform 0.2s ease;
+      text-align: center;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+    }
+
+    h1 {
+      font-weight: 600;
+      font-size: 2.2rem;
+      letter-spacing: -0.01em;
+      color: #0b3b4a;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    h1 span {
+      background: #1e6f7f;
+      color: white;
+      font-size: 1rem;
+      font-weight: 500;
+      padding: 0.2rem 0.9rem;
+      border-radius: 60px;
+      margin-left: 8px;
+      opacity: 0.9;
+      box-shadow: inset 0 1px 2px rgba(255,255,255,0.3), 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .subhead {
+      font-size: 1rem;
+      color: #3c6670;
+      margin-bottom: 2rem;
+      border-left: 4px solid #2a9d8f;
+      padding-left: 1.2rem;
+      font-weight: 400;
+      background: linear-gradient(90deg, rgba(42,157,143,0.06) 0%, transparent 80%);
+    }
+
+    .jump-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .jump-item {
+      display: flex;
+      align-items: center;
+      background: white;
+      border-radius: 60px;
+      padding: 0.2rem;
+      box-shadow: 0 6px 14px rgba(0, 30, 40, 0.04), 0 2px 4px rgba(0, 0, 0, 0.02);
+      border: 1px solid rgba(140, 188, 197, 0.25);
+      transition: all 0.2s;
+    }
+
+    .jump-item:hover {
+      border-color: #2a9d8f;
+      box-shadow: 0 12px 22px -8px rgba(42, 157, 143, 0.18), 0 4px 8px rgba(0,0,0,0.02);
+      background: #fdfdfe;
+    }
+
+    .url-badge {
+      flex: 1;
+      padding: 0.9rem 1.4rem;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #144e5e;
+      word-break: break-all;
+      background: transparent;
+      letter-spacing: 0.01em;
+    }
+
+    .url-badge i {
+      font-style: normal;
+      opacity: 0.7;
+      margin-right: 6px;
+      font-weight: 400;
+    }
+
+    /* 简洁装饰 —— 小锁图标 (用unicode) */
+    .url-badge::before {
+      content: "🔗 ";
+      font-size: 1.1em;
+      margin-right: 6px;
+      opacity: 0.7;
+      filter: drop-shadow(0 1px 1px rgba(0,0,0,0.05));
+    }
+
+    .btn {
+      background: #1e6f7f;
+      border: none;
+      color: white;
+      font-weight: 600;
+      font-size: 1rem;
+      padding: 0.75rem 1.8rem;
+      margin: 0.3rem;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 6px 12px rgba(26, 83, 92, 0.2), inset 0 1px 0 rgba(255,255,255,0.3);
+      transition: all 0.15s ease;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+      backdrop-filter: blur(5px);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn::after {
+      content: "↗";
+      font-size: 1.25rem;
+      line-height: 1;
+      margin-left: 4px;
+      transition: transform 0.15s;
+    }
+
+    .btn:hover {
+      background: #155e6d;
+      box-shadow: 0 10px 18px -4px #0f4b58, inset 0 1px 2px white;
+      transform: scale(1.02);
+      border-color: rgba(255,255,255,0.5);
+    }
+
+    .btn:hover::after {
+      transform: translate(2px, -2px);
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+      background: #0d4b58;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    /* 每个按钮不同的微色调 (可选) */
+    .btn-1 {
+      background: #1a7f6b;
+    }
+    .btn-1:hover {
+      background: #126b5a;
+    }
+    .btn-2 {
+      background: #2e6b8f;
+    }
+    .btn-2:hover {
+      background: #1d5779;
+    }
+    .btn-3 {
+      background: #7f5f9c;
+    }
+    .btn-3:hover {
+      background: #644c81;
+    }
+
+    .footer-note {
+      margin-top: 2rem;
+      text-align: right;
+      font-size: 0.85rem;
+      color: #4f7a86;
+      border-top: 1px dashed rgba(62, 115, 126, 0.2);
+      padding-top: 1.4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .hint {
+      display: flex;
+      gap: 6px;
+      font-size: 0.9rem;
+      background: rgba(255,255,255,0.5);
+      padding: 0.3rem 1rem;
+      border-radius: 30px;
+      backdrop-filter: blur(4px);
+    }
+
+    .hint i {
+      font-style: normal;
+    }
+
+    /* 移动端优化 */
+    @media (max-width: 550px) {
+      body {
+        padding: 0.8rem;
+        align-items: flex-start;
+        padding-top: 1.8rem;
+      }
+      .card {
+        padding: 1.6rem 1.2rem 1.8rem;
+        border-radius: 2rem;
+      }
+      h1 {
+        font-size: 1.8rem;
+        flex-wrap: wrap;
+      }
+      .jump-item {
+        flex-wrap: wrap;
+        border-radius: 40px;
+        padding: 0.1rem;
+      }
+      .url-badge {
+        padding: 0.9rem 1rem;
+        font-size: 0.9rem;
+        width: 100%;
+        text-align: center;
+        border-bottom: 1px solid #e2ecf0;
+      }
+      .btn {
+        width: calc(100% - 0.8rem);
+        margin: 0.4rem;
+        justify-content: center;
+        padding: 0.85rem 1.2rem;
+      }
+      .footer-note {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+    }
+
+    /* 更小屏 */
+    @media (max-width: 380px) {
+      .url-badge {
+        font-size: 0.85rem;
+      }
+    }
+
+    /* 辅助点缀 */
+    .glow {
+      color: #1e6f7f;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: linear-gradient(145deg, #1a2a30 0%, #0f1f25 100%);
+      }
+
+      .card {
+        background: rgba(20, 35, 40, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        box-shadow: 0 25px 40px -10px rgba(0, 0, 0, 0.4),
+                    0 8px 18px rgba(0, 0, 0, 0.3),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(80, 120, 130, 0.25);
+      }
+
+      h1 {
+        color: #c0e0ea;
+      }
+
+      h1 span {
+        background: #2a7f8f;
+        color: #e8f4f8;
+        box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.15), 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .subhead {
+        color: #a0c8d4;
+        border-left-color: #3db8a8;
+        background: linear-gradient(90deg, rgba(61, 184, 168, 0.12) 0%, transparent 80%);
+      }
+
+      .jump-item {
+        background: #1d2f36;
+        border-color: rgba(100, 150, 160, 0.25);
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .jump-item:hover {
+        border-color: #3db8a8;
+        box-shadow: 0 12px 22px -8px rgba(61, 184, 168, 0.25), 0 4px 8px rgba(0, 0, 0, 0.15);
+        background: #223a42;
+      }
+
+      .url-badge {
+        color: #c8e2ec;
+      }
+
+      .url-badge::before {
+        opacity: 0.9;
+      }
+
+      .btn {
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .btn-1 {
+        background: #1f8a76;
+      }
+      .btn-1:hover {
+        background: #167a65;
+      }
+
+      .btn-2 {
+        background: #2e7a9e;
+      }
+      .btn-2:hover {
+        background: #1e688a;
+      }
+
+      .btn-3 {
+        background: #8e6eaa;
+      }
+      .btn-3:hover {
+        background: #745b8f;
+      }
+
+      .btn:active {
+        background: #0d4b58;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      .footer-note {
+        color: #8bb4c0;
+        border-top-color: rgba(100, 150, 160, 0.3);
+      }
+
+      .hint {
+        background: rgba(30, 50, 58, 0.7);
+        color: #c0dce6;
+      }
+
+      /* noscript 备用区域深色适配 */
+      noscript div {
+        background: #2a3a40 !important;
+        color: #d8e8f0 !important;
+      }
+
+      noscript a {
+        color: #6ec4b0 !important;
+      }
+
+      /* 移动端分割线适配 */
+      @media (max-width: 550px) {
+        .url-badge {
+          border-bottom-color: #2a4a55;
+        }
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>
+    🔬 大雾实验工具 🛠️
+  </h1>
+
+  <div class="jump-grid">
+    <!-- 项目1: phytools.xef2.top -->
+    <div class="jump-item">
+      <div class="url-badge">
+        <i></i>PhyTools by XeF2
+      </div>
+      <button class="btn btn-1" onclick="openLink('https://phytools.xef2.top/')">
+        前往
+      </button>
+    </div>
+
+    <!-- 项目2: dawu.feixu.site -->
+    <div class="jump-item">
+      <div class="url-badge">
+        <i></i>大雾实验工具 by 飞旭
+      </div>
+      <button class="btn btn-2" onclick="openLink('https://dawu.feixu.site/')">
+        前往
+      </button>
+    </div>
+
+    <!-- 项目3: dwsy.wsw.wiki -->
+    <div class="jump-item">
+      <div class="url-badge">
+        <i></i>大物实验工具站 by 五水
+      </div>
+      <button class="btn btn-3" onclick="openLink('https://dwsy.wsw.wiki/')">
+        前往
+      </button>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    <div class="hint">
+      <span>⚡</span> 不保证链接总是有效
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // 优雅的跳转函数：在新标签页打开，不丢失原页面
+    window.openLink = function(url) {
+      if (!url) return;
+      // 使用 window.open 在新标签页打开，大多数浏览器不会拦截用户手势触发的 open
+      const newWindow = window.open(url, '_blank');
+      // 如果被浏览器拦截（极少情况），则降级为当前页跳转（但保留历史）
+      if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+        // 降级: 当前页跳转，同时保留来源（但用户可后退）
+        window.location.href = url;
+      }
+    };
+
+    // 额外的键盘/无障碍优化 (可选)
+    // 监听回车事件，让按钮区域更友好 (本来button就支持键盘)
+    // 但为了稳健，不加多余逻辑。
+
+    // 附加小特性：点击卡片内的url文字也可以触发对应跳转？ 设计上保持清晰，只让按钮跳转。
+    // 但为了提高容错，可增加双击url复制/跳转提示？ 不必，保持简洁。
+
+    // 针对移动端 touch 优化 (无额外)
+  })();
+</script>
+
+<!-- 保证所有链接都能正常跳转 —— 如果用户禁用了js？ 但本页面依赖js按钮。
+     同时提供无脚本时优雅降级？ 我们可以在noscript里放a标签作为后备 -->
+<noscript>
+  <div style="background:#ffecb3; padding:20px; border-radius:20px; margin-top:20px; text-align:center; font-family:sans-serif;">
+    <p style="font-weight:bold;">⚠️ JavaScript 未启用，请手动点击下方链接：</p>
+    <div style="display:flex; flex-direction:column; gap:14px; margin-top:16px;">
+      <a href="https://phytools.xef2.top/" target="_blank" rel="noopener" style="color:#1a7f6b; font-size:1.2rem;">🔗 phytools.xef2.top</a>
+      <a href="https://dawu.feixu.site/" target="_blank" rel="noopener" style="color:#2e6b8f; font-size:1.2rem;">🔗 dawu.feixu.site</a>
+      <a href="https://dwsy.wsw.wiki/" target="_blank" rel="noopener" style="color:#7f5f9c; font-size:1.2rem;">🔗 dwsy.wsw.wiki</a>
+    </div>
+  </div>
+  <style>
+    /* 隐藏原卡片内按钮的显示（noscript时它们无法工作，但我们不删除，仅作提示） */
+    .jump-grid .btn { opacity: 0.6; pointer-events: none; }
+    .card .subhead::after { content: " (需要JavaScript以获得最佳体验)"; font-size:0.8rem; color:#b33; }
+  </style>
+</noscript>
+</body>
+</html>

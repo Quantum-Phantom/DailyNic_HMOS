@@ -36,8 +36,7 @@ LINK
   .set("0.14", { title: $r('app.string.WolframAlpha'), url: 'https://wolframalpha.com' })
   .set("0.15", { title: $r('app.string.WoKeXueShe'), url: 'https://ot.ustc.edu.cn/' })
   .set("0.16", { title: $r('app.string.KeChengZiLiao'), url: $rawfile('CourseResource.html') })
-  .set("0.17", { title: $r('app.string.XueXiTong'), url: 'https://i.chaoxing.com' })
-  .set("0.18", { title: $r('app.string.ZhiHuiShu'), url: 'https://onlineweb.zhihuishu.com'})
+  .set("0.17", { title: $r('app.string.DaWuGongJu'), url: $rawfile('PhyExpTools.html') })
 
   // 服务与工具
   .set("1.0", { title: $r('app.string.ZhiHuiMenHu'), url: 'http://i.ustc.edu.cn' })
@@ -54,6 +53,8 @@ LINK
   .set("1.11", { title: $r('app.string.Nan7JiShi'), url: 'https://nan7market.com' })
   .set("1.12", { title: $r('app.string.Nan7LunTan'), url: 'https://ustcforum.com' })
   .set("1.13", { title: $r('app.string.YingXinWang'), url: 'http://welcome.ustc.edu.cn' })
+  .set("1.14", { title: $r('app.string.XueXiTong'), url: 'https://i.chaoxing.com' })
+  .set("1.15", { title: $r('app.string.ZhiHuiShu'), url: 'https://onlineweb.zhihuishu.com'})
 
   // 信息技术
   .set("2.0", { title: $r('app.string.KeDaVPN'), url: 'https://wvpn.ustc.edu.cn' })
