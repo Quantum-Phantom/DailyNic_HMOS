@@ -391,12 +391,6 @@
                     </div>
                 `;
 
-                // 绑定点击事件（新标签页打开）
-                card.addEventListener('click', (e) => {
-                    e.preventDefault();  // 阻止默认跳转（但保留 href 供右键使用）
-                    window.open(room.url, '_blank', 'noopener,noreferrer');
-                });
-
                 fragment.appendChild(card);
             });
 

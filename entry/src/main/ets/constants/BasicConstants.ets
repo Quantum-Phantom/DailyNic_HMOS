@@ -1,4 +1,5 @@
 import { i18n } from "@kit.LocalizationKit";
+import { deviceInfo } from "@kit.BasicServicesKit";
 
 export const FULL_TIME_FORMAT: Intl.DateTimeFormatOptions = {
   year: "numeric",
@@ -12,3 +13,5 @@ export const FULL_TIME_FORMAT: Intl.DateTimeFormatOptions = {
 
 export const currentAppVersion: string = "2.1.1";
 export const currentScheduleVersion: string = "2.1.0";
+
+export const deviceType: string = deviceInfo.deviceType;

@@ -23,7 +23,7 @@ import ItemData from '../view/SettingsComponent'
 
 import display from '@ohos.display'
 import { WantAbility } from '../utils/WantAbility'
-import { currentAppVersion, currentScheduleVersion } from '../constants/BasicConstants'
+import { currentAppVersion, currentScheduleVersion, deviceType } from '../constants/BasicConstants'
 
 // 滚动条参数
 enum ScrollPosition {
@@ -294,25 +294,25 @@ struct Index {
           .width('12vp')
           .height('12vp')
           .draggable(false)
-      } else if (item.id === 2) {
+      } else if (item.id === 1) {
         Toggle({ type: ToggleType.Switch, isOn: $$this.showCheckIn })
           .selectedColor(presetColor[BackgroundImage.themeColor][2])
           .onChange((value: boolean) => {
             UnifiedPreferences.putSync('showCheckIn', value);
           });
-      } else if (item.id === 3) {
+      } else if (item.id === 2) {
         Toggle({ type: ToggleType.Switch, isOn: $$this.showRecentCourse })
           .selectedColor(presetColor[BackgroundImage.themeColor][2])
           .onChange((value: boolean) => {
             UnifiedPreferences.putSync('showRecentCourse', value);
           });
-      } else if (item.id === 4){
+      } else if (item.id === 3){
         Toggle({ type: ToggleType.Switch, isOn: $$this.showExamDetail })
           .selectedColor(presetColor[BackgroundImage.themeColor][2])
           .onChange((value: boolean) => {
             UnifiedPreferences.putSync('showExamDetail', value);
           });
-      } else if (item.id === 7) {
+      } else if (item.id === 6) {
         Toggle({ type: ToggleType.Switch, isOn: $$this.webAutoDarkMode })
           .selectedColor(presetColor[BackgroundImage.themeColor][2])
           .onChange((value: boolean) => {
@@ -969,30 +969,45 @@ struct Index {
 
   settingAction(cell: ItemData) {
     switch (cell.id) { // 根据 cell.id 区分设置项
-      case 1:
+      case 0:
         this.dialogController.open();
         break;
+      case 1:
       case 2:
       case 3:
-      case 4:
         break;
 
-      case 5:
+      case 4:
         if (this.pageInfo.popToName('ThemeSetting') === -1) {
           this.pageInfo.clear();
           this.pageInfo.pushPath({ name: 'ThemeSetting', param: [this.windowRect.width, this.windowRect.height] });
         }
         break;
 
-      case 6:
+      case 5:
         if (this.pageInfo.popToName('AddCard') === -1) {
           this.pageInfo.clear();
           this.pageInfo.pushPath({ name: 'AddCard' });
         }
         break;
 
+      case 6:
       case 7:
+        break;
+
       case 8:
+        this.getUIContext().showTextPickerDialog({
+          range: ['电脑端', '手机端', '平板端'],
+          selected: UnifiedPreferences.getNumberSync('UAMode', deviceType === 'phone' ? 1 : (deviceType === 'tablet' ? 2 : 0)),
+          canLoop: false,
+          onAccept: (value: TextPickerResult) => {
+            if (typeof value.index === "number")
+              UnifiedPreferences.putSync('UAMode', value.index);
+            else
+              UnifiedPreferences.putSync('UAMode', value.index[0]);
+            this.showMessage(`已更改为 ${value.value}`);
+          }
+        });
         break;
 
       case 9:

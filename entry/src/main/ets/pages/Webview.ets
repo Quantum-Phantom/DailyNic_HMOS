@@ -1,8 +1,8 @@
 
 import { webview } from '@kit.ArkWeb';
 import { common } from '@kit.AbilityKit';
-import { Environment, picker, fileUri } from  '@kit.CoreFileKit';
-import { BusinessError, deviceInfo } from '@kit.BasicServicesKit';
+import { picker, fileUri } from  '@kit.CoreFileKit';
+import { BusinessError } from '@kit.BasicServicesKit';
 import { Link } from '../constants/Links';
 import { WantAbility } from '../utils/WantAbility';
 import PasswordDialog from '../view/PasswordDialog';
@@ -12,6 +12,7 @@ import { MultiPageMenu, webName } from '../view/MultiPageMenu';
 import { fillInformationJS, deleteAIHelper } from '../utils/tools';
 import UnifiedPreferences, { PASSWORD_KEY, REMIND_KEY, UID_KEY} from '../utils/UnifyPreference';
 import { DESKTOP_MODE, MOBILE_MODE, TABLET_MODE, DESKTOP_UA, MOBILE_UA, TABLET_UA } from '../constants/UserAgent';
+import { deviceType } from '../constants/BasicConstants';
 
 const desktopUrl: string[] = ['https://young.ustc.edu.cn/login'] // 需要默认访问桌面版站点时使用
 const autoJumpUrl: string[] = ['https://jw.ustc.edu.cn/for-std/course-table', 'https://jw.ustc.edu.cn/for-std/exam-arrange', 'https://jw.ustc.edu.cn/for-std/grade/sheet'];
@@ -257,15 +258,19 @@ struct Webview {
               this.webviewController.setCustomUserAgent(DESKTOP_UA);
               this.uaMode = DESKTOP_MODE;
             } else {
-              if (deviceInfo.deviceType === 'phone') {
-                this.webviewController.setCustomUserAgent(MOBILE_UA);
-                this.uaMode = MOBILE_MODE;
-              } else if (deviceInfo.deviceType === 'tablet') {
-                this.webviewController.setCustomUserAgent(TABLET_UA);
-                this.uaMode = TABLET_MODE;
-              } else {
-                this.webviewController.setCustomUserAgent(DESKTOP_UA);
-                this.uaMode = DESKTOP_MODE;
+              switch(UnifiedPreferences.getNumberSync('UAMode', deviceType === 'phone' ? 1 : (deviceType === 'tablet' ? 2 : 0))) {
+                case 0:
+                  this.webviewController.setCustomUserAgent(DESKTOP_UA);
+                  this.uaMode = DESKTOP_MODE;
+                  break;
+                case 1:
+                  this.webviewController.setCustomUserAgent(MOBILE_UA);
+                  this.uaMode = MOBILE_MODE;
+                  break;
+                case 2:
+                  this.webviewController.setCustomUserAgent(TABLET_UA);
+                  this.uaMode = TABLET_MODE;
+                  break;
               }
             }
             try {
@@ -313,7 +318,7 @@ struct Webview {
                           eachDownloadPercent.clear();
                           this.downloadItemTotal = 0;
                           try {
-                            (this.getUIContext().getHostContext() as common.UIAbilityContext).openLink('filemanager://openDirectory', { parameters: { 'fileUri': webDownloadItem.getFullPath() } });
+                            (this.getUIContext().getHostContext() as common.UIAbilityContext).openLink('filemanager://openDirectory', { parameters: { 'fileUri': 'file://docs' + webDownloadItem.getFullPath() } });
                           } catch (paramError) {
                             console.error(`Failed to start link. Code is ${paramError.code}, message is ${paramError.message}`);
                           }
