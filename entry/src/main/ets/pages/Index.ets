@@ -176,13 +176,13 @@ struct Index {
           ListItem() {
             Column() {
               Text(item)
-                .fontColor(this.currentListIndex === index ? $r('app.color.active_text') : $r('app.color.normal_text'))
+                .fontColor(this.currentListIndex === index ? presetColor[BackgroundImage.themeColor][2] : $r('app.color.normal_text'))
                 .fontSize('16fp')
                 .fontWeight(this.currentListIndex === index ? FontWeight.Bold : FontWeight.Normal)
                 .margin({ top: '15vp' })
 
               Divider()
-                .color($r('app.color.active_text'))
+                .color(presetColor[BackgroundImage.themeColor][2])
                 .strokeWidth(2)
                 .width(this.getUIContext().getMeasureUtils().measureText({ textContent: item, fontSize: '16fp' }).toString() + 'px')
                 .margin({ top: '4vp' })

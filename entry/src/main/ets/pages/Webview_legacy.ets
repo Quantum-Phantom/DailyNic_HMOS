@@ -1,16 +1,16 @@
 
 import { webview } from '@kit.ArkWeb'
 import { DESKTOP_MODE, MOBILE_MODE, TABLET_MODE, DESKTOP_UA, MOBILE_UA, TABLET_UA } from '../constants/UserAgent'
-import { BusinessError, deviceInfo } from '@kit.BasicServicesKit'
+import { BusinessError } from '@kit.BasicServicesKit'
 import { common } from '@kit.AbilityKit'
 import UnifiedPreferences, { PASSWORD_KEY, REMIND_KEY, UID_KEY} from '../utils/UnifyPreference'
-import { call } from '@kit.TelephonyKit';
 import { picker, fileUri } from  '@kit.CoreFileKit';
 import { fillInformationJS, deleteAIHelper } from '../utils/tools';
 import accountInfoProvider from '../utils/Encryption';
 import PasswordDialog from '../view/PasswordDialog';
 import BackgroundImage from '../utils/BgImageManager';
 import { WantAbility } from '../utils/WantAbility'
+import { deviceType } from '../constants/BasicConstants'
 
 const desktopUrl: string[] = ['https://young.ustc.edu.cn/login'] // 需要默认访问桌面版站点时使用
 const autoJumpUrl: string[] = ['https://jw.ustc.edu.cn/for-std/course-table', 'https://jw.ustc.edu.cn/for-std/exam-arrange', 'https://jw.ustc.edu.cn/for-std/grade/sheet'];
@@ -219,13 +219,11 @@ struct Webview {
       .id('header')
       .width('100%')
       .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
-      .backgroundColor(BackgroundImage.blurLevel === undefined ? $r(`app.color.shaded_background${BackgroundImage.themeColor}`) : undefined)
-      .opacity(BackgroundImage.opacityLevel)
+      .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background' + BackgroundImage.themeColor) : undefined)
 
       Stack({ alignContent: Alignment.TopStart }) {
         Web({ src: this.url, controller: this.webviewController })
-          .backgroundColor('#00d00721')
-          .opacity(BackgroundImage.opacityLevel)
+          .backgroundColor(BackgroundImage.blurLevel === undefined ? undefined : '#00d00721')
           .javaScriptProxy({
             object: accountInfoProvider,
             name: "infoProvider",
@@ -295,15 +293,19 @@ struct Webview {
               this.webviewController.setCustomUserAgent(DESKTOP_UA);
               this.uaMode = DESKTOP_MODE;
             } else {
-              if (deviceInfo.deviceType === 'phone') {
-                this.webviewController.setCustomUserAgent(MOBILE_UA);
-                this.uaMode = MOBILE_MODE;
-              } else if (deviceInfo.deviceType === 'tablet') {
-                this.webviewController.setCustomUserAgent(TABLET_UA);
-                this.uaMode = TABLET_MODE;
-              } else {
-                this.webviewController.setCustomUserAgent(DESKTOP_UA);
-                this.uaMode = DESKTOP_MODE;
+              switch(UnifiedPreferences.getNumberSync('UAMode', deviceType === 'phone' ? 1 : (deviceType === 'tablet' ? 2 : 0))) {
+                case 0:
+                  this.webviewController.setCustomUserAgent(DESKTOP_UA);
+                  this.uaMode = DESKTOP_MODE;
+                  break;
+                case 1:
+                  this.webviewController.setCustomUserAgent(MOBILE_UA);
+                  this.uaMode = MOBILE_MODE;
+                  break;
+                case 2:
+                  this.webviewController.setCustomUserAgent(TABLET_UA);
+                  this.uaMode = TABLET_MODE;
+                  break;
               }
             }
             try {
@@ -510,12 +512,21 @@ struct Webview {
         .width('100%')
         .padding({ left: 5, top: 5, right: 5 })
         .hitTestBehavior(HitTestMode.Transparent)
+
+        if (BackgroundImage.opacityLevel !== 1)
+          Image(BackgroundImage.pic)
+            .height('100%')
+            .width('100%')
+            .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+            .autoResize(true)
+            .opacity((1 - BackgroundImage.opacityLevel) * BackgroundImage.brightness)
+            .hitTestBehavior(HitTestMode.None)
       }
       .layoutWeight(1)
     }
     .backgroundBlurStyle(BackgroundImage.blurLevel)
     .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
-    .backgroundImage(BackgroundImage.pic)
+    .backgroundImage(BackgroundImage.blurLevel !== undefined ? BackgroundImage.pic : undefined)
     .backgroundImageSize(ImageSize.Cover)
     .backgroundImagePosition(Alignment.Center)
   }
