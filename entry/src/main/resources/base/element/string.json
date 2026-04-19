@@ -345,6 +345,10 @@
       "value": "网页中侧滑直接返回首页"
     },
     {
+      "name": "set_default_UA",
+      "value": "设置默认浏览器标识"
+    },
+    {
       "name": "clear_calendar",
       "value": "清除所有提醒日程"
     },

@@ -5,18 +5,19 @@ export class SettingsData {
   getSettingListData(): Array<Array<ItemData>> {
     let settingListData: ItemData[][] = [
       [
-        new ItemData(1, $r('app.string.set_account_info'), $r('app.media.key_horizontal'))
+        new ItemData(0, $r('app.string.set_account_info'), $r('app.media.key_horizontal'))
       ],
       [
-        new ItemData(2, $r('app.string.show_check_in'), $r('app.media.star'), $r('app.string.setting_toggle')),
-        new ItemData(3, $r('app.string.show_schedule_on_start_page'), $r('app.media.list_square_bill'), $r("app.string.setting_toggle")),
-        new ItemData(4, $r('app.string.show_exam_info_on_start_page'), $r('app.media.doc_plaintext_and_pencil'), $r("app.string.setting_toggle")),
-        new ItemData(5, $r('app.string.theme_setting'), $r('app.media.penshape'))
+        new ItemData(1, $r('app.string.show_check_in'), $r('app.media.star'), $r('app.string.setting_toggle')),
+        new ItemData(2, $r('app.string.show_schedule_on_start_page'), $r('app.media.list_square_bill'), $r("app.string.setting_toggle")),
+        new ItemData(3, $r('app.string.show_exam_info_on_start_page'), $r('app.media.doc_plaintext_and_pencil'), $r("app.string.setting_toggle")),
+        new ItemData(4, $r('app.string.theme_setting'), $r('app.media.penshape'))
       ],
       [
-        new ItemData(6, $r('app.string.add_desktop_form'), $r('app.media.heart_square_stack_fill')),
-        new ItemData(7, $r('app.string.web_auto_dark_mode'), $r('app.media.browser'), $r('app.string.setting_toggle')),
-        new ItemData(8, $r('app.string.web_back_press'), $r('app.media.house'), $r('app.string.setting_toggle'))
+        new ItemData(5, $r('app.string.add_desktop_form'), $r('app.media.heart_square_stack_fill')),
+        new ItemData(6, $r('app.string.web_auto_dark_mode'), $r('app.media.moon'), $r('app.string.setting_toggle')),
+        new ItemData(7, $r('app.string.web_back_press'), $r('app.media.house'), $r('app.string.setting_toggle')),
+        new ItemData(8, $r('app.string.set_default_UA'), $r('app.media.browser'))
       ],
       [
         new ItemData(9, $r('app.string.clear_calendar'), $r('app.media.bell_slash')),
