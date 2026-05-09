@@ -355,9 +355,6 @@ struct ThemeSetting {
             }
             .height(halfSize * 2)
             .width(halfSize * 2)
-            .borderStyle(BorderStyle.Dotted)
-            .borderWidth(1)
-            .borderColor($r('app.color.normal_text'))
             .margin({ bottom: 6 })
             .gesture(
               GestureGroup(GestureMode.Exclusive,

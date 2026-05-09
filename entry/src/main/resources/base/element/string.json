@@ -553,6 +553,10 @@
       "value": "删除"
     },
     {
+      "name": "open_in_browser",
+      "value": "在系统浏览器中打开"
+    },
+    {
       "name": "help",
       "value": "帮助"
     },
