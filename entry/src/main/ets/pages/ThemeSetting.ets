@@ -190,6 +190,7 @@ struct ThemeSetting {
 
               Button($r('app.string.pick_image'))
                 .buttonStyle(ButtonStyleMode.NORMAL)
+                .backgroundColor(this.showBlurSlider ? $r('app.color.transparent') : $r('app.color.grid_background'))
                 .backgroundBlurStyle(this.showBlurSlider ? this.blurNum : undefined)
                 .opacity(this.showBlurSlider ? 1 : this.opacityNum / 100)
                 .onClick(() => {
