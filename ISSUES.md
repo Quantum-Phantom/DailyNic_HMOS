@@ -6,33 +6,11 @@
 
 ## 🔴 高优先级（性能 / 稳定性）
 
-### 1. ~~ForEach 中读取 @State 变量（已确认不可行）~~
-- **位置**：`entry/src/main/ets/pages/Index.ets` ForEach 循环体内
-- **结论**：**无法通过「缓存到局部变量」修复**。ArkUI 的 `@Builder` 函数内部只允许声明式 UI 语法，普通 `let`/`const` 变量声明会触发编译错误 `Only UI component syntax can be written here`。
-- **可行替代方案**：将课程状态判断逻辑提取为 `@Local` 计算属性或工具函数，在 Builder 外部预处理数据后再传入；或者使用 `@Watch` + `@LocalStorageProp` 在 State 变化时主动重建数组。
-- **当前建议**：暂接受此 warn，优先级降级。
+### ~~1. ForEach 中读取 @State 变量 → 已降级排除~~
+### ~~2. 多处 ForEach 缺少 keyGenerator（15+处）→ 忽略~~
+### ~~3. ExamManager.ets 循环内重复创建 Date 对象 → 忽略~~
 
-### 2. 多处 ForEach 缺少 keyGenerator（15+ 处）
-- **位置**：
-  - `Index.ets:551,653,753,937,939`
-  - `Schedule.ets:450,612,918,981,1330,1718`
-  - `Help.ets:33`
-  - `MultiPageMenu.ets:15,31,43`
-  - `CheckinCollection.ets:32`
-  - `ExamDetail.ets:459`
-  - `GetSchedule.ets:474`
-  - `ThemeSetting.ets:329`
-- **规则**：`@performance/foreach-args-check`（codelinter 已报）
-- **问题**：缺少 keyGenerator 导致列表 diff 效率低下，增删项时可能渲染错误。
-- **建议**：为所有 ForEach 添加唯一的 keyGenerator 函数。
-
-### 3. ExamManager.ets 循环内重复创建 Date 对象
-- **位置**：`entry/src/main/ets/utils/ExamManager.ets:46-47`
-- **规则**：`@performance/reuse-date-instances-check`（codelinter 已报）
-- **问题**：`storeExam()` 和 `addExam()` 中每次都 `new Date(...)` 解析同一格式字符串。
-- **建议**：提取日期解析为独立函数，避免重复创建。
-
-### 3. UnifyPreference.putSync() 每次写入都立即 flush
+### 1. UnifyPreference.putSync() 每次写入都立即 flush
 - **位置**：`entry/src/main/ets/utils/UnifyPreference.ets` → `putSync()`
 - **问题**：每次 putSync 都调用 `this.flush()`（异步 IO）。而 ScheduleManager 的 `coverExistSemester`、`newSemester` 等方法在一次操作中可能连续调用 putSync 多次，每次都触发磁盘刷盘。
 - **建议**：引入批量写入模式（beginBatch/endBatch），或至少将 flush 改为延迟/debounce。
@@ -115,7 +93,7 @@
 
 | 优先级 | 数量 | 关键词 |
 |--------|------|--------|
-| 🔴 高 | 3 | ForEach keyGenerator、Date 重复创建、Preferences 频繁 flush |
-- **注**：原「ForEach 内读 @State」因 ArkUI @Builder 语法限制，常规优化路径不可行，已降级排除。|
+| 🔴 高 | 1 | Preferences 频繁 flush |
+- **注**：原高优第 2-4 项（ForEach keyGenerator、Date 重复创建、@State 变量读取）均已忽略。|
 | 🟡 中 | 6 | 字符串处理 bug、死代码、全局变量污染、JSON 反序列化冗余、aboutToAppear 臃肿、通配符导入 |
 | 🟢 低 | 4 | 手势冲突风险、自动命名、国际化、setColorMode 冗余 |
