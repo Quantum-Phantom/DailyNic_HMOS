@@ -1,7 +1,8 @@
 
 import { application, common, contextConstant, Want } from '@kit.AbilityKit'
-import { LengthUnit } from '@kit.ArkUI'
+import { LengthUnit, SymbolGlyphModifier  } from '@kit.ArkUI'
 import { fileIo, storageStatistics } from '@kit.CoreFileKit'
+import { HdsNavigation, HdsNavigationTitleMode, HdsTabs, HdsTabsController, HdsNavigationMenuContentOptions, ScrollEffectType, hdsMaterial } from '@kit.UIDesignKit'
 
 import { GridData, otherGridDataList } from '../constants/GridListDataSources'
 import { ListDataConstants } from '../constants/ListDataConstants'
@@ -15,8 +16,8 @@ import ScheduleManager from '../utils/ScheduleManager'
 import * as tools from '../utils/tools'
 import UnifiedPreferences, { millisecondsPerWeek } from '../utils/UnifyPreference'
 import WriteCalendar from '../utils/WriteCalendar'
-
 import BackgroundImage, { presetColor } from '../utils/BgImageManager'
+
 import GridComponent from '../view/GridComponent'
 import PasswordDialog from '../view/PasswordDialog'
 import ItemData from '../view/SettingsComponent'
@@ -39,7 +40,7 @@ struct Index {
   private windowRect: display.Display = display.getDefaultDisplaySync();
 
   @State currentIndex: number = 0; // 当前标签索引 (从0开始), 初始值即为默认标签索引
-  private tabsController: TabsController = new TabsController();
+  private tabsController: HdsTabsController = new HdsTabsController();
 
   dialogController: CustomDialogController = new CustomDialogController({
     builder: PasswordDialog({
@@ -380,10 +381,6 @@ struct Index {
       console.error(`ShowToast ERROR: [${error.name}] ${error.message}`);
     }
   }
-
-  /*
-   * 日历权限相关
-   */
 
   /**
    * 页面: 首页
@@ -1117,7 +1114,7 @@ struct Index {
         .opacity(BackgroundImage.brightness)
 
       Navigation(this.pageInfo) {
-        Tabs({ barPosition: BarPosition.End, controller: this.tabsController }) {
+        HdsTabs({ controller: this.tabsController }) {
           /**
            * Tab: 首页
            */
@@ -1153,16 +1150,24 @@ struct Index {
           .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
 
         }
-        .barBackgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background' + BackgroundImage.themeColor.toString()) : undefined)
-        .barBackgroundBlurStyle(BackgroundImage.blurLevel)
-        .barHeight('auto')
-        .barWidth('100%')
+        //.barBackgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background' + BackgroundImage.themeColor.toString()) : undefined)
+        //.barBackgroundBlurStyle(BackgroundImage.blurLevel)
+        //.barHeight('auto')
+        //.barWidth('100%')
+        //.barMode(BarMode.Fixed)
         .vertical(false)
         .barPosition(BarPosition.End)
-        .barMode(BarMode.Fixed)
         .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
         .onAnimationStart((_index: number, targetIndex: number) => {
           this.currentIndex = targetIndex;
+        })
+        .barOverlap(true)
+        .barFloatingStyle({
+          barBottomMargin: 28,
+          systemMaterialEffect: {
+            materialType: hdsMaterial.MaterialType.ADAPTIVE,
+            materialLevel: hdsMaterial.MaterialLevel.ADAPTIVE // 底部悬浮页签沉浸光感效果跟随系统策略自适应
+          }
         })
       }
       .enableDragBar(true)
