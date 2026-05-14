@@ -1,6 +1,6 @@
 
 import { webview } from '@kit.ArkWeb';
-import { common } from '@kit.AbilityKit';
+import { abilityAccessCtrl, common } from '@kit.AbilityKit';
 import { picker, fileUri } from  '@kit.CoreFileKit';
 import { BusinessError } from '@kit.BasicServicesKit';
 import { Link } from '../constants/Links';
@@ -13,6 +13,7 @@ import { fillInformationJS, deleteAIHelper } from '../utils/tools';
 import UnifiedPreferences, { PASSWORD_KEY, REMIND_KEY, UID_KEY} from '../utils/UnifyPreference';
 import { DESKTOP_MODE, MOBILE_MODE, TABLET_MODE, DESKTOP_UA, MOBILE_UA, TABLET_UA } from '../constants/UserAgent';
 import { deviceType } from '../constants/BasicConstants';
+import { checkPermission } from '../utils/PermissionManager';
 
 const desktopUrl: string[] = ['https://young.ustc.edu.cn/login'] // 需要默认访问桌面版站点时使用
 const autoJumpUrl: string[] = ['https://jw.ustc.edu.cn/for-std/course-table', 'https://jw.ustc.edu.cn/for-std/exam-arrange', 'https://jw.ustc.edu.cn/for-std/grade/sheet'];
@@ -395,6 +396,18 @@ struct Webview {
             }
             return true;
           })
+          .onGeolocationShow(async (event) => {
+            if (event) {
+              console.error('requestPermissionsFromUser');
+              console.error('requestPermissionsFromUser');
+              const flag = await checkPermission(["ohos.permission.APPROXIMATELY_LOCATION"]);
+              if (flag) {
+                console.error('requestPermissionsFromUser');
+              } else {
+                this.askLocation(event);
+              }
+            }
+          })
 
         if (this.loadError !== '') {
           Column() {
@@ -578,6 +591,27 @@ struct Webview {
     // .alignItems(VerticalAlign.Center)
     .height(56)
     .width('100%')
+  }
+
+  askLocation(event: OnGeolocationShowEvent) {
+    this.getUIContext().showAlertDialog({
+      title: '定位权限',
+      message: `是否允许${this.webviewController.getOriginalUrl()}获取你的位置？`,
+      autoCancel: false,
+      primaryButton: {
+        value: $r('app.string.no'),
+        action: () => {
+          event.geolocation.invoke(event.origin, false, false);
+        }
+      },
+      secondaryButton: {
+        value: $r('app.string.yes'),
+        action: () => {
+          // invoke的第三个参数表示是否记住当前弹窗的选择状态，如果传入true，则下次不再弹出对话框
+          event.geolocation.invoke(event.origin, true, false);
+        }
+      }
+    });
   }
 }
 

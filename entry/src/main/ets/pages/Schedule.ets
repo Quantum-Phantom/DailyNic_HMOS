@@ -2,7 +2,7 @@
 import { PopoverDialog, Popup } from '@kit.ArkUI';
 import * as ScheduleSources from '../constants/ScheduleSources';
 import { classAttribute, semesterAttribute, exportSemester, exportedData } from '../constants/ScheduleSources';
-import ScheduleManager, { areClassAttributesEqual } from '../utils/ScheduleManager';
+import ScheduleManager, { areClassAttributesEqual } from '../utils/Classes/ScheduleManager';
 import * as tools from '../utils/tools';
 import { weekTranslate } from '../utils/tools';
 import UnifiedPreferences, { millisecondsPerWeek } from '../utils/UnifyPreference';
@@ -778,14 +778,13 @@ struct Schedule {
           .transition(TransitionEffect.move(TransitionEdge.BOTTOM).animation({ duration: 600, delay: 60 * index, curve: Curve.Ease }))
         });
       }
-      .contentEndOffset(16)
       .width('100%')
       .layoutWeight(1)
       .borderRadius(20)
     }
     .width('100%')
     .height('100%')
-    .padding({ top: 16, left: 16, right: 16 })
+    .padding(16)
   }
 
   refreshGrid() {
@@ -1355,7 +1354,7 @@ struct Schedule {
 
   @Builder ClassDetailDialog() {
     Column() {
-      Row({ space: 8 }) {
+      Row({ space: 5 }) {
         Text(this.isChangeSchedule ? $r('app.string.class_detail') : $r('app.string.class_detail_new'))
           .fontWeight(FontWeight.Bold)
           .fontSize(24)

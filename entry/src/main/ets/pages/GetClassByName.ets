@@ -1,7 +1,7 @@
 import { rcp } from '@kit.RemoteCommunicationKit';
 import { BusinessError } from '@kit.BasicServicesKit';
-import BackgroundImage from '../utils/BgImageManager';
-import { debounce } from '../utils/tools';
+import BackgroundImage, { presetColor } from '../utils/BgImageManager';
+import { courseFromJW, debounceSearchCourses, searchCourses, searchOption } from '../utils/Classes/RawDataModifier';
 
 
 @Builder
@@ -19,60 +19,15 @@ enum SearchStatus {
   DATA_FORMAT_ERR
 }
 
-interface bilingual {
-  cn: string,
-  en?: string
-}
-
-interface courseIF extends bilingual {
-  id: number,
-  code: string
-}
-
-interface departmentIF extends bilingual {
-  college: boolean,
-  code: string
-}
-
-interface TALIF extends bilingual {
-  departmentCode: string
-}
-
-interface courseFromJW {
-  id: number,
-  code: string,
-  period: number,
-  periodsPerWeek: number,
-  credits: number,
-  dateTimePlaceText: string,
-  dateTimePlacePersonText: bilingual, // 这个值没有属性en！！！
-  stdCount: number,
-  limitCount: number,
-  graduateAndPostgraduate: boolean,
-  course: courseIF,
-  courseType: bilingual,
-  courseGradation: bilingual,
-  courseCategory: bilingual,
-  courseClassify: bilingual,
-  openDepartment: departmentIF,
-  campus: bilingual,
-  examMode: bilingual,
-  teachLang: bilingual,
-  education: bilingual,
-  classType: bilingual,
-  teacherAssignmentList: TALIF[],
-  adminClasses: bilingual[]
-}
-
 
 @Entry
 @Component
 struct GetClassByName {
 
-  className: string = '';
   @State requestStatus: SearchStatus = SearchStatus.LOADING;
   obtainedData: courseFromJW[] = [];
   @State shownData: courseFromJW[] = [];
+  advancedFilter: searchOption = {};
   @State resultCount: number = 0;
 
   pathStack: NavPathStack = new NavPathStack();
@@ -127,19 +82,35 @@ struct GetClassByName {
               .each((item: RepeatItem<courseFromJW>) => {
                 ListItem() {
                   Row({ space: 10 }) {
-                    Text((item.index + 1).toString())
-                      .fontSize(30)
-                      .fontWeight(FontWeight.Bolder)
-                      .textAlign(TextAlign.Center)
-                      .width(56)
+                    Column() {
+                      Text((item.index + 1).toString())
+                        .fontSize(30)
+                        .fontWeight(FontWeight.Bolder)
+                        .textAlign(TextAlign.Center)
+                      Text(`${item.item.credits} 学分`)
+                        .fontSize(12)
+                    }
+                    .width(56)
 
                     Column() {
-                      Text(item.item.course.cn)
+                      Text(item.item.course.cn || '无数据')
                         .fontWeight(FontWeight.Bold)
                         .fontSize(20)
-                      Text(item.item.dateTimePlaceText || '无数据')
-                        .wordBreak(WordBreak.BREAK_ALL)
-                      Text(`${item.item.credits} 学分`)
+                      Text() {
+                        Span('教师  ')
+                          .fontWeight(FontWeight.Bold)
+                          .fontColor(presetColor[BackgroundImage.themeColor][2])
+                        Span(item.item.teacherAssignmentList?.map(item => item.cn).join('，') || '无数据')
+                      }
+                      .wordBreak(WordBreak.BREAK_ALL)
+
+                      Text() {
+                        Span('时间  ')
+                          .fontWeight(FontWeight.Bold)
+                          .fontColor(presetColor[BackgroundImage.themeColor][2])
+                        Span(item.item.dateTimePlacePersonText.cn || '无数据')
+                      }
+                      .wordBreak(WordBreak.BREAK_ALL)
                     }
                     .alignItems(HorizontalAlign.Start)
                     .layoutWeight(1)
@@ -170,15 +141,28 @@ struct GetClassByName {
       .width('100%')
     }
     .title(this.customTitle(), {
-      backgroundBlurStyle: BackgroundImage.blurLevel,
-      backgroundColor: BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background' + String(BackgroundImage.themeColor)) : undefined
+      backgroundColor: BackgroundImage.blurLevel === undefined ? $r('app.color.shaded_background' + String(BackgroundImage.themeColor)) : '#00d00721'
     })
     .backButtonIcon($r('app.media.close'))
-    .backgroundColor($r('app.color.normal_background')) // BackgroundImage.showImage ? '#00d00721' :
+    .backgroundBlurStyle(BackgroundImage.blurLevel)
+    .backgroundColor(BackgroundImage.showImage ? '#00d00721' : $r('app.color.normal_background'))
     .onReady((context: NavDestinationContext) => {
       this.pathStack = context.pathStack;
       this.getData();
     })
+  }
+
+  @Builder settingMenu() {
+    Menu() {
+      MenuItem({ startIcon: $r('sys.media.ohos_ic_public_text'), content: '区分大小写',
+        endIcon: this.advancedFilter.caseSensitive ? $r('app.media.checkmark') : undefined })
+        .onClick(() => {
+          this.advancedFilter.caseSensitive = !this.advancedFilter.caseSensitive;
+          this.shownData = searchCourses(this.obtainedData, this.advancedFilter);
+        })
+      MenuItem({ startIcon: $r('app.media.cloud_sync'), content: '重新获取' })
+        .onClick(() => this.getData())
+    }
   }
 
   getData() {
@@ -199,47 +183,9 @@ struct GetClassByName {
     });
   }
 
-  searchName(name: string) {
-    console.log('debounce')
-    try {
-      if (name.length === 0) {
-        this.resultCount = 0;
-        this.requestStatus = SearchStatus.WAITING_FOR_INPUT;
-        return;
-      }
-
-      if (this.obtainedData) {
-        this.requestStatus = SearchStatus.QUERYING;
-        this.shownData = [];
-
-        let cnt: number = 0;
-        for (let i of this.obtainedData) {
-          if (i.course.cn.includes(name)) {
-            cnt++;
-            if (cnt > 200)
-              break;
-            this.shownData.push(i);
-          }
-        }
-        this.resultCount = cnt;
-        if (cnt === 0) {
-          this.requestStatus = SearchStatus.NO_RESULT;
-          return;
-        }
-
-        this.requestStatus = SearchStatus.QUERY_SUCCESS;
-        console.log('debounce' + this.shownData.length.toString());
-      } else {
-        this.requestStatus = SearchStatus.GET_DATA_FAILED;
-      }
-    } catch {
-      this.requestStatus = SearchStatus.DATA_FORMAT_ERR;
-    }
-  }
-
   @Builder customTitle() {
     Row({ space: 5 }) {
-      Search({ value: this.className, placeholder: '按课程名搜索' })
+      Search({ value: this.advancedFilter.className, placeholder: '按课程名搜索' })
         .enabled(this.requestStatus !== SearchStatus.LOADING)
         .layoutWeight(1)
         // .onSubmit((value: string) => {
@@ -247,11 +193,30 @@ struct GetClassByName {
         //   this.searchName(value);
         // })
         .onChange((value: string) => {
-          this.className = value;
-          console.log('debounce debounce');
-          if (this.requestStatus !== SearchStatus.GET_DATA_FAILED) {
-            const searchCallback = debounce((): void => this.searchName(value), 1000);
-            searchCallback();
+          this.advancedFilter.className = value;
+          if (value.length === 0)
+            debounceSearchCourses([], {}, (empty) => {
+              this.resultCount = 0;
+              this.shownData = [];
+              this.requestStatus = SearchStatus.WAITING_FOR_INPUT;
+            })
+          else if (this.requestStatus !== SearchStatus.GET_DATA_FAILED) {
+            debounceSearchCourses(
+              this.obtainedData,
+              this.advancedFilter,
+              (filteredCourses) => {
+                this.shownData = filteredCourses;
+                if (filteredCourses.length > 200)
+                  this.resultCount = 201;
+                else
+                  this.resultCount = filteredCourses.length;
+
+                if (this.shownData.length === 0)
+                  this.requestStatus = SearchStatus.NO_RESULT;
+                else
+                  this.requestStatus = SearchStatus.QUERY_SUCCESS;
+              }
+            );
           }
         })
       Badge({ count: this.resultCount, maxCount: 200,
@@ -265,8 +230,62 @@ struct GetClassByName {
         .width(40)
         .onClick(() => this.underConstruction())
       }
+
+      Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
+        Image($r('app.media.setting'))
+          .height(22)
+          .width(22)
+      }
+      .height(40)
+      .width(40)
+      .bindMenu(this.settingMenu())
     }
     .padding({ left: 5, right: 7 })
+  }
+
+
+  @State showFilterDialog: boolean = false;
+  targetTeacherName: string = '';
+  @Builder filterDialog() {
+    Column() {
+      Row({ space: 5 }) {
+        Text('更多筛选条件')
+          .fontWeight(FontWeight.Bold)
+          .fontSize(24)
+          .layoutWeight(1)
+          .margin({ left: 8 })
+
+        Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
+          Image($r('app.media.close'))
+            .width(24)
+            .height(24)
+        }
+        .height(42)
+        .width(42)
+        .onClick(() => this.showFilterDialog = false)
+
+        Button({ type: ButtonType.Circle, buttonStyle: ButtonStyleMode.NORMAL }) {
+          Image($r('app.media.search'))
+            .width(24)
+            .height(24)
+        }
+        .height(42)
+        .width(42)
+        .onClick(() => {
+          this.shownData = searchCourses(this.obtainedData, this.advancedFilter);
+          this.showFilterDialog = false;
+        })
+      }
+      Scroll() {
+        Column() {
+          Row() {
+            Text('教师')
+            TextInput()
+          }
+        }
+        .padding(16)
+      }
+    }
   }
 
   underConstruction() {

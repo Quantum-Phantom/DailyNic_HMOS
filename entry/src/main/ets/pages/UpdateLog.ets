@@ -1,7 +1,7 @@
 import { webview } from '@kit.ArkWeb';
 import { extractCredits } from '../utils/tools';
 import UpdateInfo from '../view/UpdateInfo';
-import ScheduleManager from '../utils/ScheduleManager';
+import ScheduleManager from '../utils/Classes/ScheduleManager';
 import UnifiedPreferences from '../utils/UnifyPreference';
 import { classAttribute } from '../constants/ScheduleSources';
 import { currentAppVersion } from '../constants/BasicConstants';

@@ -2,7 +2,7 @@
 import { Want } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { formBindingData, FormExtensionAbility, formInfo, formProvider } from '@kit.FormKit';
-import ScheduleManager from '../utils/ScheduleManager';
+import ScheduleManager from '../utils/Classes/ScheduleManager';
 import * as ScheduleSources from '../constants/ScheduleSources';
 import examManager, { examAttribute } from '../utils/ExamManager';
 import UnifiedPreferences, { millisecondsPerWeek } from '../utils/UnifyPreference';

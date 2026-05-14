@@ -79,7 +79,8 @@ struct CheckinGallery {
             .width('100%')
           }
           .height(70)
-          .backgroundColor($r('app.color.grid_background'))
+          .backgroundColor(BackgroundImage.blurLevel === undefined ? $r('app.color.grid_background') : undefined)
+          .backgroundBlurStyle(BackgroundImage.blurLevel)
           .width('100%')
           .onClick(() => {
             this.LPercent = this.RPercent = 0;

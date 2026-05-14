@@ -35,7 +35,7 @@ struct ExamDetail {
 
   @Builder examDetailDialog() {
     Column() {
-      Row({ space: 8 }) {
+      Row({ space: 5 }) {
         Text(this.isChangeSchedule ? $r('app.string.exam_detail') : $r('app.string.exam_detail_new'))
           .fontSize(24)
           .fontWeight("bold")
