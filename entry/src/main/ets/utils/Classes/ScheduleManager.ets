@@ -1,9 +1,9 @@
 // 用于管理多学期的 ScheduleManager
 
-import UnifyPreferences from './UnifyPreference';
-import { classAttribute, COVER_MODE, semesterAttribute } from '../constants/ScheduleSources';
-import { colorSet, colorSetLen, extractCredits, getRandomInt } from './tools';
-import { currentScheduleVersion } from '../constants/BasicConstants';
+import UnifyPreferences from '../UnifyPreference';
+import { classAttribute, COVER_MODE, semesterAttribute } from '../../constants/ScheduleSources';
+import { colorSet, colorSetLen, extractCredits, getRandomInt } from '../tools';
+import { currentScheduleVersion } from '../../constants/BasicConstants';
 
 function areNumberArraysEqual(a: number[], b: number[]): boolean {
   if (a.length !== b.length) return false;

@@ -28,7 +28,7 @@ export default struct GridComponent {
               .layoutWeight(1)
 
             Button({ buttonStyle: ButtonStyleMode.NORMAL, type: ButtonType.Circle }) {
-              Image($r('app.media.setting'))
+              Image($r('app.media.more'))
                 .height(20)
                 .width(20)
             }

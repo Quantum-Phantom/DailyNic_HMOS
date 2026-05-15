@@ -44,7 +44,7 @@ export function resetWebName(title?: ResourceStr) {
       MenuItem({ content: item })
         .onClick(() => {
           webName.push(webName.splice(index, 1)[0]);
-          pageInfo.moveIndexToTop(index);
+          pageInfo.moveIndexToTop(pageInfo.size() - webName.length + index);
         })
     })
   }
@@ -56,7 +56,7 @@ export function resetWebName(title?: ResourceStr) {
       .contentFont({ size: 14 })
       .hitTestBehavior(HitTestMode.None)
     MenuItem({ content: '置顶页面', builder: toppingPage(pageInfo), endIcon: $r('sys.media.ohos_ic_public_arrow_right') })
-      .enabled(pageInfo.size() > 1)
+      .enabled(webName.length > 1)
     MenuItem({ content: '打开新网页', builder: singleSection(pageInfo), endIcon: $r('sys.media.ohos_ic_public_arrow_right') })
   }
 }

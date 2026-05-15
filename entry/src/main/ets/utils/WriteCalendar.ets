@@ -5,7 +5,7 @@ import { abilityAccessCtrl, bundleManager, PermissionRequestResult } from "@kit.
 
 import * as tools from './tools';
 import examManager from "./ExamManager";
-import ScheduleManager from '../utils/ScheduleManager';
+import ScheduleManager from './Classes/ScheduleManager';
 import * as ScheduleSources from '../constants/ScheduleSources';
 import UnifyPreference from './UnifyPreference';
 
@@ -276,7 +276,7 @@ class WriteCalendar {
                           location: { location: singleClass.location },
                           type: calendarManager.EventType.NORMAL, // 日程类型
                           startTime: tools.getClassTimestamp(termStart, singleClass.weekOfTerm[0], singleClass.dayOfWeek, ScheduleSources.commonClassStamp[singleClass.timeSpan[0]][0]), // 日程开始时间
-                          endTime: tools.getClassTimestamp(termStart, singleClass.weekOfTerm[0], singleClass.dayOfWeek, ScheduleSources.commonClassStamp[singleClass.timeSpan[1]][1]), // 日程结束时间
+                          endTime: tools.getClassTimestamp(termStart, singleClass.weekOfTerm[0], singleClass.dayOfWeek, ScheduleSources.commonClassStamp[singleClass.timeSpan[singleClass.timeSpan.length - 1]][1]), // 日程结束时间
                           reminderTime: ScheduleSources.remindBefore, // 距开始时间提前remindBefore分钟提醒
                           recurrenceRule: {
                             // 日程重复规则

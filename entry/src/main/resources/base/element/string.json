@@ -385,6 +385,14 @@
       "value": "返回"
     },
     {
+      "name": "yes",
+      "value": "好哒"
+    },
+    {
+      "name": "no",
+      "value": "不要"
+    },
+    {
       "name": "exam_detail_new",
       "value": "添加考试"
     },
@@ -755,6 +763,10 @@
     {
       "name": "not_newest",
       "value": "此处展示的内容可能不是最新，请以学校教务系统为准"
+    },
+    {
+      "name": "location_permission_reason",
+      "value": "用于内置网页获取当前位置信息"
     },
     {
       "name": "write_calendar_permission_reason",
