@@ -147,6 +147,14 @@ struct Webview {
           }
         })
 
+      MenuItem({ content: $r('app.string.open_in_browser'), startIcon: $r('app.media.browser') })
+        .enabled(this.allowSysOpen)
+        .onClick(() => {
+          (this.getUIContext().getHostContext() as common.UIAbilityContext).openLink(
+            this.webviewController.getUrl()
+          );
+        })
+
       MenuItem({ content: $r('app.string.help'), startIcon: $r('app.media.questionmark_circle')})
         .onClick(() => {
           this.pathStack.pushPath({ name: 'Help' });

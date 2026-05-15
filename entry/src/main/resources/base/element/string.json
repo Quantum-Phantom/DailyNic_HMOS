@@ -282,7 +282,7 @@
     },
     {
       "name": "click_slide_change_color",
-      "value": "在虚线框内滑动或轻触任意位置，可以选中对应方向上的颜色"
+      "value": "在调色盘内滑动或轻触任意位置，可以选中对应方向上的颜色"
     },
     {
       "name": "custom_theme_color_into",
@@ -559,6 +559,10 @@
     {
       "name": "delete",
       "value": "删除"
+    },
+    {
+      "name": "open_in_browser",
+      "value": "在系统浏览器中打开"
     },
     {
       "name": "help",

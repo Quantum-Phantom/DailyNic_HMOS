@@ -111,11 +111,12 @@ export class CheckInTools {
     const randomContent: string = CheckInTools.CHECK_IN_CONTENT_LIST[randomIndex];
     CheckInTools.recordCollection(randomIndex);
 
-    // 写入首选项并落盘
-    UnifiedPreferences.putSync(LAST_DAY_KEY, CheckInTools.getTodayDate());
-    UnifiedPreferences.putSync(TOTAL_DAYS_KEY, newTotal);
-    UnifiedPreferences.putSync(CONSECUTIVE_DAYS_KEY, newConsecutive);
-    UnifiedPreferences.putSync(CONTENT_KEY, randomContent);
+    // 写入首选项，批量写完后统一落盘
+    UnifiedPreferences.putSync(LAST_DAY_KEY, CheckInTools.getTodayDate(), false);
+    UnifiedPreferences.putSync(TOTAL_DAYS_KEY, newTotal, false);
+    UnifiedPreferences.putSync(CONSECUTIVE_DAYS_KEY, newConsecutive, false);
+    UnifiedPreferences.putSync(CONTENT_KEY, randomContent, false);
+    UnifiedPreferences.flush();
 
     return [newTotal, newConsecutive, randomContent];
   }

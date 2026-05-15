@@ -512,6 +512,8 @@ struct Webview {
           .onClick(() => {
             ScheduleManager.coverExistSemester(this.selectIndex, ScheduleManager.parseOnlineSchedule(JSON.parse(this.timetable) as classAttribute[][][]), COVER_MODE.APPEND, true);
             this.getUIContext().getPromptAction().showToast({ message: $r('app.string.have_appended', truncateString(this.semesters[this.selectIndex].name, 10)) });
+            this.showSelectTerm = false;
+            this.pathStack.pop();
           })
 
         Button($r('app.string.cover'))
@@ -521,6 +523,8 @@ struct Webview {
           .onClick(() => {
             ScheduleManager.coverExistSemester(this.selectIndex, ScheduleManager.parseOnlineSchedule(JSON.parse(this.timetable) as classAttribute[][][]), COVER_MODE.COVER, true);
             this.getUIContext().getPromptAction().showToast({ message: $r('app.string.have_covered', truncateString(this.semesters[this.selectIndex].name, 10)) });
+            this.showSelectTerm = false;
+            this.pathStack.pop();
           })
 
         Button($r('app.string.cover_duplicate'))
@@ -530,6 +534,8 @@ struct Webview {
           .onClick(() => {
             ScheduleManager.coverExistSemester(this.selectIndex, ScheduleManager.parseOnlineSchedule(JSON.parse(this.timetable) as classAttribute[][][]), COVER_MODE.COVER_DUPLICATE, true);
             this.getUIContext().getPromptAction().showToast({ message: $r('app.string.have_covered', truncateString(this.semesters[this.selectIndex].name, 10)) });
+            this.showSelectTerm = false;
+            this.pathStack.pop();
           })
       }
       .width('100%')
