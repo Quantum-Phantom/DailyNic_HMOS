@@ -21,7 +21,7 @@ export class WantAbility {
 
   static restart(hostContext: common.UIAbilityContext) {
     let want: Want = {
-      bundleName: 'com.nic.dailynic.openclaw',
+      bundleName: 'com.nic.dailynic',
       abilityName: 'EntryAbility'
     };
     try {

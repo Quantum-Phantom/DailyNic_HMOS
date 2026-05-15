@@ -1,6 +1,6 @@
 {
   "app": {
-    "bundleName": "com.nic.dailynic.openclaw",
+    "bundleName": "com.nic.dailynic",
     "vendor": "$string:developer",
     "versionCode": 2002000,
     "versionName": "2.2.0",

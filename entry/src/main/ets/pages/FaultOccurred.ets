@@ -24,7 +24,7 @@ struct FaultOccurred {
   build() {
     Scroll() {
       Column() {
-        Image($r('app.media.fault_occurred'))
+        Image($r('app.media.sorry'))
           .height(180)
           .draggable(false)
         Text($r('app.string.runtime_error'))
